@@ -1,0 +1,119 @@
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansDriver;
+import org.apache.mahout.common.AbstractJob;
+import org.apache.mahout.vectorizer.DocumentProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class VectorAndClusterDocuments extends AbstractJob {
+    
+    private static final Logger log = LoggerFactory.getLogger(VectorAndClusterDocuments.class);
+
+    private static final String DIRECTORY_CONTAINING_CONVERTED_INPUT = "data";
+    
+    // this is just a placeholder, since raw text processing should occur in
+    // a separate component.
+    private static final String DIR_PLAINTEXT = "/texaspete/raw";
+    
+    
+    private static final String DIR_TEXT_SEQFILE = "hdfs://localhost/texaspete/text";
+    private static final String DIR_TOKENIZED_SEQFILE = "hdfs://localhost/texaspete/tokens";
+    private static final String DIR_VECTOR_SEQFILE = "hdfs://localhost/texaspete/vectors";
+    
+    
+    private static final String M_OPTION = FuzzyKMeansDriver.M_OPTION;
+
+    private VectorAndClusterDocuments() {
+    }
+    
+    public static void main (String[] argv) throws IOException, ClassNotFoundException, InterruptedException, InstantiationException, IllegalAccessException {
+        new VectorAndClusterDocuments().run();
+    }
+
+    @Override
+    public int run(String[] argv) throws Exception {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    
+    public int run() throws IOException, ClassNotFoundException, InterruptedException, InstantiationException, IllegalAccessException {
+        // Placeholder. This will convert a sample file into the sequencefile we so desire.
+        Path input;
+        Path output;
+        
+        // Assume we already have a ID:Text sequencefile directory.
+        // We now proceed to run the DocumentProcessor class, which will turn
+        // the SequenceFile into a ID:StringTuple file. We think. It creates
+        // something that should be reasonably close to that.
+        input = new Path(DIR_TEXT_SEQFILE);
+        output = new Path(DIR_TOKENIZED_SEQFILE);
+        
+        DocumentProcessor.tokenizeDocuments(input, StandardAnalyzer.class, output);
+        
+        // We are now going to take the SequenceFile we got from above and
+        // convert it to vectors using DictionaryVectorizer. This should create
+        // a SequenceFile of ID:Vector. This is the final processing step we
+        // need to do; after this we have our vector list to work off of.
+        input = output;
+        output = new Path(DIR_VECTOR_SEQFILE);
+        
+        
+        // Cluster.
+        // Generally how this seems to work from the examples that I've found
+        // is that one does a CanopyCluster first, which is a fast cluster
+        // algorithm for which we don't need to pick starting clusters. The
+        // centroids for the canopies are then used as the starting points in
+        // k-means or fuzzy-k-means clustering.
+        
+        
+//        
+//        DistanceMeasure measure = new EuclideanDistanceMeasure();
+//        double t1 = 80;
+//        double t2 = 55;
+//        double convergenceDelta = 0.5;
+//        int maxIterations = 10;
+//        float fuzziness = 2;
+//        Path directoryContainingConvertedInput = new Path(output, DIRECTORY_CONTAINING_CONVERTED_INPUT);
+//        log.info("Preparing Input");
+//        InputDriver.runJob(input, directoryContainingConvertedInput, "org.apache.mahout.math.RandomAccessSparseVector");
+//        log.info("Running Canopy to get initial clusters");
+//        CanopyDriver.run(new Configuration(), directoryContainingConvertedInput, output, measure, t1, t2, false, false);
+//        log.info("Running FuzzyKMeans");
+//        FuzzyKMeansDriver.run(directoryContainingConvertedInput,
+//                              new Path(output, Cluster.INITIAL_CLUSTERS_DIR),
+//                              output,
+//                              measure,
+//                              convergenceDelta,
+//                              maxIterations,
+//                              fuzziness,
+//                              true,
+//                              true,
+//                              0.0,
+//                              false);
+//        // run ClusterDumper
+//        ClusterDumper clusterDumper =
+//            new ClusterDumper(finalClusterPath(getConf(), output, maxIterations), new Path(output, "clusteredPoints"));
+//        clusterDumper.printClusters(null);
+        return 0;
+    }
+    
+    /**
+     * Return the path to the final iteration's clusters
+     */
+    private static Path finalClusterPath(Configuration conf, Path output, int maxIterations) throws IOException {
+      FileSystem fs = FileSystem.get(conf);
+      for (int i = maxIterations; i >= 0; i--) {
+        Path clusters = new Path(output, "clusters-" + i);
+        if (fs.exists(clusters)) {
+          return clusters;
+        }
+      }
+      return null;
+    }
+}
