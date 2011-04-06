@@ -1,3 +1,5 @@
+package org.sleuthkit.hadoop;
+
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
