@@ -7,7 +7,7 @@
     <name>Hadoop modules for The SleuthKit</name>
     <packaging>pom</packaging>
     <prerequisites>
-      <maven>3.0.3</maven>
+        <maven>3.0.3</maven>
     </prerequisites>
     <scm>
         <connection>scm:svn:https://bericotechnologies.jira.com/svn/TXPETE/trunk</connection>
@@ -17,23 +17,20 @@
         <system>jira</system>
         <url>http://bericotechnologies.jira.com/browse/TXPETE</url>
     </issueManagement>
-    <url>${url.base}</url>
-    <distributionManagement>
-        <site>
-            <id>${project.groupId}.${project.artifactId}.website</id>
-            <url>${site.deploy.base}</url>
-        </site>
-    </distributionManagement>
-
     <modules>
-      <module>clustering</module>
+        <module>clustering</module>
     </modules>
-
+    <pluginRepositories>
+        <pluginRepository>
+            <id>google-project</id>
+            <url>http://maven-confluence-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+    </pluginRepositories>
     <profiles>
         <profile>
             <id>sourcecheck</id>
             <activation>
-	      <!-- turned off until we create some rules we want to use 
+                <!-- turned off until we create some rules we want to use 
                 <activeByDefault>true</activeByDefault>
 		-->
             </activation>
