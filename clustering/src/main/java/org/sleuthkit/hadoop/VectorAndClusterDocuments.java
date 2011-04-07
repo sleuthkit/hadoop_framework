@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.util.Version;
 import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansDriver;
 import org.apache.mahout.common.AbstractJob;
 import org.apache.mahout.vectorizer.DocumentProcessor;
@@ -73,7 +74,9 @@ public class VectorAndClusterDocuments extends AbstractJob {
         input = new Path(DIR_TEXT_SEQFILE);
         output = new Path(DIR_TOKENIZED_SEQFILE);
         
-        DocumentProcessor.tokenizeDocuments(input, StandardAnalyzer.class, output);
+        //StandardAnalyzer sta = new StandardAnalyzer(Version.LUCENE_30);
+        
+        DocumentProcessor.tokenizeDocuments(input, StdAnalyzer.class, output);
         
         // We are now going to take the SequenceFile we got from above and
         // convert it to vectors using DictionaryVectorizer. This should create
@@ -135,4 +138,13 @@ public class VectorAndClusterDocuments extends AbstractJob {
       }
       return null;
     }
+    
+    
+    
+    public static class StdAnalyzer extends StandardAnalyzer {
+        public StdAnalyzer() {
+            super(Version.LUCENE_30);
+        }
+    }
 }
+
