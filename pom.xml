@@ -26,6 +26,7 @@
     </distributionManagement>
 
     <modules>
+      <module>clustering</module>
     </modules>
 
     <profiles>
