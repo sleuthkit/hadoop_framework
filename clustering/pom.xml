@@ -45,7 +45,7 @@
 	      </goals>
 	      <configuration>
 		<descriptors>
-		  <descriptor>job.xml</descriptor>
+		  <descriptor>src/main/assembly/job.xml</descriptor>
 		</descriptors>
 	      </configuration>
 	    </execution>

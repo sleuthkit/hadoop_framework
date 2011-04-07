@@ -26,6 +26,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.util.Version;
 import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansDriver;
 import org.apache.mahout.common.AbstractJob;
+import org.apache.mahout.vectorizer.DictionaryVectorizer;
 import org.apache.mahout.vectorizer.DocumentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +86,28 @@ public class VectorAndClusterDocuments extends AbstractJob {
         input = output;
         output = new Path(DIR_VECTOR_SEQFILE);
         
+        int minSupport = 2;
+        int maxNGramSize = 1;
+        float minLLRValue = 1;
+        float normPower = 1;
+        boolean logNormalize = false;
+        int numReducers = 2;
+        int chunkSizeInMegabytes = 200;
+        boolean sequentialAccess = false;
+        boolean namedVectors = true;
+        
+        DictionaryVectorizer.createTermFrequencyVectors(input, 
+                output,
+                getConf(),
+                minSupport,
+                maxNGramSize,
+                minLLRValue,
+                normPower,
+                logNormalize,
+                numReducers,
+                chunkSizeInMegabytes,
+                sequentialAccess,
+                namedVectors);
         
         // Cluster.
         // Generally how this seems to work from the examples that I've found
