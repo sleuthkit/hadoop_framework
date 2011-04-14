@@ -40,11 +40,11 @@ import org.apache.hadoop.util.ToolRunner;
 
 /* Extracts matching regexes from input files and counts them. */
 public class GrepSearchJob {
-    private GrepSearchJob() {}
+    public GrepSearchJob() {}
 
 
-    public static final String INPUT_DIR =  "hdfs://localhost/texaspete/text/";
-    public static final String OUTPUT_DIR = "hdfs://localhost/texaspete/grepped/";
+    public static final String DEFAULT_INPUT_DIR =  "hdfs://localhost/texaspete/text/";
+    public static final String DEFAULT_OUTPUT_DIR = "hdfs://localhost/texaspete/grepped/";
 
 
     public int run(String[] args) throws Exception {
@@ -53,17 +53,20 @@ public class GrepSearchJob {
             ToolRunner.printGenericCommandUsage(System.out);
             return -1;
         }
-
-        Job job = new Job();
-        job.setJarByClass(GrepSearchJob.class);
-
+        return runPipeline(DEFAULT_INPUT_DIR, DEFAULT_OUTPUT_DIR, args[0]);
+    }
+    
+    public static int runPipeline(String inputdir, String outputdir, String regexFile) {
+        
         try {
+            Job job = new Job();
+            job.setJarByClass(GrepSearchJob.class);
 
             job.setJobName("sleuthkit-grep-search");
 
             FileSystem fs = FileSystem.get(job.getConfiguration());
-            fs.delete(new Path(OUTPUT_DIR), true);
-            Path inFile = new Path(args[0]);
+            fs.delete(new Path(outputdir), true);
+            Path inFile = new Path(regexFile);
             FSDataInputStream in = fs.open(inFile);
 
             // Read the regex file, set a property on the configuration object
@@ -82,14 +85,13 @@ public class GrepSearchJob {
 
             job.getConfiguration().set("mapred.mapper.regex", regexes);
 
-            FileInputFormat.setInputPaths(job, new Path(INPUT_DIR));
+            FileInputFormat.setInputPaths(job, new Path(inputdir));
 
-            FileOutputFormat.setOutputPath(job, new Path(OUTPUT_DIR));
+            FileOutputFormat.setOutputPath(job, new Path(outputdir));
 
             job.setMapperClass(GrepSearchJob.GrepMapper.class);
             job.setMapOutputKeyClass(Text.class);
             job.setMapOutputValueClass(Text.class);
-
 
             // We could set a combiner here to improve performance on distributed
             // systems.
@@ -98,7 +100,6 @@ public class GrepSearchJob {
             job.setReducerClass(GrepSearchJob.SetReducer.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(ArrayWritable.class);
-
 
             job.setInputFormatClass(SequenceFileInputFormat.class);
 
