@@ -19,6 +19,8 @@
     </issueManagement>
     <modules>
         <module>clustering</module>
+	<module>match</module>
+	<module>pipeline</module>
     </modules>
     <pluginRepositories>
         <pluginRepository>
