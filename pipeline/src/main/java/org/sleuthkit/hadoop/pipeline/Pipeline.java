@@ -1,6 +1,8 @@
 package org.sleuthkit.hadoop.pipeline;
 
 import org.sleuthkit.hadoop.GrepSearchJob;
+import org.sleuthkit.hadoop.HBaseFileImporter;
+import org.sleuthkit.hadoop.TikaTextExtractor;
 import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
 
 public class Pipeline {
@@ -8,7 +10,7 @@ public class Pipeline {
     // The storage place of raw files containing:
     
     // content: raw file content bytes
-    public static final String TIKA_IN_DIR  = "hdfs://localhost/texaspete/raw/";
+    public static final String TIKA_IN  = "hdfs://localhost/texaspete/raw/";
     
     // The storage place of sequencefiles containing:
     // key:   file name
@@ -35,8 +37,13 @@ public class Pipeline {
     // the indices in the sparse TF vectors to words.
     public static final String TF_DIR = "hdfs://localhost/texaspete/vectors";
     
-    public static void main(String[] argv) {
+    public static void main(String[] argv) throws Exception {
         // TODO: Run the TIKA code here, collecting content from text files.
+        
+        
+        HBaseFileImporter.runPipeline(argv[0]);
+        
+        TikaTextExtractor.runPipeline("fileTable", "data:path", "data:cont", "hdfs://localhost/texaspete/text/outfile");
         
         // Run the GREP search code.
 

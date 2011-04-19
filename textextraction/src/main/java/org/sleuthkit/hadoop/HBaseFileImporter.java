@@ -176,4 +176,9 @@ public class HBaseFileImporter extends Configured implements Tool, Visitor<File>
 		int exitCode = ToolRunner.run(cf, new HBaseFileImporter(), args);
 		System.exit(exitCode);
 	}
+	
+	public static int runPipeline(String importPath) throws Exception{
+	       Configuration cf = HBaseConfiguration.create();
+	       return ToolRunner.run(cf, new HBaseFileImporter(), new String[] {importPath});
+	}
 }

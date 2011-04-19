@@ -149,4 +149,13 @@ public class TikaTextExtractor {
 			reportUsageAndExit();
 		}
 	}
+	
+	public static int runPipeline(String tablename, String columnPath, String columnContent, String sequenceFileName) throws Exception{
+	    Configuration conf = HBaseConfiguration.create();
+	    String[] otherArgs = new GenericOptionsParser(conf, new String[] {tablename, columnPath, columnContent, sequenceFileName}).getRemainingArgs();
+
+	    Job job = createSubmittableJob(conf, otherArgs);
+	    return job.waitForCompletion(true) ? 0 : 1;
+
+	}
 }
