@@ -50,7 +50,5 @@ public class Pipeline {
         GrepSearchJob.runPipeline(TIKA_OUT_DIR, GREP_OUT_DIR, GREP_KEYWORDS);
         
         TokenizeAndVectorizeDocuments.runPipeline(TIKA_OUT_DIR, TOKEN_OUT_DIR, TF_DIR);
-        
-        
     }
 }

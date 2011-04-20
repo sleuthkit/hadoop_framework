@@ -42,8 +42,13 @@ public class TikaTextExtractor {
 	private static int CONTENT_COL = 1;
 	private static String SEQ_FILE_NAME = "sequenceFilePath";
 	private static String JOB_NAME = "TikaTextExtractor";
-	private static byte [][] family = new byte[2][];
-	private static byte [][] column = new byte[2][];
+//	private static byte [][] family = new byte[2][]; // data:data
+//	private static byte [][] column = new byte[2][]; // path cont
+	
+	private static byte [] FAMILY = Bytes.toBytes("data");
+
+	private static byte [] COL_CONT = Bytes.toBytes("cont");
+	private static byte [] COL_PATH = Bytes.toBytes("path");
 
 	static class TikaTextExtractorMapper extends TableMapper<ImmutableBytesWritable, Result> {
 		private SequenceFile.Writer writer = null;
@@ -72,9 +77,9 @@ public class TikaTextExtractor {
 		public void map(ImmutableBytesWritable row, Result values, Context context) throws IOException {
 			InputStream is = null;
 			//first check if file content is in row:
-			byte[] value = values.getValue(family[CONTENT_COL], column[CONTENT_COL]);
+			byte[] value = values.getValue(FAMILY, COL_CONT);
 			if (value == null) {	//don't have content - must have path
-				byte[] path = values.getValue(family[PATH_COL], column[PATH_COL]);
+				byte[] path = values.getValue(FAMILY, COL_PATH);
 				if (path == null) {
 					throw new IOException("No path or content in row " + row);
 				}
@@ -117,15 +122,21 @@ public class TikaTextExtractor {
 		Scan scan = new Scan();
 		for (int i = 0; i <= 1; i++) {
 			String[] fields = args[i+1].split(":");
-			if (fields.length != 2) {
-				reportUsageAndExit();
-			} 
-			else {
-				family[i] = Bytes.toBytes(fields[0]);
-				column[i] = Bytes.toBytes(fields[1]);
-				scan.addColumn(family[i], column[i]);
-			}
+//			if (fields.length != 2) {
+//				reportUsageAndExit();
+//			} 
+//			else {
+//				//family[i] = Bytes.toBytes(fields[0]);
+//				//column[i] = Bytes.toBytes(fields[1]);
+//				scan.addColumn(FAMILY, column[i]);
+//				
+//			}
+			scan.addColumn(FAMILY, COL_PATH);
+			scan.addColumn(FAMILY, COL_CONT);
 		}
+		
+
+		
 		job.getConfiguration().set(SEQ_FILE_NAME, args[3]);
 		job.setOutputFormatClass(NullOutputFormat.class);
 		TableMapReduceUtil.initTableMapperJob(tableName, scan, TikaTextExtractorMapper.class, ImmutableBytesWritable.class, Result.class, job);
@@ -141,6 +152,7 @@ public class TikaTextExtractor {
 	public static void main(String[] args) throws Exception {
 		Configuration conf = HBaseConfiguration.create();
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+
 		if (otherArgs.length == 4) {
 			Job job = createSubmittableJob(conf, otherArgs);
 			System.exit(job.waitForCompletion(true) ? 0 : 1);
