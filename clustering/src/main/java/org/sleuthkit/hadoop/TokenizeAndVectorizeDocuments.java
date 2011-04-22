@@ -17,12 +17,12 @@
 
 package org.sleuthkit.hadoop;
 
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.mahout.vectorizer.DefaultAnalyzer;
 import org.apache.mahout.vectorizer.DictionaryVectorizer;
 import org.apache.mahout.vectorizer.DocumentProcessor;
+import org.apache.mahout.vectorizer.tfidf.TFIDFConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +69,9 @@ public class TokenizeAndVectorizeDocuments {
         int minSupport = 2;
         int maxNGramSize = 1;
         float minLLRValue = 1;
-        float normPower = 1;
+        float normPower = -1.0f;
         boolean logNormalize = false;
-        int numReducers = 2;
+        int numReducers = 1;
         int chunkSizeInMegabytes = 200;
         boolean sequentialAccess = false;
         boolean namedVectors = true;
@@ -94,6 +94,28 @@ public class TokenizeAndVectorizeDocuments {
             log.error("Error creating TF vectors for documents", ex);
             return 3;
         }
+        
+        input = new Path(vectordir + "/tf-vectors");
+        output = new Path(vectordir);
+        int minDocumentFrequency = 1;
+        int maxDocumentFrequencyPercent = 99;
+        
+        try {
+        TFIDFConverter.processTfIdf(input,
+                                    output, // this is intentional.
+                                    chunkSizeInMegabytes, 
+                                    minDocumentFrequency, 
+                                    maxDocumentFrequencyPercent, 
+                                    normPower, 
+                                    logNormalize, 
+                                    sequentialAccess, 
+                                    namedVectors, 
+                                    numReducers);
+        } catch (Exception ex) {
+            log.error("Error creating TF-IDF Vectors from TF-vectors", ex);
+            return 4;
+        }
+        
         return 0;
     }
 }
