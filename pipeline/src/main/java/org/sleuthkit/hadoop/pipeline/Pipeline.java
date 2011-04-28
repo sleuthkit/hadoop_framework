@@ -1,5 +1,6 @@
 package org.sleuthkit.hadoop.pipeline;
 
+import org.sleuthkit.hadoop.ClusterDocuments;
 import org.sleuthkit.hadoop.GrepSearchJob;
 import org.sleuthkit.hadoop.HBaseFileImporter;
 import org.sleuthkit.hadoop.TikaTextExtractor;
@@ -35,7 +36,10 @@ public class Pipeline {
     // value: term frequency vectors.
     // This directory will likely also contain a dictionary vector mapping
     // the indices in the sparse TF vectors to words.
-    public static final String TF_DIR = "hdfs://localhost/texaspete/vectors";
+    public static final String VECTOR_DIR = "hdfs://localhost/texaspete/vectors";
+    public static final String TFIDF_DIR = "hdfs://localhost/texaspete/vectors/tfidf-vectors/";
+    
+    public static final String CLUSTERS_DIR = "hdfs://localhost/texaspete/clusters";
     
     public static void main(String[] argv) throws Exception {
         // TODO: Run the TIKA code here, collecting content from text files.
@@ -49,6 +53,8 @@ public class Pipeline {
 
         GrepSearchJob.runPipeline(TIKA_OUT_DIR, GREP_OUT_DIR, GREP_KEYWORDS);
         
-        TokenizeAndVectorizeDocuments.runPipeline(TIKA_OUT_DIR, TOKEN_OUT_DIR, TF_DIR);
+        TokenizeAndVectorizeDocuments.runPipeline(TIKA_OUT_DIR, TOKEN_OUT_DIR, VECTOR_DIR);
+        
+        ClusterDocuments.runPipeline(TFIDF_DIR, CLUSTERS_DIR);
     }
 }
