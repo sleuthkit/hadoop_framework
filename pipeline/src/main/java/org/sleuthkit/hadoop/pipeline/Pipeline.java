@@ -41,6 +41,8 @@ public class Pipeline {
     
     public static final String CLUSTERS_DIR = "hdfs://localhost/texaspete/clusters";
     
+    public static final String DICTIONARY_DIR = "hdfs://localhost/texaspete/vectors/dictionary.file-0";
+    
     public static void main(String[] argv) throws Exception {
         // TODO: Run the TIKA code here, collecting content from text files.
         
@@ -55,6 +57,6 @@ public class Pipeline {
         
         TokenizeAndVectorizeDocuments.runPipeline(TIKA_OUT_DIR, TOKEN_OUT_DIR, VECTOR_DIR);
         
-        ClusterDocuments.runPipeline(TFIDF_DIR, CLUSTERS_DIR);
+        ClusterDocuments.runPipeline(TFIDF_DIR, CLUSTERS_DIR, DICTIONARY_DIR);
     }
 }
