@@ -1,0 +1,402 @@
+<html>
+<head>
+  <title>Reports</title>
+  <meta charset="utf-8">
+  <link type="text/css" href="css/reports.css" rel="stylesheet" />
+  <link type="text/css" href="css/cupertino/jquery-ui-1.8.12.custom.css" rel="stylesheet" />
+  <link type="text/css" href="css/demo_page.css" rel="stylesheet" />
+  <link type="text/css" href="css/demo_table.css" rel="stylesheet" />
+  <link type="text/css" href="css/demo_table_jui.css" rel="stylesheet" />
+  <script src="js/json2.js" type="text/javascript"></script>  
+  <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+  <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
+  <script src="js/jquery.dataTables.min.js" type="text/javascript"></script>
+  <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+  <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+  <script src="js/tipsy.js" type="text/javascript"></script>
+  <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+  <script src="data/navlist.data" type="text/javascript"></script>
+  <script>
+  function DownloadJSON2CSV(objArray)
+  {
+    var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+    var str = '';
+    for (var i = 0; i < array.length; i++) {
+      var line = '';
+      for (var index in array[i]) {
+        line += "\"" + String(array[i][index]).replace(/\x22/g, "\"\"") + '\",';
+      }
+      line.slice(0,line.Length-1); 
+      str += line + '\r\n';
+    }
+    window.open( "data:text/csv;charset=utf-8," + escape(str))
+  }
+  
+  $(function() {
+    $( "#accordion" ).accordion({
+      fillSpace: true
+    });
+  });
+  $(function() {
+    $( "#accordionResizer" ).resizable({
+      minHeight: 140,
+      resize: function() {
+        $( "#accordion" ).accordion("resize");
+      }
+    });
+  });
+
+  $(window).resize(function(){
+    var elem = $(this);
+    $("#accordionResizer").height(elem.height()-20);
+    $("#accordion").accordion("resize");
+		$("#dataTableContent").width($(window).width()-$("#accordionResizer").width()-20);
+		$("#dataTableContent").position({
+			of: $("#accordionResizer"),
+			my: "left top",
+			at: "right top",
+			offset: "3 0",
+			collision: "none none"
+		});
+	  $("#chartContent").width($("#dataTableContent").width());
+		$("#chartContent").position({
+			of: $("#dataTableContent"),
+			my: "left top",
+			at: "left bottom",
+			offset: "0 0",
+			collision: "none none"
+		});
+  });
+
+  function htmlSafeString(s) {
+    return String(s).replace(/&(?!\w+([;\s]|$))/g, "&amp;").replace(/\x3C/g, "&lt;").replace(/\x3E/g, "&gt;");
+  }
+
+  function fillTable(data, id, tblHeader, divHeader) {
+    if (divHeader.length > 0) {
+      $('#' + id).append("<div class='entityHeader'><button id='csv" + tblHeader + "'>CSV</button>" + htmlSafeString(divHeader) + "</div>");
+    }
+    var items = [];
+    items.push('<thead><tr><th>' + htmlSafeString(tblHeader) + '</th><th>Value</th></tr></thead>');
+    var i = 0;
+    var dataLength = data.length;
+    while(i < dataLength) {
+      items.push('<tr><td>' + htmlSafeString(data[i].a) + '</td><td class="listNum">' + htmlSafeString(data[i].n) + '</td></tr>');
+      ++i;
+    }
+    $('<table>', {
+      'class': 'display',
+      html: items.join('')
+    }).appendTo('#' + id);
+    $("#csv" + tblHeader).button()
+    .css("float", "left")
+    .click(function() {
+			DownloadJSON2CSV(data);
+		});
+  }
+
+  var cTable;
+  var fHead;
+  function makeTable(destroy, noSort) {
+    var aaSorting;
+    if (noSort) {
+      aaSorting = [];
+      $(".listNum").css("text-align", "left");
+    }
+    else {
+      aaSorting = [[1,"desc"],[0,"asc"]];
+      $(".listNum").css("text-align", "right");
+    }
+	  cTable = $('.display').dataTable({
+		  "aaSorting": aaSorting,
+		  "bJQueryUI": true,
+		  "bAutoWidth": true,
+		  "bInfo" : true,
+		  "bDestroy": destroy,
+		  "bStateSave": true,
+		  "sPaginationType": "full_numbers"
+	  });
+//    fHead = new FixedHeader(cTable);
+  }
+
+  $(document).ready(function () {
+    $('#pieChart').show();
+    $('#barChart').hide();
+    $('#scatterPlot').hide();
+    fillTable(deviceOverview, "dataTableContent", "Name", "Overview");
+  	makeTable(false, true);
+    $('#accordion').bind('accordionchangestart', function(event, ui) {
+      $('#dataTableContent').empty();
+      fillTable(eval(ui.newContent.attr("data")), "dataTableContent", ui.newContent.attr("tblHeader"), ui.newContent.attr("divHeader"));
+      var destroyTable = false;
+      if (ui.newContent.attr("data")=="deviceOverview") {
+        $('#barChart').hide();
+        $('#scatterPlot').hide();
+        $('#pieChart').show();
+        destroyTable = true;
+      }
+      else if (ui.newContent.attr("data")=="docClusterList") {
+        $('#pieChart').hide();
+        $('#barChart').hide();
+        $('#scatterPlot').show();
+      }
+      else if (ui.newContent.attr("data")=="emailAddressList") {
+        updateBarChart(emailAddressList, "Top " + ui.newContent.attr("divHeader"));
+        $('#pieChart').hide();
+        $('#scatterPlot').hide();
+        $('#barChart').show();
+      }
+      else if (ui.newContent.attr("data")=="emailDomainList") { 
+        updateBarChart(emailDomainList, "Top " + ui.newContent.attr("divHeader"));
+        $('#pieChart').hide();
+        $('#scatterPlot').hide();
+        $('#barChart').show();
+      }
+      else if (ui.newContent.attr("data")=="urlList") {
+        updateBarChart(urlList, "Top " + ui.newContent.attr("divHeader"));
+        $('#pieChart').hide();
+        $('#scatterPlot').hide();
+        $('#barChart').show();
+      }
+      else {
+        $('#pieChart').hide();
+        $('#barChart').hide();
+        $('#scatterPlot').hide();
+      }
+      makeTable(true, destroyTable);
+      $(window).resize();
+    });
+    $(window).resize();
+  });
+	</script>
+</head>
+<body style="height:100%;">
+  <div id="accordionResizer" style="padding:5px; padding-bottom:10px; width:250px; height:500px;" class="ui-widget-content">
+  <div id="accordion">
+    <h3><a href="#">Overview</a></h3>
+    <div id="overview" data="deviceOverview" tblHeader="Name" divHeader="Overview">
+    Information about the device that was processed and the files present on it.
+    </div>
+    <h3><a href="#">Search Hits</a></h3>
+    <div id="searchHits" data="searchHitsList" tblHeader="Keyword" divHeader="Search Hits">
+    This table shows all keywords and the number of hits for each.
+    </div>
+    <h3><a href="#">Document Clusters</a></h3>
+    <div id="docClusters" data="docClusterList" tblHeader="Cluster" divHeader="Clusters">
+    Clusters of similar documents and topics, sorted by confidence.
+    </div>
+    <h3><a href="#">Email Addresses</a></h3>
+    <div id="entities" data="emailAddressList" tblHeader="Address" divHeader="Email Addresses">
+    All email addresses found during processing, after validation, and the frequency of their occurance.
+    </div>
+    <h3><a href="#">Email Domains</a></h3>
+    <div id="entities" data="emailDomainList" tblHeader="Domain" divHeader="Email Domains">
+    All domains found in email, and the frequency of their occurance.
+    </div>
+    <h3><a href="#">URLs</a></h3>
+    <div id="entities" data="urlList" tblHeader="URL" divHeader="URLs">
+    All URLs found during processing, and the frequency of their occurance.
+    </div>
+  </div>
+  </div>
+  <div id="dataTableContent" style="position:absolute;"></div>
+  <div id="chartContent" style="position:absolute;">
+  <div id="pieChart" style="position:absolute; width:100%;">
+  <script type="text/javascript+protovis">
+  function getSum(data) {
+    var m = 0;
+    var i = data.length;
+    while(i--) {
+      m += data[i].n;
+    }
+    return m;
+  }
+
+  /* Sizing and scales. */
+  var pieChart_w = 300,
+      pieChart_h = 300,
+      pieChart_r = 0.4375 * pieChart_w,
+      pieChart_sum = getSum(fileExtensions);
+
+  /* The root panel. */
+  var pieChart_vis = new pv.Panel()
+      .width(pieChart_w)
+      .height(pieChart_h);
+
+  /* The wedge, with centered label. */
+  pieChart_vis.add(pv.Wedge)
+      .def("o", -1)
+      .data(fileExtensions)
+      .innerRadius(0)
+      .outerRadius(pieChart_r)
+      .angle(function(d) (d.n/pieChart_sum) * 2 * Math.PI)
+      .left(function() (pieChart_w/2)
+          + Math.cos(this.startAngle() + this.angle() / 2)
+          * ((this.o() == this.index) ? 10 : 0))
+      .bottom(function() (pieChart_h/2)
+          - Math.sin(this.startAngle() + this.angle() / 2)
+          * ((this.o() == this.index) ? 10 : 0))
+      .text(function(d) d.a + " : " + d.n + " files")
+      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))//this.o(this.index))
+      .event("mouseout", function() this.o(-1))
+    .anchor("center").add(pv.Label)
+      .visible(function(d) (d.n/pieChart_sum) > .05)
+      .font("bold 12px sans-serif")
+      .textStyle("black")
+      .textAngle(0)
+      .text(function(d) d.a);
+      
+  /* Title bar */
+  pieChart_header = pieChart_vis.add(pv.Bar)
+      .height(20)
+      .left(10)
+      .fillStyle("rgba(255,255,0,.6)");
+  pieChart_headerLabel = pieChart_header.anchor("center").add(pv.Label)
+      .text("Top Ten File Types");
+
+  pieChart_vis.render();
+  </script>
+  </div>
+  <div id="scatterPlot" style="position:absolute; width:100%;">
+  <script type="text/javascript+protovis">
+  /* Sizing and scales. */
+  var scatterPlot_w = 725,
+      scatterPlot_h = 300,
+      scatterPlot_x = pv.Scale.linear(0, 100).range(0, scatterPlot_w),
+      scatterPlot_y = pv.Scale.linear(0, 100).range(0, scatterPlot_h),
+      scatterPlot_c = pv.Scale.log(1, 100).range("orange", "brown");
+
+  /* The root panel. */
+  var scatterPlot_vis = new pv.Panel()
+      .width(scatterPlot_w)
+      .height(scatterPlot_h)
+      .bottom(20)
+      .left(20)
+      .right(10)
+      .top(5)
+      .def("i", -1);
+
+  /* Y-axis and ticks. */
+  scatterPlot_vis.add(pv.Rule)
+      .data(scatterPlot_y.ticks())
+      .bottom(scatterPlot_y)
+      .strokeStyle(function(d) d ? "#ddd" : "#000")
+    .anchor("left").add(pv.Label)
+      .visible(function(d) d > 0 && d <= 100)
+      .text(scatterPlot_y.tickFormat);
+
+  /* X-axis and ticks. */
+  scatterPlot_vis.add(pv.Rule)
+      .data(scatterPlot_x.ticks())
+      .left(scatterPlot_x)
+      .strokeStyle(function(d) d ? "#ddd" : "#000")
+    .anchor("bottom").add(pv.Label)
+      .visible(function(d) d >= 0 && d <= 100)
+      .text(scatterPlot_x.tickFormat);
+
+  /* The dot plot! */
+  var dot = scatterPlot_vis.add(pv.Dot)
+      .data(docClusterData)
+      .left(function(d) scatterPlot_x(d.x))
+      .bottom(function(d) scatterPlot_y(d.y))
+      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
+      .fillStyle(function(d) scatterPlot_vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.confidence*0.01))
+      .size(function(d) d.z*20)
+      .title(function(d) d.name + "\nConfidence: " + d.confidence)
+      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))
+//      .event("click", function(d) self.location = "cluster" + d.z + ".html")
+    .anchor("center").add(pv.Label)
+      .text(function(d) d.z)
+      .textStyle("black");
+
+  /* Title bar */
+  scatterPlot_header = scatterPlot_vis.add(pv.Bar)
+      .height(20)
+      .left(0)
+      .fillStyle("rgba(255,255,0,.6)");
+  scatterPlot_headerLabel = scatterPlot_header.anchor("center").add(pv.Label)
+      .text("Document Clusters");
+
+  scatterPlot_vis.render();
+  </script>
+  </div>
+  <div id="barChart" style="position:absolute; width:100%;">
+  <script type="text/javascript+protovis">
+  function getMax(data) {
+    var m = 0;
+    var i = data.length;
+    while(i--) {
+      m = Math.max(m, data[i].n);
+    }
+    m = Math.round((m+50)/100)*100;
+    return m;
+  }
+
+  barChart_selectedData = emailAddressList;
+
+  barChart_panelW = 725;
+  barChart_panelH = 225;
+  barChart_x = pv.Scale.ordinal(pv.range(Object.keys(barChart_selectedData).length)).splitBanded(0, barChart_panelW, 4/5),
+  barChart_y = pv.Scale.linear(0, getMax(barChart_selectedData)).range(0, barChart_panelH);
+
+  barChart_vis = new pv.Panel()
+      .width(barChart_panelW)
+      .height(barChart_panelH)
+      .bottom(10)
+      .left(40)
+      .right(0)
+      .top(10);
+
+  /* Bars */
+  barChart_bar = barChart_vis.add(pv.Bar)
+      .data(barChart_selectedData)
+      .bottom(0)
+      .left(function() barChart_x(this.index))
+      .width(barChart_x.range().band)
+      .height(function(d) d.n/(getMax(barChart_selectedData)/barChart_panelH))
+      .text(function(d) d.n)
+      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}));
+  
+  /* Bar area labels */
+  barChart_bar.anchor("bottom").add(pv.Label)
+      .font("bold 14px sans-serif")
+      .textStyle("black")
+      .textDecoration("underline")
+      .textAlign("left")
+      .textBaseline("bottom")
+      .text(function(d) d.a)
+      .textAngle(11);
+
+  /* Y-axis */
+  barChart_vis.add(pv.Rule)
+      .data(barChart_y.ticks())
+      .bottom(function(d) Math.round(barChart_y(d)) - .5)
+      .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
+    .add(pv.Rule)
+      .left(0)
+      .width(5)
+      .strokeStyle("#000")
+    .anchor("left").add(pv.Label)
+      .text(function(d) d.toFixed(1));
+
+  /* Title bar */
+  barChart_header = barChart_vis.add(pv.Bar)
+      .height(20)
+      .left(10)
+      .fillStyle("rgba(255,255,0,.6)");
+  barChart_headerLabel = barChart_header.anchor("center").add(pv.Label)
+      .text("Top Email Addresses");
+
+  barChart_vis.render();
+
+  function updateBarChart(chartData, title) {
+    barChart_bar.data(chartData);
+    barChart_x = pv.Scale.ordinal(pv.range(Object.keys(chartData).length)).splitBanded(0, barChart_panelW, 4/5),
+    barChart_y = pv.Scale.linear(0, getMax(chartData)).range(0, barChart_panelH);
+    barChart_headerLabel.text(title);
+    barChart_vis.render();
+  }
+  </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Pie</title>
+    <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+    <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+    <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+    <script src="js/tipsy.js" type="text/javascript"></script>
+    <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+    <style type="text/css">
+
+#fig {
+  width: 400px;
+  height: 400px;
+}
+
+    </style>
+  </head>
+  <body><div id="center"><div id="fig">
+    <script type="text/javascript+protovis">
+
+function getSum(data) {
+  var m = 0;
+  var i = data.length;
+  while(i--) {
+    m += data[i].n;
+  }
+  return m;
+}
+
+var data = [
+  {a: "docx", n: 1299},
+  {a: "avi", n: 1173},
+  {a: "mp3", n: 1025},
+  {a: "xlsx", n: 985},
+  {a: "txt", n: 638},
+  {a: "zip", n: 603},
+  {a: "pptx", n: 579},
+  {a: "mkv", n: 543},
+  {a: "3gp", n: 458},
+  {a: "amr", n: 132}
+];
+
+/* Sizing and scales. */
+var w = 400,
+    h = 400,
+    r = 0.4375 * w,
+    sum = getSum(data);
+
+/* The root panel. */
+var vis = new pv.Panel()
+    .width(w)
+    .height(h);
+
+/* The wedge, with centered label. */
+vis.add(pv.Wedge)
+    .def("o", -1)
+    .data(data)
+    .innerRadius(0)
+    .outerRadius(r)
+    .angle(function(d) (d.n/sum) * 2 * Math.PI)
+    .left(function() (w/2)
+        + Math.cos(this.startAngle() + this.angle() / 2)
+        * ((this.o() == this.index) ? 10 : 0))
+    .bottom(function() (h/2)
+        - Math.sin(this.startAngle() + this.angle() / 2)
+        * ((this.o() == this.index) ? 10 : 0))
+    .event("mouseover", function() this.o(this.index))
+  .anchor("center").add(pv.Label)
+    .visible(function(d) (d.n/sum) > .05)
+    .textAngle(0)
+    .text(function(d) d.n);
+
+vis.render();
+
+    </script>
+  </div></div></body>
+</html>

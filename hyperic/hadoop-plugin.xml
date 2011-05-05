@@ -1,0 +1,612 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE plugin [
+  <!ENTITY process-metrics SYSTEM "/pdk/plugins/process-metrics.xml">
+]>
+<!--
+Hadoop Plugin for Hyperic HQ 
+Original:     http://github.com/hyperic/hq-hadoop
+Updated by:   Geoff Black
+Updated for:  Hadoop 0.20.2 / Cloudera CDH3b2
+Tested using: Hyperic HQ OS 4.4
+-->
+<plugin>
+  <classpath>
+    <include name="pdk/lib/mx4j"/>
+  </classpath>
+
+  <filter name="template"
+          value="${OBJECT_NAME}:${alias}"/>
+
+  <metrics name="rpc">
+    <metric name="Availability" indicator="true"/>
+
+    <metric name="Num Open Connections" indicator="true"/>
+
+    <metric name="Call Queue Len"/>
+
+    <metric name="Rpc Ops Avg Processing Time" units="ms" category="PERFORMANCE"/>
+
+    <metric name="Rpc Ops Avg Processing Time Max" units="ms" category="PERFORMANCE"/>
+
+    <metric name="Rpc Ops Avg Processing Time Min" units="ms" category="PERFORMANCE"/>
+    
+    <metric name="Rpc Queue Time Num Ops"/>
+
+    <metric name="Rpc Queue Time Avg Time" units="ms" category="PERFORMANCE" indicator="true"/>
+
+    <metric name="Rpc Queue Time Min Time" units="ms" category="PERFORMANCE"/>
+
+    <metric name="Rpc Queue Time Max Time" units="ms" category="PERFORMANCE"/>
+
+    <metric name="Rpc Processing Time Num Ops"/>
+    
+    <metric name="Rpc Processing Time Avg Time" units="ms" category="PERFORMANCE"/>
+    
+    <metric name="Rpc Processing Time Min Time" units="ms" category="PERFORMANCE"/>
+    
+    <metric name="Rpc Processing Time Max Time" units="ms" category="PERFORMANCE"/>
+  </metrics>
+
+  <filter name="threading"
+          value="java.lang:type=Threading:${alias}"/>
+
+  <filter name="memory"
+          value="java.lang:type=Memory"/>
+
+  <metrics name="jvm">
+    <metric name="Availability"
+            indicator="true"
+            template="${memory}:${alias}"/>
+
+    <metric name="Heap Memory Free"
+            indicator="true"
+            units="B"
+            template="${memory}:Composite.HeapMemoryUsage.free"/>
+
+    <metric name="Thread Count"
+            indicator="true"
+            template="${threading}"/>
+
+    <metric name="Total HotSpot Compilation Time"
+            indicator="true"
+            units="ms"
+            category="PERFORMANCE"
+            template="java.lang:type=Compilation:TotalCompilationTime"/>
+  </metrics>
+
+  <server name="Hadoop Name Node">
+    <property name="PROC_MAIN_CLASS"
+              value="org.apache.hadoop.hdfs.server.namenode.NameNode"/>
+
+    <property name="PROC_HOME_PROPERTY"
+              value="hadoop.home.dir"/>
+
+    <property name="INVENTORY_ID" value="${PROC_MAIN_CLASS}"/>
+
+    <plugin type="autoinventory"
+            class="org.hyperic.hq.product.jmx.MxServerDetector"/>
+
+    <plugin type="measurement"
+            class="org.hyperic.hq.product.jmx.MxMeasurementPlugin"/>
+
+    <plugin type="log_track"
+            class="org.hyperic.hq.product.Log4JLogTrackPlugin"/>
+
+    <plugin type="config_track"
+            class="org.hyperic.hq.product.ConfigFileTrackPlugin"/>
+
+    <property name="process.query"
+              value="State.Name.eq=java,Args.*.eq=${PROC_MAIN_CLASS}"/>
+
+    <property name="jmx.url"
+              value="ptql:${process.query}"/>
+
+    <config include="jmx">
+      <option name="process.query" description="Process query" default="${process.query}"/>
+    </config>
+
+    <properties>
+      <property name="VmVersion" description="Vm Version"/>
+      <property name="VmVendor" description="Vm Vendor"/>
+      <property name="VmName" description="Vm Name"/>
+    </properties>
+
+    &process-metrics;
+
+    <property name="OBJECT_NAME"
+              value="java.lang:type=Runtime"/>
+
+    <metrics include="jvm"/>
+
+    <service name="RPC">
+      <config>
+        <option name="name" description="Name"/>
+      </config>
+
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.ipc.metrics.RpcActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=NameNode,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <metrics include="rpc"/>
+    </service>
+
+    <service name="Stats">
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.hdfs.server.namenode.metrics.NameNodeActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=NameNode,name=NameNodeActivity"/>
+
+      <plugin type="autoinventory"/>
+
+      <metric name="Availability" indicator="true"/>
+
+      <metric name="Add Block Ops"/>
+      
+      <metric name="Blocks Corrupted"/>
+      
+      <metric name="Create File Ops" collectionType="trendsup"/>
+
+      <metric name="Delete File Ops" collectionType="trendsup"/>
+      
+      <metric name="File Info Ops" collectionType="trendsup"/>
+      
+      <metric name="Files Appended" collectionType="trendsup"/>
+      
+      <metric name="Files Created" collectionType="trendsup"/>
+
+      <metric name="Files Renamed" collectionType="trendsup"/>
+      
+      <metric name="Get Block Locations" collectionType="trendsup"/>
+      
+      <metric name="Get Listing Ops" collectionType="trendsup"/>
+      
+      <metric name="Journal Transactions Batch In Sync" collectionType="trendsup"/>
+      
+      <metric name="Safemode Time" units="ms"/>
+      
+      <metric name="Syncs Avg Time" category="PERFORMANCE" units="ms"/>
+      
+      <metric name="Syncs Max Time" category="PERFORMANCE" units="ms"/>
+
+      <metric name="Syncs Min Time" category="PERFORMANCE" units="ms"/>
+      
+      <metric name="Syncs Num Ops" collectionType="trendsup"/>
+      
+      <metric name="Transactions Avg Time" units="ms" category="PERFORMANCE" indicator="true"/>
+
+      <metric name="Transactions Max Time" units="ms" category="PERFORMANCE" indicator="true"/>
+
+      <metric name="Transactions Min Time" units="ms" category="PERFORMANCE" indicator="true"/>
+      
+      <metric name="Transactions Num Ops" collectionType="trendsup"/>
+      
+      <metric name="Block Report Avg Time" units="ms" category="PERFORMANCE" indicator="true"/>
+
+      <metric name="Block Report Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Report Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Report Num Ops" collectionType="trendsup"/>
+      
+      <metric name="FS Image Load Time" units="ms" category="PERFORMANCE"/>
+    </service>
+
+    <service name="FS Namesystem">
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.hdfs.server.namenode.FSNamesystem"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=NameNode,name=FSNamesystemState"/>
+
+      <plugin type="autoinventory"/>
+
+      <config>
+        <option name="service" description="service"/>
+      </config>
+
+      <metric name="Availability" indicator="true"/>
+
+      <metric name="Capacity Total" units="B"/>
+      
+      <metric name="Capacity Used" units="B" indicator="true"/>
+
+      <metric name="Capacity Remaining" units="B" indicator="true"/>
+
+      <metric name="Total Load" units="percentage" indicator="true"/>
+
+      <metric name="Blocks Total"/>
+
+      <metric name="Files Total" indicator="true"/>
+
+      <metric name="Pending Replication Blocks" indicator="true"/>
+
+      <metric name="Under Replicated Blocks" indicator="true"/>
+
+      <metric name="Scheduled Replication Blocks"/>
+    </service>
+  </server>
+
+  <server name="Hadoop Secondary Name Node">
+    <property name="PROC_MAIN_CLASS"
+              value="org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode"/>
+
+    <property name="PROC_HOME_PROPERTY"
+              value="hadoop.home.dir"/>
+
+    <property name="INVENTORY_ID" value="${PROC_MAIN_CLASS}"/>
+
+    <plugin type="autoinventory"
+            class="org.hyperic.hq.product.jmx.MxServerDetector"/>
+
+    <plugin type="measurement"
+            class="org.hyperic.hq.product.jmx.MxMeasurementPlugin"/>
+
+    <plugin type="log_track"
+            class="org.hyperic.hq.product.Log4JLogTrackPlugin"/>
+
+    <plugin type="config_track"
+            class="org.hyperic.hq.product.ConfigFileTrackPlugin"/>
+
+    <property name="process.query"
+              value="State.Name.eq=java,Args.*.eq=${PROC_MAIN_CLASS}"/>
+
+    <property name="jmx.url"
+              value="ptql:${process.query}"/>
+
+    <config include="jmx">
+      <option name="process.query" description="Process query" default="${process.query}"/>
+    </config>
+
+    <properties>
+      <property name="VmVersion" description="Vm Version"/>
+      <property name="VmVendor" description="Vm Vendor"/>
+      <property name="VmName" description="Vm Name"/>
+    </properties>
+
+    &process-metrics;
+
+    <property name="OBJECT_NAME"
+              value="java.lang:type=Runtime"/>
+
+    <metrics include="jvm"/>
+
+    <service name="RPC">
+      <config>
+        <option name="name" description="Name"/>
+      </config>
+
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.ipc.metrics.RpcActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=SecondaryNameNode,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <metrics include="rpc"/>
+    </service>
+  </server>
+
+  <server name="Hadoop Data Node">
+    <property name="PROC_MAIN_CLASS"
+              value="org.apache.hadoop.hdfs.server.datanode.DataNode"/>
+
+    <property name="PROC_HOME_PROPERTY"
+              value="hadoop.home.dir"/>
+
+    <property name="INVENTORY_ID" value="${PROC_MAIN_CLASS}"/>
+
+    <plugin type="autoinventory"
+            class="org.hyperic.hq.product.jmx.MxServerDetector"/>
+
+    <plugin type="measurement"
+            class="org.hyperic.hq.product.jmx.MxMeasurementPlugin"/>
+
+    <plugin type="log_track"
+            class="org.hyperic.hq.product.Log4JLogTrackPlugin"/>
+
+    <plugin type="config_track"
+            class="org.hyperic.hq.product.ConfigFileTrackPlugin"/>
+
+    <property name="process.query"
+              value="State.Name.eq=java,Args.*.eq=${PROC_MAIN_CLASS}"/>
+
+    <property name="jmx.url"
+              value="ptql:${process.query}"/>
+
+    <config include="jmx">
+      <option name="process.query" description="Process query" default="${process.query}"/>
+    </config>
+
+    <properties>
+      <property name="VmVersion" description="Vm Version"/>
+      <property name="VmVendor" description="Vm Vendor"/>
+      <property name="VmName" description="Vm Name"/>
+    </properties>
+
+    &process-metrics;
+
+    <property name="OBJECT_NAME"
+              value="java.lang:type=Runtime"/>
+
+    <metrics include="jvm"/>
+
+    <service name="RPC">
+      <config>
+        <option name="name" description="Name"/>
+      </config>
+
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.ipc.metrics.RpcActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=DataNode,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <metrics include="rpc"/>
+    </service>
+
+    <service name="Stats">
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.hdfs.server.datanode.metrics.DataNodeActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=DataNode,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <config>
+        <option name="service" description="service"/>
+      </config>
+
+      <metric name="Availability" indicator="true"/>
+
+      <metric name="Bytes Read" units="B" collectionType="trendsup" indicator="true"/> 
+
+      <metric name="Bytes Written" units="B" collectionType="trendsup" indicator="true"/>
+
+      <metric name="Blocks Read" collectionType="trendsup"/>
+
+      <metric name="Blocks Removed" collectionType="trendsup"/>
+
+      <metric name="Blocks Replicated" collectionType="trendsup"/>
+
+      <metric name="Blocks Written" collectionType="trendsup"/>
+
+      <metric name="Block Verification Failures" collectionType="trendsup"/>
+
+      <metric name="Blocks Verified" collectionType="trendsup"/>
+
+      <metric name="Reads From Local Client" collectionType="trendsup"/>
+
+      <metric name="Reads From Remote Client" collectionType="trendsup"/>
+
+      <metric name="Writes From Local Client" collectionType="trendsup"/>
+
+      <metric name="Writes From Remote Client" collectionType="trendsup"/>
+
+      <metric name="Read Block Op Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Read Block Op Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Read Block Op Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Read Block Op Num Ops"/>
+
+      <metric name="Read Metadata Op Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Read Metadata Op Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Read Metadata Op Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Read Metadata Op Num Ops"/>
+
+      <metric name="Block Checksum Op Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Checksum Op Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Checksum Op Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Checksum Op Num Ops"/>
+
+      <metric name="Replace Block Op Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Replace Block Op Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Replace Block Op Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Replace Block Op Num Ops"/>
+
+      <metric name="Write Block Op Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Write Block Op Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Write Block Op Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Write Block Op Num Ops"/>
+
+      <metric name="Copy Block Op Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Copy Block Op Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Copy Block Op Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Copy Block Op Num Ops"/>
+
+      <metric name="Block Reports Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Reports Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Reports Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Block Reports Num Ops"/>
+
+      <metric name="Heartbeats Avg Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Heartbeats Max Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Heartbeats Min Time" units="ms" category="PERFORMANCE"/>
+
+      <metric name="Heartbeats Num Ops"/>
+    </service>
+
+    <service name="FS Dataset State">
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.hdfs.server.datanode.FSDataset"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=DataNode,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <config>
+        <option name="service" description="service"/>
+      </config>
+
+      <metric name="Availability" indicator="true"/>
+
+      <metric name="Remaining" units="B" indicator="true"/>
+
+      <metric name="Capacity" units="B" indicator="true"/>
+
+      <metric name="Dfs Used" units="B" indicator="true"/>
+    </service>
+  </server>
+
+  <server name="Hadoop Task Tracker">
+    <property name="PROC_MAIN_CLASS"
+              value="org.apache.hadoop.mapred.TaskTracker"/>
+
+    <property name="PROC_HOME_PROPERTY"
+              value="hadoop.home.dir"/>
+
+    <property name="INVENTORY_ID" value="${PROC_MAIN_CLASS}"/>
+
+    <plugin type="autoinventory"
+            class="org.hyperic.hq.product.jmx.MxServerDetector"/>
+
+    <plugin type="measurement"
+            class="org.hyperic.hq.product.jmx.MxMeasurementPlugin"/>
+
+    <plugin type="log_track"
+            class="org.hyperic.hq.product.Log4JLogTrackPlugin"/>
+
+    <plugin type="config_track"
+            class="org.hyperic.hq.product.ConfigFileTrackPlugin"/>
+
+    <property name="process.query"
+              value="State.Name.eq=java,Args.*.eq=${PROC_MAIN_CLASS}"/>
+
+    <property name="jmx.url"
+              value="ptql:${process.query}"/>
+
+    <config include="jmx">
+      <option name="process.query" description="Process query" default="${process.query}"/>
+    </config>
+
+    <properties>
+      <property name="VmVersion" description="Vm Version"/>
+      <property name="VmVendor" description="Vm Vendor"/>
+      <property name="VmName" description="Vm Name"/>
+    </properties>
+
+    &process-metrics;
+
+    <property name="OBJECT_NAME"
+              value="java.lang:type=Runtime"/>
+
+    <metrics include="jvm"/>
+
+    <service name="RPC">
+      <config>
+        <option name="name" description="Name"/>
+      </config>
+
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.ipc.metrics.RpcActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=TaskTracker,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <metrics include="rpc"/>
+    </service>
+  </server>
+
+  <server name="Hadoop Job Tracker">
+    <property name="PROC_MAIN_CLASS"
+              value="org.apache.hadoop.mapred.JobTracker"/>
+
+    <property name="PROC_HOME_PROPERTY"
+              value="hadoop.home.dir"/>
+
+    <property name="INVENTORY_ID" value="${PROC_MAIN_CLASS}"/>
+
+    <plugin type="autoinventory"
+            class="org.hyperic.hq.product.jmx.MxServerDetector"/>
+
+    <plugin type="measurement"
+            class="org.hyperic.hq.product.jmx.MxMeasurementPlugin"/>
+
+    <plugin type="log_track"
+            class="org.hyperic.hq.product.Log4JLogTrackPlugin"/>
+
+    <plugin type="config_track"
+            class="org.hyperic.hq.product.ConfigFileTrackPlugin"/>
+
+    <property name="process.query"
+              value="State.Name.eq=java,Args.*.eq=${PROC_MAIN_CLASS}"/>
+
+    <property name="jmx.url"
+              value="ptql:${process.query}"/>
+
+    <config include="jmx">
+      <option name="process.query" description="Process query" default="${process.query}"/>
+    </config>
+
+    <properties>
+      <property name="VmVersion" description="Vm Version"/>
+      <property name="VmVendor" description="Vm Vendor"/>
+      <property name="VmName" description="Vm Name"/>
+    </properties>
+
+    &process-metrics;
+
+    <property name="OBJECT_NAME"
+              value="java.lang:type=Runtime"/>
+
+    <metrics include="jvm"/>
+
+    <service name="RPC">
+      <config>
+        <option name="name" description="Name"/>
+      </config>
+
+      <property name="MBEAN_CLASS"
+                value="org.apache.hadoop.ipc.metrics.RpcActivityMBean"/>
+
+      <property name="OBJECT_NAME"
+                value="hadoop:service=JobTracker,name=*"/>
+
+      <plugin type="autoinventory"/>
+
+      <metrics include="rpc"/>
+      
+      <metric name="Submit Job Avg Time" units="ms" category="PERFORMANCE"/>
+      
+      <metric name="Submit Job Max Time" units="ms" category="PERFORMANCE"/>
+      
+      <metric name="Submit Job Min Time" units="ms" category="PERFORMANCE"/>
+      
+      <metric name="Submit Job Num Ops" collectionType="trendsup"/>
+    </service>
+  </server>
+</plugin>

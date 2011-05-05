@@ -1,0 +1,85 @@
+<html>
+  <head>
+    <title>Document Clusters</title>
+    <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+    <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+    <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+    <script src="js/tipsy.js" type="text/javascript"></script>
+    <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+    <style type="text/css">
+body {
+  margin: 3;
+  background-color: #fff;
+}
+
+#fig {
+  width: 600px;
+  height: 600px;
+}
+    </style>
+    <script src="data/clusters.data" type="text/javascript"></script>
+  </head>
+  <body><div id="center">
+  <div id="fig"><center><h3>Document Clusters</h3></center>
+    <script type="text/javascript+protovis">
+
+/* Sizing and scales. */
+var w = 575,
+    h = 575,
+    x = pv.Scale.linear(0, 100).range(0, w),
+    y = pv.Scale.linear(0, 100).range(0, h),
+    c = pv.Scale.log(1, 100).range("orange", "brown");
+
+/* The root panel. */
+var vis = new pv.Panel()
+    .width(w)
+    .height(h)
+    .bottom(20)
+    .left(20)
+    .right(10)
+    .top(5)
+    .def("i", -1);
+
+/* Y-axis and ticks. */
+vis.add(pv.Rule)
+    .data(y.ticks())
+    .bottom(y)
+    .strokeStyle(function(d) d ? "#ddd" : "#000")
+  .anchor("left").add(pv.Label)
+    .visible(function(d) d > 0 && d <= 100)
+    .text(y.tickFormat);
+
+/* X-axis and ticks. */
+vis.add(pv.Rule)
+    .data(x.ticks())
+    .left(x)
+    .strokeStyle(function(d) d ? "#ddd" : "#000")
+  .anchor("bottom").add(pv.Label)
+    .visible(function(d) d >= 0 && d <= 100)
+    .text(x.tickFormat);
+
+/* The dot plot! */
+//vis.add(pv.Panel)
+var dot = vis.add(pv.Dot)
+    .data(clusters)
+    .left(function(d) x(d.x))
+    .bottom(function(d) y(d.y))
+    .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
+    .fillStyle(function(d) vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.confidence*0.01))
+    .size(function(d) d.z*20)
+    .title(function(d) d.name + "\nConfidence: " + d.confidence)
+    .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))
+//    .event("mouseover", function() vis.i(this.index))
+//    .event("mouseout", function() vis.i(-1))
+    .event("click", function(d) self.location = "cluster" + d.z + ".html")
+  .anchor("center").add(pv.Label)
+    .text(function(d) d.z)
+    .textStyle("black");
+
+vis.render();
+
+    </script>
+    <center><p>Hover over each cluster to see group labels, click to view documents in the cluster.<br>Higher confidence is indicated by solid colors, lower confidence by transparency.</p></center>
+  </div></div>
+  </body>
+</html>

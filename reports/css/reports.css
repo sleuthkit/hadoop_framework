@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+  word-wrap: break-word;
+  text-wrap: unrestricted;
+  word-break: break-all;
+  wrap-option: emergency; 
+}
+.searchHitsList {
+  padding-left: 0px;
+  list-style-type: none;
+}
+.navList {
+  width: 100%;
+}
+.listNum {
+  text-align:right;
+  min-width: 90px;
+}
+.entityHeader {
+  width: 100%;
+  height: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  background-color: #FCFC7E;
+  color: #777;
+}
+td {
+	word-wrap: break-word;
+  text-wrap: unrestricted;
+  word-break: break-all;
+  wrap-option: emergency; 
+}

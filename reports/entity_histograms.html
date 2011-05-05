@@ -1,0 +1,148 @@
+<html>
+  <head>
+    <title>Entity Histograms</title>
+    <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+    <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+    <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+    <script src="js/tipsy.js" type="text/javascript"></script>
+    <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+    <style type="text/css">
+body {
+  margin: 3px;
+  background-color: #fff;
+}
+
+#fig {
+  width: 600px;
+  height: 600px;
+}
+    </style>
+  </head>
+  <body><div id="center"><div id="fig">
+    <div style="text-align:right;padding-right:20;">
+      <b>Type:</b>
+      <input type="radio" name="type" id="domains" checked onchange="update(selectedDataSet = 0);"><label for="domains">Domains</label>
+      <input type="radio" name="type" id="email" onchange="update(selectedDataSet = 1);"><label for="email">Email</label>
+    </div>
+    <script type="text/javascript+protovis">
+
+var selectedDataSet = 0;
+
+function getMax(data) {
+  var m = 0;
+  var i = data.length;
+  while(i--) {
+    m = Math.max(m, data[i].n);
+  }
+  m = Math.round((m+50)/100)*100;
+  return m;
+}
+
+var domainData = [
+  {a: "gmail.com", n: 1354},
+  {a: "hotmail.com", n: 1173},
+  {a: "foxnews.com", n: 1025},
+  {a: "yahoo.com", n: 985},
+  {a: "hushmail.com", n: 638},
+  {a: "weather.com", n: 603},
+  {a: "delicious.com", n: 579},
+  {a: "google.com", n: 543},
+  {a: "cnn.com", n: 458},
+  {a: "github.com", n: 132},
+];
+
+var emailData = [
+  {a: "slomo@yahoo.com", n: 1209},
+  {a: "biebl@yahoo.com", n: 1201},
+  {a: "cj@gmail.com", n: 1139},
+  {a: "mhatta@gmail.com", n: 1074},
+  {a: "marco87@gmail.com", n: 302},
+  {a: "lawrencc@hotmail.com", n: 249},
+  {a: "mlang@hushmail.com", n: 241},
+  {a: "rafl@cnn.com", n: 132},
+  {a: "jcristau@yahoo.com", n: 103},
+  {a: "ari@ubuntu.com", n: 98},
+]
+
+var selectedData = domainData;
+
+var panelW = 800,
+    panelH = 500,
+    x = pv.Scale.ordinal(pv.range(Object.keys(selectedData).length)).splitBanded(0, panelW, 4/5),
+    y = pv.Scale.linear(0, getMax(selectedData)).range(0, panelH);
+
+var vis = new pv.Panel()
+    .width(panelW)
+    .height(panelH)
+    .bottom(350)
+    .left(40)
+    .right(0)
+    .top(10);
+
+/* Bars */
+var bar = vis.add(pv.Bar)
+    .data(selectedData)
+    .bottom(0)
+    .left(function() x(this.index))
+    .width(x.range().band)
+    .height(function(d) d.n/(getMax(selectedData)/panelH))
+    .text(function(d) d.n)
+    .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}));
+
+bar.anchor("bottom").add(pv.Label)
+    .font("italic")
+    .textStyle("black")
+    .textDecoration("underline")
+    .textAlign("left")
+    .textBaseline("bottom")
+    .text(function(d) d.a)
+    .textAngle(11);
+
+/* Bar bottom labels */
+/*
+bar.anchor("bottom").add(pv.Label)
+    .textMargin(3)
+    .textBaseline("top")
+    .textAlign("right")
+    .text(function(d) d.a)
+    .textAngle(5);
+*/
+
+/* Y-axis */
+vis.add(pv.Rule)
+    .data(y.ticks())
+    .bottom(function(d) Math.round(y(d)) - .5)
+    .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
+  .add(pv.Rule)
+    .left(0)
+    .width(5)
+    .strokeStyle("#000")
+  .anchor("left").add(pv.Label)
+    .text(function(d) d.toFixed(1));
+
+/* Title bar */
+header = vis.add(pv.Bar)
+    .height(20)
+    .left(10)
+    .fillStyle("rgba(255,255,0,.6)")
+headerLabel = header.anchor("center").add(pv.Label)
+    .text("Top Domains Distribution");
+
+function update() {
+  if (selectedDataSet == 0) {
+    selectedData = domainData;
+  }
+  else if (selectedDataSet == 1) {
+    selectedData = emailData;
+  }
+  bar.data(selectedData);
+  x = pv.Scale.ordinal(pv.range(Object.keys(selectedData).length)).splitBanded(0, panelW, 4/5),
+  y = pv.Scale.linear(0, getMax(selectedData)).range(0, panelH);
+  vis.render();
+}
+
+vis.render();
+
+    </script>
+  </div></div></body>
+</html>
