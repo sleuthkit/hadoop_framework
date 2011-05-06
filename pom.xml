@@ -19,11 +19,11 @@
     </issueManagement>
     <modules>
         <module>clustering</module>
-	<module>match</module>
-	<module>textextraction</module>
-	<module>pipeline</module>
-	<module>core</module>
-	<!-- <module>core-test</module>-->
+				<module>match</module>
+				<module>textextraction</module>
+				<module>pipeline</module>
+				<module>core</module>
+				<module>core-test</module>
     </modules>
     <pluginRepositories>
         <pluginRepository>

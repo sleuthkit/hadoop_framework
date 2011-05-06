@@ -172,7 +172,7 @@ public class OpenCSVRecordReaderTest {
     final RecordProcessor proc = buildRecordProcessorGood();
     final RecordReader rr = new OpenCSVRecordReader(buildErrorConsumerGood());
 
-    rr.read("test/com/lightboxtechnologies/nsrl/test.csv", proc);
+    rr.read("src/test/java/com/lightboxtechnologies/nsrl/test.csv", proc);
   }
 
   @Test
@@ -180,7 +180,7 @@ public class OpenCSVRecordReaderTest {
     final RecordProcessor proc = buildRecordProcessorBad();
     final RecordReader rr = new OpenCSVRecordReader(buildErrorConsumerBad());
 
-    rr.read("test/com/lightboxtechnologies/nsrl/test.csv", proc);
+    rr.read("src/test/java/com/lightboxtechnologies/nsrl/test.csv", proc);
   }
 
   protected String buildCSV(String[][] cols) {
