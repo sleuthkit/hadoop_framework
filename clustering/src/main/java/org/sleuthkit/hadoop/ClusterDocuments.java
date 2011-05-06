@@ -44,7 +44,7 @@ public class ClusterDocuments {
         Path kmeansClusters = new Path(output + "/canopy/clusters-0");
         
         try {
-            CanopyDriver.run(conf, canopyInputPath, canopyOutputPath, new CosineDistanceMeasure(), .65, .65, true, false);
+            CanopyDriver.run(conf, canopyInputPath, canopyOutputPath, new CosineDistanceMeasure(), .8, .65, true, false);
         } catch (Exception e) {
             return 1;
         }
@@ -56,24 +56,18 @@ public class ClusterDocuments {
         }
         
         try {
+            // Map vector names to clusters
             Job job = new Job();
             job.setJarByClass(ClusterDocuments.class);
 
             job.setJobName("sleuthkit-cluster-consolidate");
 
-
             FileInputFormat.setInputPaths(job, new Path(output + "/kmeans/clusteredPoints/"));
-
             FileOutputFormat.setOutputPath(job, new Path(output + "/kmeans/reducedClusters/"));
-
 
             job.setMapperClass(ClusterDocuments.ClusterMapper.class);
             job.setMapOutputKeyClass(IntWritable.class);
             job.setMapOutputValueClass(Text.class);
-
-            // We could set a combiner here to improve performance on distributed
-            // systems.
-            //grepJob.setCombinerClass(SetReducer.class);
 
             job.setReducerClass(ClusterDocuments.SetReducer.class);
             job.setOutputKeyClass(IntWritable.class);
@@ -82,9 +76,7 @@ public class ClusterDocuments {
             job.setInputFormatClass(SequenceFileInputFormat.class);
             job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-            System.out.println("About to run the job...");
-            
-            job.waitForCompletion(true);/// ? 0 : 1;
+            job.waitForCompletion(true);
             
             ////////////////////////////////
             // Output top cluster matches //
@@ -93,8 +85,26 @@ public class ClusterDocuments {
             job.setJarByClass(ClusterDocuments.class);
             
             job.setJobName("sleuthkit-cluster-top-words");
+            
+            
+            // Get the final kmeans iteration. This is sort of a pain but for
+            // whatever reason hadoop has no mechanism to do this for us.
+            FileSystem fs = FileSystem.get(job.getConfiguration());
+            int i = 2;
+            Path goodPath = new Path(output + "/kmeans/clusters-1");
+            
+            while (true) {
+                Path testPath = new Path(output + "/kmeans/clusters-" + i);
+                if (!fs.exists(testPath)) {
+                    break;
+                }
+                i++;
+                goodPath = testPath;
+            }
 
-            FileInputFormat.setInputPaths(job, new Path(output + "/kmeans/clusters-1"));
+            // FIXME: This may need to be changed, as it grabs the first set of clusters.
+            // If there are many kmeans iterations, this may be sub-optimal.
+            FileInputFormat.setInputPaths(job, goodPath);
             FileOutputFormat.setOutputPath(job, new Path(output + "/kmeans/topClusters/"));
             
             job.setMapperClass(ClusterDocuments.TopPointsMapper.class);
@@ -139,6 +149,8 @@ public class ClusterDocuments {
         }
     }
     
+    // Generates text listing the top 10 features of the vectors we are
+    // using as centroids for our clusters.
     public static class TopPointsMapper
     extends Mapper<Text, Cluster, Text, Text> {
         String[] dictionaryVector;
@@ -148,8 +160,6 @@ public class ClusterDocuments {
             String path = context.getConfiguration().get("org.sleuthkit.hadoop.dictionary");
 
             try {
-                
-                
                 //FSDataInputStream in = fs.open(inFile);
                 dictionaryVector = ClusterUtil.loadTermDictionary(context.getConfiguration(), FileSystem.get(context.getConfiguration()), path);
             } catch (IOException e) {
