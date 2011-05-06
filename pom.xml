@@ -23,6 +23,7 @@
 	<module>textextraction</module>
 	<module>pipeline</module>
 	<module>core</module>
+	<!-- <module>core-test</module>-->
     </modules>
     <pluginRepositories>
         <pluginRepository>
