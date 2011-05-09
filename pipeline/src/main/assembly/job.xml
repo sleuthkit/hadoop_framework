@@ -18,6 +18,7 @@
         <exclude>org.sleuthkit:sleuthkit-textextraction</exclude>
 	<exclude>org.sleuthkit:sleuthkit-grep</exclude>
 	<exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
+	<exclude>org.sleuthkit:sleuthkit-core</exclude>
       </excludes>
     </dependencySet>
     <dependencySet>
@@ -29,6 +30,7 @@
         <include>org.sleuthkit:sleuthkit-textextraction</include>
 	<include>org.sleuthkit:sleuthkit-grep</include>
 	<include>org.sleuthkit:sleuthkit-pipeline</include>
+	<include>org.sleuthkit:sleuthkit-core</include>
       </includes>
       <unpackOptions>
 	<excludes>

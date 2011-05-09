@@ -58,6 +58,11 @@
       <version>1-SNAPSHOT</version>
       <classifier>job</classifier>
     </dependency> 
+   <dependency>
+      <groupId>org.sleuthkit</groupId>
+      <artifactId>sleuthkit-core</artifactId>
+      <version>1-SNAPSHOT</version>
+    </dependency> 
    <!-- other dependencies -->
   </dependencies>
 </project>
