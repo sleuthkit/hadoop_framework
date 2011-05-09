@@ -62,7 +62,7 @@ public class GrepSearchJob {
             Job job = new Job();
             job.setJarByClass(GrepSearchJob.class);
 
-            job.setJobName("sleuthkit-grep-search");
+            job.setJobName("TP$IMG_ID_NUMBER$CommonName$Grep");
 
             FileSystem fs = FileSystem.get(job.getConfiguration());
             fs.delete(new Path(outputdir), true);

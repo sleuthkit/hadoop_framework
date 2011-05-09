@@ -60,7 +60,7 @@ public class ClusterDocuments {
             Job job = new Job();
             job.setJarByClass(ClusterDocuments.class);
 
-            job.setJobName("sleuthkit-cluster-consolidate");
+            job.setJobName("TP$IMG_ID_NUMBER$CommonName$AssociateClusters");
 
             FileInputFormat.setInputPaths(job, new Path(output + "/kmeans/clusteredPoints/"));
             FileOutputFormat.setOutputPath(job, new Path(output + "/kmeans/reducedClusters/"));
@@ -84,7 +84,7 @@ public class ClusterDocuments {
             job = new Job();
             job.setJarByClass(ClusterDocuments.class);
             
-            job.setJobName("sleuthkit-cluster-top-words");
+            job.setJobName("TP$IMG_ID_NUMBER$CommonName$TopClusterWords");
             
             
             // Get the final kmeans iteration. This is sort of a pain but for

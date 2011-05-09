@@ -76,7 +76,8 @@ public class TokenizeAndVectorizeDocuments {
         boolean sequentialAccess = false;
         boolean namedVectors = true;
         Configuration cfg = new Configuration();
-
+        
+        
         try {
             DictionaryVectorizer.createTermFrequencyVectors(input, 
                     output,
