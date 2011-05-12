@@ -61,7 +61,7 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
 
   public RecordReader<Text, FsEntry> createRecordReader(InputSplit split, TaskAttemptContext ctx) throws IOException {
     RecordReader<Text,FsEntry> outer = null;
-    RecordReader<ImmutableBytesWritable,Result> inner = null;    
+    RecordReader<ImmutableBytesWritable,Result> inner = null;
     try {
       inner = TblInput.createRecordReader(split, ctx);
       outer = new FsEntryRecordReader(inner);
@@ -74,25 +74,25 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
       }
     }
   }
-  
+
   public static class FsEntryRecordReader extends RecordReader<Text, FsEntry> {
     private final RecordReader<ImmutableBytesWritable, Result> TblReader;
     private Result Cur;
     private final Text Key;
     private final FsEntry Value;
     private final byte[] Family;
-    
+
     public FsEntryRecordReader(RecordReader<ImmutableBytesWritable, Result> rr) {
       TblReader = rr;
       Key = new Text("");
       Value = new FsEntry();
       Family = Bytes.toBytes("core");
     }
-    
+
     public void close() throws IOException {
       TblReader.close();
     }
-    
+
     public Text getCurrentKey() throws IOException, InterruptedException {
       Cur = TblReader.getCurrentValue();
       Key.set(Bytes.toString(Cur.getRow()));
@@ -104,16 +104,16 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
       FsEntryHBaseCommon.populate(family, Value, Value.getStreams());
       return Value;
     }
-    
+
     public float getProgress() throws IOException, InterruptedException {
       return TblReader.getProgress();
     }
-    
+
     public void initialize(InputSplit split, TaskAttemptContext ctx) throws IOException, InterruptedException {
       TblReader.initialize(split, ctx);
       Value.setFileSystem(FileSystem.get(ctx.getConfiguration()));
     }
-    
+
     public boolean nextKeyValue() throws IOException, InterruptedException {
       return TblReader.nextKeyValue();
     }

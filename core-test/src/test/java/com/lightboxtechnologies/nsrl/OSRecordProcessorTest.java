@@ -21,11 +21,11 @@ public class OSRecordProcessorTest {
 
   @Test
   public void processJustRightCols() throws BadDataException {
-    final String code = "1";  
+    final String code = "1";
     final String name = "TuringOS";
     final String version = "0.1";
     final String mfg_code = "AT";
- 
+
     final OSData osd = new OSData(code, name, version, mfg_code);
 
     final RecordProcessor proc = new OSRecordProcessor();

@@ -24,7 +24,7 @@ public class MfgRecordProcessorTest {
     final String code = "SPFT";
     final String name = "Stay Puft Marshmallow Corporation";
 
-    final MfgData md = new MfgData(code, name); 
+    final MfgData md = new MfgData(code, name);
 
     final RecordProcessor<MfgData> proc = new MfgRecordProcessor();
     assertEquals(md, proc.process(new String[] { md.code, md.name }));

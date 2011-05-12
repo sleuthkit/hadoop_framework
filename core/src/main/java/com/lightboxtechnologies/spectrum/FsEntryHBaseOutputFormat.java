@@ -176,10 +176,10 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     public void write(Text key, FsEntry entry) throws IOException {
       Table.put(createPut(key.toString(), entry, ColFam));
     }
-  
+
     public void close(TaskAttemptContext ctx) {
       Table = null;
       ColFam = null;
     }
-  } 
+  }
 }

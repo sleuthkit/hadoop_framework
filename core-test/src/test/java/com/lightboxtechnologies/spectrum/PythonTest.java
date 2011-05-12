@@ -4,12 +4,12 @@ import javax.script.*;
 import java.io.*;
 
 public class PythonTest {
-  
+
   public void emit(Object key, Object value) {
     System.out.println("out key type = " + key.getClass().getName());
     System.out.println("out value type = " + value.getClass().getName());
   }
-  
+
   public static void main(String[] args) throws ScriptException {
     ScriptEngine engine = new ScriptEngineManager().getEngineByName("python");
     FsEntry e = new FsEntry();

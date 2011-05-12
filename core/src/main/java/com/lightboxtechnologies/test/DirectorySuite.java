@@ -52,7 +52,7 @@ public abstract class DirectorySuite extends Suite {
 
     final List<Class<?>> tests = new ArrayList<Class<?>>();
 
-    final Deque<File> stack = new ArrayDeque<File>(); 
+    final Deque<File> stack = new ArrayDeque<File>();
     stack.push(root);
 
     File dir;
@@ -63,7 +63,7 @@ public abstract class DirectorySuite extends Suite {
 
       for (File f : dir.listFiles()) {
         if (f.isDirectory()) {
-          stack.push(f); 
+          stack.push(f);
         }
         else {
           cpath = f.getPath();

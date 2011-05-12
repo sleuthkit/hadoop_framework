@@ -25,7 +25,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
  * An MR job to load NSRL hash data to HBase.
  *
  * @author Joel Uckelman
- */ 
+ */
 public class HashLoader {
   static class HashLoaderMapper
             extends Mapper<LongWritable,Text,ImmutableBytesWritable,KeyValue> {
@@ -77,7 +77,7 @@ public class HashLoader {
       final String mfg_filename  = conf.get("mfg_filename");
       final String os_filename   = conf.get("os_filename");
       final String prod_filename = conf.get("prod_filename");
- 
+
       final FileSystem fs = FileSystem.get(conf);
 
       SmallTableLoader.load(

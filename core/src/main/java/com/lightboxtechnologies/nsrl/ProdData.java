@@ -41,7 +41,7 @@ public class ProdData {
       "%s[code=\"%d\",name=\"%s\",version=\"%s\",os_code=\"%s\",mfg_code=\"%s\",language=\"%s\",app_type=\"%s\"]",
       getClass().getName(),
       code, name, version, os_code, mfg_code, language, app_type
-    ); 
+    );
   }
 
   @Override

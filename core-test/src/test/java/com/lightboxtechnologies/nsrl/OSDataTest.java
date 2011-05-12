@@ -15,28 +15,28 @@ public class OSDataTest {
   @Test
   public void equalsSelf() {
     final OSData osd = new OSData(code, name, version, mfg_code);
-    assertTrue(osd.equals(osd)); 
+    assertTrue(osd.equals(osd));
   }
 
   @Test
   public void equalsSame() {
     final OSData a = new OSData(code, name, version, mfg_code);
     final OSData b = new OSData(code, name, version, mfg_code);
-    assertTrue(a.equals(b)); 
-    assertTrue(b.equals(a)); 
+    assertTrue(a.equals(b));
+    assertTrue(b.equals(a));
   }
 
   @Test
   public void notEqualsNull() {
     final OSData osd = new OSData(code, name, version, mfg_code);
-    assertFalse(osd.equals(null)); 
+    assertFalse(osd.equals(null));
   }
 
   @Test
   public void notEqualsOtherType() {
     final OSData osd = new OSData(code, name, version, mfg_code);
-    assertFalse(osd.equals("bogus")); 
-    assertFalse("bogus".equals(osd)); 
+    assertFalse(osd.equals("bogus"));
+    assertFalse("bogus".equals(osd));
   }
 
   @Test
@@ -61,7 +61,7 @@ public class OSDataTest {
   public void nullVersion() {
     new OSData("", "", null, "");
   }
-  
+
   @Test(expected=IllegalArgumentException.class)
   public void nullMfgCode() {
     new OSData("", "", "", null);
@@ -70,14 +70,14 @@ public class OSDataTest {
   @Test
   public void hashCodeSelf() {
     final OSData osd = new OSData(code, name, version, mfg_code);
-    assertTrue(osd.hashCode() == osd.hashCode()); 
+    assertTrue(osd.hashCode() == osd.hashCode());
   }
 
   @Test
   public void hashCodeSame() {
     final OSData a = new OSData(code, name, version, mfg_code);
     final OSData b = new OSData(code, name, version, mfg_code);
-    assertTrue(a.hashCode() == b.hashCode()); 
+    assertTrue(a.hashCode() == b.hashCode());
   }
 
   @Test

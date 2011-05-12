@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  * A basic NSRL record line handling class.
- * 
+ *
  * @author Joel Uckelman
  */
 public class DefaultLineHandler<T> implements LineHandler {

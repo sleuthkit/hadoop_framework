@@ -2,7 +2,7 @@ package com.lightboxtechnologies.nsrl;
 
 /**
  * A {@link RecordProcessor} for NSRL manufacturer records.
- * 
+ *
  * @author Joel Uckelman
  */
 class MfgRecordProcessor implements RecordProcessor<MfgData> {

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  * The interface for tokenizers of NSRL record lines.
- * 
+ *
  * @author Joel Uckelman
  */
 public interface LineTokenizer {

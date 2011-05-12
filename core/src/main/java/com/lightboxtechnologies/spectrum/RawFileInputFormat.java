@@ -18,9 +18,9 @@ public class RawFileInputFormat extends FileInputFormat<NullWritable, FileSplit>
   public static class RawFileRecordReader extends RecordReader<NullWritable, FileSplit> {
     private FileSplit Split;
     private boolean GetCalled = false;
-    
+
     public void close() {}
-    
+
     public NullWritable getCurrentKey() {
       return NullWritable.get();
     }

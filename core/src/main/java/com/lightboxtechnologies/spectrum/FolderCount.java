@@ -31,12 +31,12 @@ import java.io.DataOutputStream;
 
 public class FolderCount {
 
-  public static class FolderCountMapper 
+  public static class FolderCountMapper
        extends Mapper<Text, FsEntry, Text, IntWritable>{
 
     private final Text Folder = new Text();
     private final IntWritable One = new IntWritable(1);
-    
+
     @Override
     public void map(Text key, FsEntry value, Context context) throws IOException, InterruptedException {
       Folder.set((String)value.get("path"));
@@ -79,12 +79,12 @@ public class FolderCount {
     job.setOutputValueClass(IntWritable.class);
     job.setInputFormatClass(FsEntryHBaseInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
-    
+
     final Scan scan = new Scan();
     scan.addFamily(Bytes.toBytes("core"));
     job.getConfiguration().set(TableInputFormat.INPUT_TABLE, otherArgs[0]);
     job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
-    
+
     FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }

@@ -5,7 +5,7 @@ import org.apache.commons.codec.binary.Hex;
 
 /**
  * A {@link RecordProcessor} for NSRL hash records.
- * 
+ *
  * @author Joel Uckelman
  */
 class HashRecordProcessor implements RecordProcessor<HashData> {
@@ -18,7 +18,7 @@ class HashRecordProcessor implements RecordProcessor<HashData> {
     else if (col.length > 8) {
       throw new BadDataException("too many columns");
     }
-    
+
     long size = 0;
     try {
       size = Long.parseLong(col[4]);

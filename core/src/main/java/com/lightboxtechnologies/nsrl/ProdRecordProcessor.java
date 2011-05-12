@@ -2,7 +2,7 @@ package com.lightboxtechnologies.nsrl;
 
 /**
  * A {@link RecordProcessor} for NSRL product records.
- * 
+ *
  * @author Joel Uckelman
  */
 class ProdRecordProcessor implements RecordProcessor<ProdData> {
@@ -15,7 +15,7 @@ class ProdRecordProcessor implements RecordProcessor<ProdData> {
     }
 
     Integer code = null;
-    try { 
+    try {
       code = Integer.valueOf(col[0]);
     }
     catch (NumberFormatException e) {

@@ -10,7 +10,7 @@ import java.io.OutputStream;
  * utility methods to reduce boilerplate I/O code.
  *
  * @author Joel Uckelman
- */ 
+ */
 public class IOUtils extends org.apache.commons.io.IOUtils {
   protected IOUtils() {}
 
@@ -65,20 +65,20 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
    */
   public static void closeQuietly(Closeable c) {
     if (c == null) return;
-    
+
     try {
       c.close();
     }
     catch (IOException e) {
-      // ignore 
+      // ignore
     }
   }
 
   /**
-   * Reads from an {@link InputStream} to a byte array. This will always 
+   * Reads from an {@link InputStream} to a byte array. This will always
    * completely fill the byte array, unless there are no more bytes to
    * read from the stream.
-   * 
+   *
    * @param in the input stream from which to read
    * @param buf the byte array to fill
    * @return the number of bytes read, of <code>-1</code> if at the end of
@@ -97,5 +97,5 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
     // This will read at least one byte if there are any to be read,
     // so bytes read cannot be zero.
     return off == 0 ? -1 : off;
-  } 
+  }
 }

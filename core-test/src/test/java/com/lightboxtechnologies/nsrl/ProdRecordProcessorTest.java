@@ -37,9 +37,9 @@ public class ProdRecordProcessorTest {
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
 
     final RecordProcessor<ProdData> proc = new ProdRecordProcessor();
-    assertEquals(pd, proc.process(new String[] { 
+    assertEquals(pd, proc.process(new String[] {
       String.valueOf(code), name, version, os_code,
-      mfg_code, language, app_type 
+      mfg_code, language, app_type
     }));
   }
 

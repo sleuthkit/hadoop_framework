@@ -96,7 +96,7 @@ public class PythonJob {
       if (o instanceof LongWritable) {
         return (LongWritable)o;
       }
-      
+
       Box.set((Long)o);
       return Box;
     }
@@ -227,13 +227,13 @@ public class PythonJob {
     public BoxerUnboxer<?,OV> getOutValue() {
       return OutValue;
     }
- 
-    @SuppressWarnings("unchecked") 
+
+    @SuppressWarnings("unchecked")
     public BoxerUnboxer<?,OK> createOutKey(String type) {
       return (BoxerUnboxer<?,OK>) createOutputType(type);
     }
 
-    @SuppressWarnings("unchecked") 
+    @SuppressWarnings("unchecked")
     public BoxerUnboxer<?,OV> createOutValue(String type) {
       return (BoxerUnboxer<?,OV>) createOutputType(type);
     }

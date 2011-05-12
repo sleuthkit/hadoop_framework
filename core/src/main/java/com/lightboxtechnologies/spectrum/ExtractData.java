@@ -42,22 +42,22 @@ public class ExtractData {
     job.setMapperClass(ExtractMapper.class);
     job.setNumReduceTasks(1);
 //    job.setReducer
-    
+
     job.setInputFormatClass(RawFileInputFormat.class);
     RawFileInputFormat.addInputPath(job, new Path(otherArgs[2]));
-    
+
     job.setOutputFormatClass(TextOutputFormat.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
-    
+
     conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
     conf.set(FsEntryHBaseOutputFormat.ENTRY_TABLE, otherArgs[0]);
     conf.set("com.lbt.storepath", otherArgs[3]);
     FileOutputFormat.setOutputPath(job, new Path(otherArgs[3]));
-    
+
     final URI extents = new Path(otherArgs[1]).toUri();
     LOG.info("extents file is " + extents);
-    
+
     DistributedCache.addCacheFile(new Path(otherArgs[1]).toUri(), conf);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }

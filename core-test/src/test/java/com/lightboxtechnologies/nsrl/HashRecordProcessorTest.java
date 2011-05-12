@@ -92,8 +92,8 @@ public class HashRecordProcessorTest {
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
     final RecordProcessor<HashData> proc = new HashRecordProcessor();
- 
-    assertEquals(hd, proc.process(new String[] { 
+
+    assertEquals(hd, proc.process(new String[] {
       Hex.encodeHexString(sha1), Hex.encodeHexString(md5),
       Hex.encodeHexString(crc32), name, String.valueOf(size),
       String.valueOf(prod_code), os_code, special_code

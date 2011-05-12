@@ -48,7 +48,7 @@ public class JsonWritableTest {
     w1.set(input);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     w1.write(new DataOutputStream(out));
-    
+
     final JsonWritable w2 = new JsonWritable();
     w2.readFields(new DataInputStream(new ByteArrayInputStream(out.toByteArray())));
     assertTrue(expected.equals(w2.get()));

@@ -66,7 +66,7 @@ public class FsEntryHBaseCommonTest {
     assertEquals(expected[0], actual[0]);
     assertEquals(expected[1], actual[1]);
   }
-  
+
   @Test
   public void testColName() {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -74,7 +74,7 @@ public class FsEntryHBaseCommonTest {
     stream.write(65);
     assertEquals("A", colName(stream.toByteArray()));
   }
-  
+
   @Test
   public void testUnmarshallLong() {
     ByteArrayOutputStream colSpec = new ByteArrayOutputStream();
@@ -83,7 +83,7 @@ public class FsEntryHBaseCommonTest {
     byte[] c = colSpec.toByteArray();
     assertEquals(7L, unmarshall(c, Bytes.toBytes(7L)));
   }
-  
+
   @Test
   public void testUnmarshallString() {
     ByteArrayOutputStream colSpec = new ByteArrayOutputStream();

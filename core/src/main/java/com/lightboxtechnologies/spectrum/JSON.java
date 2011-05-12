@@ -21,7 +21,7 @@ public class JSON {
 
   public static <T> T getAs(JSONObject json, String key, Class<T> type)
                                                          throws DataException {
-    final Object o = getNonNull(json, key); 
+    final Object o = getNonNull(json, key);
 
     if (!type.isInstance(o)) {
       throw new DataException(

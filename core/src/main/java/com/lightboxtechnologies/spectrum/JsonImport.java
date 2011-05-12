@@ -25,7 +25,7 @@ public class JsonImport {
 /**
  * This is some documentation for FsEntryMapLoader
  */
-  public static class FsEntryMapLoader 
+  public static class FsEntryMapLoader
        extends Mapper<Object, Text, Text, FsEntry>{
 
     private final FsEntry Entry = new FsEntry();

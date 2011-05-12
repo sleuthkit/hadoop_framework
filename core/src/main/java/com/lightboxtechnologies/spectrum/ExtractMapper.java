@@ -94,7 +94,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
           ctx.progress();
         }
       }
-      read += length; 
+      read += length;
     }
     outStream.write(Buffer, 0, bufOffset);
     outStream.flush();
@@ -146,7 +146,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     context.getCounter(FileTypes.SMALL).increment(1);
 
     String hash = null;
-    OutputStream dout = null; 
+    OutputStream dout = null;
     try {
       dout = new DigestOutputStream(NullStream, Hash);
       hash = extract(file, dout, map, context);
@@ -156,7 +156,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
       IOUtils.closeQuietly(dout);
     }
 
-    // FIXME: makes a second copy; would be nice to give 
+    // FIXME: makes a second copy; would be nice to give
     // Put a portion of Buffer; can probably do this with
     // java.nio.Buffer.
     final StreamProxy content = new BufferProxy(Arrays.copyOf(Buffer, (int)fileSize));
@@ -164,7 +164,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     final Map<String,Object> rec = new HashMap<String,Object>();
     rec.put("Content", content);
     rec.put("md5", hash);
-    return rec; 
+    return rec;
   }
 
   protected Map<String,Object> process_extent_large(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException {
@@ -208,7 +208,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     final Map<String,Object> rec = new HashMap<String,Object>();
     rec.put("Content", content);
     rec.put("md5", hash);
-    return rec; 
+    return rec;
   }
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
@@ -258,7 +258,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     }
 
     return numFiles;
-  } 
+  }
 
   @Override
   protected void map(NullWritable k, FileSplit split, Context context)

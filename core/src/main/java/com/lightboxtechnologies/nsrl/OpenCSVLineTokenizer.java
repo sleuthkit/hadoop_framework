@@ -6,7 +6,7 @@ import au.com.bytecode.opencsv.CSVParser;
 
 /**
  * A {@link LineTokenizer} for NSRL record lines using opencsv.
- * 
+ *
  * @author Joel Uckelman
  */
 class OpenCSVLineTokenizer implements LineTokenizer {

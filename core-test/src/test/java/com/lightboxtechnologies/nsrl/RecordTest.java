@@ -18,7 +18,7 @@ public class RecordTest {
 
     Record.put(key, val, map);
     assertEquals(1, map.size());
-    assertEquals(val, map.get(key));  
+    assertEquals(val, map.get(key));
   }
 
   @Test(expected=BadDataException.class)

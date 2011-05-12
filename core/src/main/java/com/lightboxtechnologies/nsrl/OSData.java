@@ -4,7 +4,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * An NSRL operating system record.
- * 
+ *
  * @author Joel Uckelman
  */
 public class OSData {
@@ -30,7 +30,7 @@ public class OSData {
     return String.format(
       "%s[code=\"%s\",name=\"%s\",version=\"%s\",mfg_code=\"%s\"]",
       getClass().getName(), code, name, version, mfg_code
-    ); 
+    );
   }
 
   @Override

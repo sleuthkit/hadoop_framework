@@ -32,8 +32,8 @@ public class IOUtilsTest {
     final byte[] expected = new byte[10000];
     final long seed = System.currentTimeMillis();
     final Random rng = new Random(seed);
-    rng.nextBytes(expected);    
-    
+    rng.nextBytes(expected);
+
     final ByteArrayInputStream in = new ByteArrayInputStream(expected);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -50,8 +50,8 @@ public class IOUtilsTest {
     final byte[] expected = new byte[10000];
     final long seed = System.currentTimeMillis();
     final Random rng = new Random(seed);
-    rng.nextBytes(expected);    
-    
+    rng.nextBytes(expected);
+
     final ByteArrayInputStream in = new ByteArrayInputStream(expected);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -64,7 +64,7 @@ public class IOUtilsTest {
   @Test
   public void testCloseQuietlyCloseableOk() throws IOException {
     final Closeable c = context.mock(Closeable.class);
-    
+
     context.checking(new Expectations() {
       {
         oneOf(c).close();
@@ -77,7 +77,7 @@ public class IOUtilsTest {
   @Test
   public void testCloseQuietlyCloseableThrows() throws IOException {
     final Closeable c = context.mock(Closeable.class);
-    
+
     context.checking(new Expectations() {
       {
         oneOf(c).close(); will(throwException(new IOException()));

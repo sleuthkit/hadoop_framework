@@ -2,7 +2,7 @@ package com.lightboxtechnologies.nsrl;
 
 /**
  * A {@link RecordProcessor} for NSRL operating system records.
- * 
+ *
  * @author Joel Uckelman
  */
 class OSRecordProcessor implements RecordProcessor<OSData> {

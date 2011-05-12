@@ -24,7 +24,7 @@ public class OpenCSVLineTokenizerTest {
   @Test
   public void parseTest() throws IOException {
     final LineTokenizer tok = new OpenCSVLineTokenizer();
-    
+
     for (String[] row : rows) {
       assertArrayEquals(row, tok.tokenize(buildCSV(row)));
     }

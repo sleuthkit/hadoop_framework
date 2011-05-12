@@ -95,7 +95,7 @@ public class DefaultLineHandlerTest {
       lh.handle(buildCSV(rows[i]), i+1);
     }
   }
-    
+
   @Test
   public void handleBad() throws IOException, BadDataException {
     final LineTokenizer tok = context.mock(LineTokenizer.class);

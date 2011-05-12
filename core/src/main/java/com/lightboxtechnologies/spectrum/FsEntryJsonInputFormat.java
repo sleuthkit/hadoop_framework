@@ -42,7 +42,7 @@ public class FsEntryJsonInputFormat extends FileInputFormat implements Configura
   public RecordReader<Text, FsEntry> createRecordReader(InputSplit split, TaskAttemptContext ctx) throws IOException {
     return new FsEntryRecordReader();
   }
-  
+
   public static class FsEntryRecordReader extends RecordReader<Text, FsEntry> {
     private final LineRecordReader Liner;
     private final Text Key;
@@ -59,7 +59,7 @@ public class FsEntryJsonInputFormat extends FileInputFormat implements Configura
     public void close() throws IOException {
       Liner.close();
     }
-    
+
     public float getProgress() {
       return Liner.getProgress();
     }

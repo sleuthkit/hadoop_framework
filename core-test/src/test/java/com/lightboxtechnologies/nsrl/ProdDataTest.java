@@ -19,7 +19,7 @@ public class ProdDataTest {
   public void equalsSelf() {
     final ProdData pd =
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
-    assertTrue(pd.equals(pd)); 
+    assertTrue(pd.equals(pd));
   }
 
   @Test
@@ -29,15 +29,15 @@ public class ProdDataTest {
     final ProdData b =
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
 
-    assertTrue(a.equals(b)); 
-    assertTrue(b.equals(a)); 
+    assertTrue(a.equals(b));
+    assertTrue(b.equals(a));
   }
 
   @Test
   public void notEqualsNull() {
     final ProdData pd =
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
-    assertFalse(pd.equals(null)); 
+    assertFalse(pd.equals(null));
   }
 
   @Test
@@ -45,8 +45,8 @@ public class ProdDataTest {
     final ProdData pd =
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
 
-    assertFalse(pd.equals("bogus")); 
-    assertFalse("bogus".equals(pd)); 
+    assertFalse(pd.equals("bogus"));
+    assertFalse("bogus".equals(pd));
   }
 
   @Test
@@ -74,7 +74,7 @@ public class ProdDataTest {
   public void nullVersion() {
     new ProdData(1, "", null, "", "", "", "");
   }
-  
+
   @Test(expected=IllegalArgumentException.class)
   public void nullOSCode() {
     new ProdData(1, "", "", null, "", "", "");
@@ -100,7 +100,7 @@ public class ProdDataTest {
     final ProdData pd =
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
 
-    assertTrue(pd.hashCode() == pd.hashCode()); 
+    assertTrue(pd.hashCode() == pd.hashCode());
   }
 
   @Test
@@ -109,7 +109,7 @@ public class ProdDataTest {
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
     final ProdData b =
       new ProdData(code, name, version, os_code, mfg_code, language, app_type);
-    assertTrue(a.hashCode() == b.hashCode()); 
+    assertTrue(a.hashCode() == b.hashCode());
   }
 
   @Test

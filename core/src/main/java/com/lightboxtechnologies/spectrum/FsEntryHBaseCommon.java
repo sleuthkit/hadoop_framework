@@ -24,7 +24,7 @@ public class FsEntryHBaseCommon {
   public static final byte LONG = 0;
   public static final byte STRING = 1;
   public static final byte DATE = 2;
-  public static final byte JSON = 3;  
+  public static final byte JSON = 3;
   public static final byte BYTE_ARRAY = 4;
   public static final byte BUFFER_STREAM = 5;
   public static final byte FILE_STREAM = 6;
@@ -75,7 +75,7 @@ public class FsEntryHBaseCommon {
   public static String colName(byte[] colSpec) {
     return Bytes.toString(colSpec, 1, colSpec.length-1);
   }
-  
+
   @SuppressWarnings("fallthrough")
   public static Object unmarshall(byte[] colSpec, byte[] colVal) {
     byte type = colSpec[0];

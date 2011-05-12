@@ -4,7 +4,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * An NSRL manufacturer record.
- * 
+ *
  * @author Joel Uckelman
  */
 public class MfgData {
@@ -24,7 +24,7 @@ public class MfgData {
     return String.format(
       "%s[code=\"%s\",name=\"%s\"]",
       getClass().getName(), code, name
-    ); 
+    );
   }
 
   @Override

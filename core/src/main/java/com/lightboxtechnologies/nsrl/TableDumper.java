@@ -102,7 +102,7 @@ public class TableDumper {
       table_name,
       scan,
       TableDumperMapper.class,
-      Text.class, 
+      Text.class,
       Text.class,
       job
     );

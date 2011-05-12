@@ -95,7 +95,7 @@ public class OCSVTest {
         hd_json.put("name", hd.name);
         hd_json.put("size", hd.size);
         hd_json.put("special_code", hd.special_code);
-        
+
         final OSData osd = os.get(hd.os_code);
         final MfgData osmfgd = mfg.get(osd.mfg_code);
 
@@ -119,7 +119,7 @@ public class OCSVTest {
           }
 
           final JSONObject prod_json = new JSONObject();
-          
+
           prod_json.put("name", pd.name);
           prod_json.put("version", pd.version);
           prod_json.put("language", pd.language);

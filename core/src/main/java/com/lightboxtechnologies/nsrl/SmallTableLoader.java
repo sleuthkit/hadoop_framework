@@ -60,7 +60,7 @@ public class SmallTableLoader {
         mfg.put(md.code, md);
       }
     };
-    
+
     final RecordProcessor<MfgData> mfg_proc = new MfgRecordProcessor();
     return new DefaultLineHandler<MfgData>(tok, mfg_proc, mfg_con, err);
   }
@@ -68,7 +68,7 @@ public class SmallTableLoader {
   protected static LineHandler getOSLH(LineTokenizer tok, ErrorConsumer err,
                                        final Map<String,OSData> os)
                                                            throws IOException {
-    
+
     // load OS data
     final RecordConsumer<OSData> os_con = new RecordConsumer<OSData>() {
       public void consume(OSData osd) {
@@ -78,7 +78,7 @@ public class SmallTableLoader {
 
     final RecordProcessor<OSData> os_proc = new OSRecordProcessor();
     return new DefaultLineHandler<OSData>(tok, os_proc, os_con, err);
-  }  
+  }
 
   protected static LineHandler getProdLH(LineTokenizer tok, ErrorConsumer err,
                                          final Map<Integer,List<ProdData>> prod)

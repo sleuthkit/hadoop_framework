@@ -6,7 +6,7 @@ import org.apache.commons.codec.binary.Hex;
 
 /**
  * An NSRL hash record.
- * 
+ *
  * @author Joel Uckelman
  */
 public class HashData {
@@ -52,7 +52,7 @@ public class HashData {
       getClass().getName(), Hex.encodeHexString(sha1),
       Hex.encodeHexString(md5), Hex.encodeHexString(crc32),
       name, size, prod_code, os_code, special_code
-    ); 
+    );
   }
 
     @Override
@@ -62,7 +62,7 @@ public class HashData {
     final HashData d = (HashData) o;
     return Arrays.equals(sha1, d.sha1) && Arrays.equals(md5, d.md5) &&
            Arrays.equals(crc32, d.crc32) && name.equals(d.name) &&
-           size == d.size && prod_code == d.prod_code && 
+           size == d.size && prod_code == d.prod_code &&
            os_code.equals(d.os_code) && special_code.equals(d.special_code);
   }
 

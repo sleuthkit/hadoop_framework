@@ -35,7 +35,7 @@ public class HashDataTest {
     final HashData hd = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    assertTrue(hd.equals(hd)); 
+    assertTrue(hd.equals(hd));
   }
 
   @Test
@@ -45,8 +45,8 @@ public class HashDataTest {
     final HashData b = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    assertTrue(a.equals(b)); 
-    assertTrue(b.equals(a)); 
+    assertTrue(a.equals(b));
+    assertTrue(b.equals(a));
   }
 
   @Test
@@ -54,7 +54,7 @@ public class HashDataTest {
     final HashData hd = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    assertFalse(hd.equals(null)); 
+    assertFalse(hd.equals(null));
   }
 
   @Test
@@ -62,8 +62,8 @@ public class HashDataTest {
     final HashData hd = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    assertFalse(hd.equals("bogus")); 
-    assertFalse("bogus".equals(hd)); 
+    assertFalse(hd.equals("bogus"));
+    assertFalse("bogus".equals(hd));
   }
 
   @Test
@@ -91,7 +91,7 @@ public class HashDataTest {
   public void nullMD5() {
     new HashData(new byte[20], null, new byte[4], "", 0, 0, "", "");
   }
-  
+
   @Test(expected=IllegalArgumentException.class)
   public void badMD5() {
     new HashData(new byte[20], new byte[0], new byte[4], "", 0, 0, "", "");
@@ -137,7 +137,7 @@ public class HashDataTest {
     final HashData hd = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    assertTrue(hd.hashCode() == hd.hashCode()); 
+    assertTrue(hd.hashCode() == hd.hashCode());
   }
 
   @Test
@@ -147,7 +147,7 @@ public class HashDataTest {
     final HashData b = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    assertTrue(a.hashCode() == b.hashCode()); 
+    assertTrue(a.hashCode() == b.hashCode());
   }
 
   @Test

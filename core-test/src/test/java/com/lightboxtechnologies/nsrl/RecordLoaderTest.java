@@ -33,7 +33,7 @@ public class RecordLoaderTest {
     context.checking(new Expectations() {
       {
         // expect one less than limit, since the first line is discarded
-        for (int i = 1; i < limit; ++i) {     
+        for (int i = 1; i < limit; ++i) {
           oneOf(lh).handle(with(line), with((long)i));
         }
       }
@@ -41,7 +41,7 @@ public class RecordLoaderTest {
 
     return lh;
   }
-  
+
   private CharSequence buildInput(int limit, String line) {
     final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < limit; ++i) sb.append(line).append('\n');
@@ -76,7 +76,7 @@ public class RecordLoaderTest {
   @Test
   public void loadFilename() throws IOException {
     final LineHandler lh = buildLineHandler(limit, line);
-    final String filename = "src/test/java/com/lightboxtechnologies/nsrl/jackdaws"; 
+    final String filename = "src/test/java/com/lightboxtechnologies/nsrl/jackdaws";
 
     final RecordLoader loader = new RecordLoader();
     loader.load(filename, lh);

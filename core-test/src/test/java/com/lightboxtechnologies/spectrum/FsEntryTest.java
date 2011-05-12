@@ -74,7 +74,7 @@ public class FsEntryTest {
   public void testFullPath() {
     FsEntry e = new FsEntry();
     assertTrue(e.parseJson("{\"path\":\"a/path/\", \"name\":{\"name\":\"aname\",\"dirIndex\":2}}"));
-    assertEquals("a/path/aname", e.fullPath());    
+    assertEquals("a/path/aname", e.fullPath());
     assertTrue(e.parseJson("{\"path\":\"\", \"name\":{\"name\":\"small\",\"dirIndex\":2}}"));
     assertEquals("small", e.fullPath());
   }

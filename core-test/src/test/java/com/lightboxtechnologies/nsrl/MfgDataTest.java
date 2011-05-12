@@ -13,28 +13,28 @@ public class MfgDataTest {
   @Test
   public void equalsSelf() {
     final MfgData osd = new MfgData(code, name);
-    assertTrue(osd.equals(osd)); 
+    assertTrue(osd.equals(osd));
   }
 
   @Test
   public void equalsSame() {
     final MfgData a = new MfgData(code, name);
     final MfgData b = new MfgData(code, name);
-    assertTrue(a.equals(b)); 
-    assertTrue(b.equals(a)); 
+    assertTrue(a.equals(b));
+    assertTrue(b.equals(a));
   }
 
   @Test
   public void notEqualsNull() {
     final MfgData osd = new MfgData(code, name);
-    assertFalse(osd.equals(null)); 
+    assertFalse(osd.equals(null));
   }
 
   @Test
   public void notEqualsOtherType() {
     final MfgData osd = new MfgData(code, name);
-    assertFalse(osd.equals("bogus")); 
-    assertFalse("bogus".equals(osd)); 
+    assertFalse(osd.equals("bogus"));
+    assertFalse("bogus".equals(osd));
   }
 
   @Test
@@ -58,14 +58,14 @@ public class MfgDataTest {
   @Test
   public void hashCodeSelf() {
     final MfgData osd = new MfgData(code, name);
-    assertTrue(osd.hashCode() == osd.hashCode()); 
+    assertTrue(osd.hashCode() == osd.hashCode());
   }
 
   @Test
   public void hashCodeSame() {
     final MfgData a = new MfgData(code, name);
     final MfgData b = new MfgData(code, name);
-    assertTrue(a.hashCode() == b.hashCode()); 
+    assertTrue(a.hashCode() == b.hashCode());
   }
 
   @Test
