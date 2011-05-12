@@ -22,6 +22,8 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 /**
+ * An MR job to load NSRL hash data to HBase.
+ *
  * @author Joel Uckelman
  */ 
 public class HashLoader {
@@ -83,39 +85,64 @@ public class HashLoader {
       );
     }
 
+    protected byte[] makeOutKey(byte[] hash, byte type, byte[] colname) {
+      /*
+        Key format is:
+
+          hash right-padded with zeros to 20 bytes
+          byte 0 for md5, 1 for sha1
+          column name as bytes
+
+        The reason for padding the hash and including the type byte is to
+        ensure that MD5s which are prefixes of SHA1s can be distinguished
+        from them, yet still sort correctly.
+      */
+
+      final byte[] okbytes = new byte[20+1+colname.length];
+      Bytes.putBytes(okbytes, 0, hash, 0, hash.length);
+      okbytes[20] = type;
+      Bytes.putBytes(okbytes, 21, colname, 0, colname.length);
+      return okbytes;
+    }
+
     protected void writeRow(byte[] key, HashData hd,
                             List<ProdData> pl, Context context)
                                      throws InterruptedException, IOException {
-      okey.set(key);
+      // md5 is type 0, sha1 is type 1
+      final byte ktype = (byte) (key.length == 16 ? 0 : 1);
 
-      // write the crc32 column if the key is not the crc32
-      if (key.length != 4) {
-        context.write(
-          okey, new KeyValue(key, family, crc32_col, timestamp, hd.crc32)
-        );
-      }
+      // write the crc32 column
+      okey.set(makeOutKey(key, ktype, crc32_col));
+      context.write(
+        okey, new KeyValue(key, family, crc32_col, timestamp, hd.crc32)
+      );
 
-      // write the md5 column if the key is not the md5
-      if (key.length != 16) {
-        context.write(
-          okey, new KeyValue(key, family, md5_col, timestamp, hd.md5)
-        );
-      }
-
-      // write the sha1 column if the key is not the sha1
-      if (key.length != 20) {
+      switch (ktype) {
+      case 0:
+        // write the sha1 column if the key is not the sha1
+        okey.set(makeOutKey(key, ktype, sha1_col));
         context.write(
           okey, new KeyValue(key, family, sha1_col, timestamp, hd.sha1)
         );
+        break;
+      case 1:
+        // write the md5 column if the key is not the md5
+        okey.set(makeOutKey(key, ktype, md5_col));
+        context.write(
+          okey, new KeyValue(key, family, md5_col, timestamp, hd.md5)
+        );
+        break;
       }
 
       // write the file size
       Bytes.putLong(size, 0, hd.size);
+      okey.set(makeOutKey(key, ktype, size_col));
       context.write(
         okey, new KeyValue(key, family, size_col, timestamp, size)
       );
 
       // check the NSRL box
+      okey.set(makeOutKey(key, ktype, nsrl_col));
       context.write(okey, new KeyValue(key, family, nsrl_col, timestamp, one));
 
       // check the manufacturer/product/os box for each product
@@ -125,6 +152,7 @@ public class HashLoader {
         final byte[] set_col =
           (pmd.name + '/' + pd.name + ' ' + pd.version).getBytes();
 
+        okey.set(makeOutKey(key, ktype, set_col));
         context.write(okey, new KeyValue(key, family, set_col, timestamp, one));
       }
     }
@@ -152,8 +180,7 @@ public class HashLoader {
       // look up the product and OS data
       final List<ProdData> pl = prod.get(hd.prod_code);
 
-      // create one row for each hash
-      writeRow(hd.crc32, hd, pl, context);
+      // create one row keyed to each of the md5 and sha1 hashes
       writeRow(hd.md5,   hd, pl, context);
       writeRow(hd.sha1,  hd, pl, context);
     }
