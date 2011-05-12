@@ -4,7 +4,7 @@
   <groupId>org.sleuthkit</groupId>
   <artifactId>sleuthkit-textextraction</artifactId>
   <version>1-SNAPSHOT</version>
-  <name>Text extraction or The SleuthKit</name>
+  <name>Text extraction for The SleuthKit</name>
   <packaging>jar</packaging>
 
   <parent>
