@@ -14,7 +14,6 @@
    limitations under the License.
  */
 
-
 package org.sleuthkit.hadoop;
 
 import org.apache.hadoop.conf.Configuration;
