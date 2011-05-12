@@ -5,6 +5,6 @@ package com.lightboxtechnologies.nsrl;
  * 
  * @author Joel Uckelman
  */
-public interface RecordProcessor {
-  public void process(String[] col) throws BadDataException;
+public interface RecordProcessor<T> {
+  public T process(String[] col) throws BadDataException;
 }

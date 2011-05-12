@@ -2,13 +2,7 @@ package com.lightboxtechnologies.nsrl;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
-
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
 
 import java.util.Arrays;
 
@@ -18,15 +12,7 @@ import org.apache.commons.codec.binary.Hex;
 /**
  * @author Joel Uckelman
  */
-@RunWith(JMock.class)
 public class HashRecordProcessorTest {
-  private final Mockery context = new JUnit4Mockery();
-
-  private static final RecordConsumer<HashData> dummy =
-                                               new RecordConsumer<HashData>() {
-    public void consume(HashData osd) {}
-  };
-
   private static final Hex hex = new Hex();
 
   private static final String name = "c'est ne pas un name";
@@ -48,13 +34,13 @@ public class HashRecordProcessorTest {
 
   @Test(expected=BadDataException.class)
   public void processTooFewCols() throws BadDataException {
-    final RecordProcessor proc = new HashRecordProcessor(dummy);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
     proc.process(new String[] { "foo" });
   }
 
   @Test(expected=BadDataException.class)
   public void processTooManyCols() throws BadDataException {
-    final RecordProcessor proc = new HashRecordProcessor(dummy);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
     final String[] cols = new String[9];
     Arrays.fill(cols, "foo");
     proc.process(cols);
@@ -62,7 +48,7 @@ public class HashRecordProcessorTest {
 
   @Test(expected=BadDataException.class)
   public void processNegativeSize() throws BadDataException {
-    final RecordProcessor proc = new HashRecordProcessor(dummy);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
     proc.process(new String[] {
       Hex.encodeHexString(sha1), Hex.encodeHexString(md5),
       Hex.encodeHexString(crc32), name, String.valueOf(-1),
@@ -72,7 +58,7 @@ public class HashRecordProcessorTest {
 
   @Test(expected=BadDataException.class)
   public void processNonnumericSize() throws BadDataException {
-    final RecordProcessor proc = new HashRecordProcessor(dummy);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
     proc.process(new String[] {
       Hex.encodeHexString(sha1), Hex.encodeHexString(md5),
       Hex.encodeHexString(crc32), name, "foo",
@@ -82,7 +68,7 @@ public class HashRecordProcessorTest {
 
   @Test(expected=BadDataException.class)
   public void processNegativeProdCode() throws BadDataException {
-    final RecordProcessor proc = new HashRecordProcessor(dummy);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
     proc.process(new String[] {
       Hex.encodeHexString(sha1), Hex.encodeHexString(md5),
       Hex.encodeHexString(crc32), name, String.valueOf(size),
@@ -92,7 +78,7 @@ public class HashRecordProcessorTest {
 
   @Test(expected=BadDataException.class)
   public void processNonnumericProdCode() throws BadDataException {
-    final RecordProcessor proc = new HashRecordProcessor(dummy);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
     proc.process(new String[] {
       Hex.encodeHexString(sha1), Hex.encodeHexString(md5),
       Hex.encodeHexString(crc32), name, String.valueOf(size),
@@ -105,22 +91,12 @@ public class HashRecordProcessorTest {
     final HashData hd = new HashData(
       sha1, md5, crc32, name, size, prod_code, os_code, special_code);
 
-    @SuppressWarnings("unchecked")
-    final RecordConsumer<HashData> hcon =
-      (RecordConsumer<HashData>) context.mock(RecordConsumer.class);
-
-    context.checking(new Expectations() {
-      {
-        oneOf(hcon).consume(with(hd));
-      }
-    });
-
-    final RecordProcessor proc = new HashRecordProcessor(hcon);
+    final RecordProcessor<HashData> proc = new HashRecordProcessor();
  
-    proc.process(new String[] { 
+    assertEquals(hd, proc.process(new String[] { 
       Hex.encodeHexString(sha1), Hex.encodeHexString(md5),
       Hex.encodeHexString(crc32), name, String.valueOf(size),
       String.valueOf(prod_code), os_code, special_code
-    });
+    }));
   }
 }

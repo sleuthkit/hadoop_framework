@@ -5,14 +5,8 @@ package com.lightboxtechnologies.nsrl;
  * 
  * @author Joel Uckelman
  */
-class MfgRecordProcessor implements RecordProcessor {
-  private final RecordConsumer<MfgData> consumer;
-
-  public MfgRecordProcessor(RecordConsumer<MfgData> consumer) {
-    this.consumer = consumer;
-  }
-
-  public void process(String[] col) throws BadDataException {
+class MfgRecordProcessor implements RecordProcessor<MfgData> {
+  public MfgData process(String[] col) throws BadDataException {
     if (col.length < 2) {
       throw new BadDataException("too few columns");
     }
@@ -20,8 +14,6 @@ class MfgRecordProcessor implements RecordProcessor {
       throw new BadDataException("too many columns");
     }
 
-    final MfgData md = new MfgData(col[0], col[1]);
-
-    consumer.consume(md); 
+    return new MfgData(col[0], col[1]);
   }
 }

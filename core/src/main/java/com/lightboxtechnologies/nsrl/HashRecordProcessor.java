@@ -8,16 +8,10 @@ import org.apache.commons.codec.binary.Hex;
  * 
  * @author Joel Uckelman
  */
-class HashRecordProcessor implements RecordProcessor {
+class HashRecordProcessor implements RecordProcessor<HashData> {
   private static final Hex hex = new Hex();
 
-  private final RecordConsumer<HashData> consumer;
-
-  public HashRecordProcessor(RecordConsumer<HashData> consumer) {
-    this.consumer = consumer;
-  }
-
-  public void process(String[] col) throws BadDataException {
+  public HashData process(String[] col) throws BadDataException {
     if (col.length < 8) {
       throw new BadDataException("too few columns");
     }
@@ -59,10 +53,8 @@ class HashRecordProcessor implements RecordProcessor {
       throw new BadDataException(e);
     }
 
-    final HashData hd = new HashData(
+    return new HashData(
       sha1, md5, crc32, col[3], size, prod_code, col[6], col[7]
     );
-
-    consumer.consume(hd);
   }
 }

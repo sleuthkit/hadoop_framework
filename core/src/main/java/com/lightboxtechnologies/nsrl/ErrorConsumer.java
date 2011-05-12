@@ -6,5 +6,5 @@ package com.lightboxtechnologies.nsrl;
  * @author Joel Uckelman
  */
 public interface ErrorConsumer {
-  public void consume(BadDataException bde, long line);
+  public void consume(BadDataException bde, long linenum);
 }
