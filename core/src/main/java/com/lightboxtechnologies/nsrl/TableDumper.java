@@ -19,6 +19,11 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 import org.apache.commons.codec.binary.Hex;
 
+/**
+ * A MR job to dump an HBase table to a text file.
+ *
+ * @author Joel Uckelman
+ */
 public class TableDumper {
 
   static class TableDumperMapper extends TableMapper<Text,Text> {
@@ -38,7 +43,16 @@ public class TableDumper {
       for (Map.Entry<byte[],NavigableMap<byte[],NavigableMap<Long,byte[]>>> e1 : map1.entrySet()) {
         final String family = new String(e1.getKey());
         sb.append(family).append(" => [");
+
+        boolean e2_first = true;
         for (Map.Entry<byte[],NavigableMap<Long,byte[]>> e2 : e1.getValue().entrySet()) {
+          if (e2_first) {
+            e2_first = false;
+          }
+          else {
+            sb.append(", ");
+          }
+
           final String col = new String(e2.getKey());
           sb.append(col).append(" => [");
           for (Map.Entry<Long,byte[]> e3 : e2.getValue().entrySet()) {
@@ -54,7 +68,7 @@ public class TableDumper {
               sb.append('1');
             }
           }
-          sb.append(']');
+          sb.append("]");
         }
         sb.append(']');
       }
