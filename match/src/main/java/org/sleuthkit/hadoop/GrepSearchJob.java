@@ -55,9 +55,9 @@ public class GrepSearchJob {
         }
         return runPipeline(DEFAULT_INPUT_DIR, DEFAULT_OUTPUT_DIR, args[0]);
     }
-    
+
     public static int runPipeline(String inputdir, String outputdir, String regexFile) {
-        
+
         try {
             Job job = new Job();
             job.setJarByClass(GrepSearchJob.class);
@@ -139,7 +139,7 @@ public class GrepSearchJob {
     }
 
     // Maps regex matches to an output file.
-    public static class GrepMapper 
+    public static class GrepMapper
     extends Mapper<Text, Text, Text, Text> {
 
         private List<Pattern> patterns = new ArrayList<Pattern>();

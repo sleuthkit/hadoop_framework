@@ -75,10 +75,10 @@ public class TokenizeAndVectorizeDocuments {
         boolean sequentialAccess = false;
         boolean namedVectors = true;
         Configuration cfg = new Configuration();
-        
-        
+
+
         try {
-            DictionaryVectorizer.createTermFrequencyVectors(input, 
+            DictionaryVectorizer.createTermFrequencyVectors(input,
                     output,
                     cfg,
                     minSupport,
@@ -110,13 +110,13 @@ public class TokenizeAndVectorizeDocuments {
         try {
             TFIDFConverter.processTfIdf(input,
                     output,
-                    chunkSizeInMegabytes, 
-                    minDocumentFrequency, 
-                    maxDocumentFrequencyPercent, 
-                    normPower, 
-                    logNormalize, 
-                    sequentialAccess, 
-                    namedVectors, 
+                    chunkSizeInMegabytes,
+                    minDocumentFrequency,
+                    maxDocumentFrequencyPercent,
+                    normPower,
+                    logNormalize,
+                    sequentialAccess,
+                    namedVectors,
                     numReducers);
         } catch (Exception ex) {
             log.error("Error creating TF-IDF Vectors from TF-vectors", ex);

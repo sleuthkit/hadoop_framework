@@ -44,7 +44,7 @@ public class TikaTextExtractor {
 	private static String JOB_NAME = "TikaTextExtractor";
 //	private static byte [][] family = new byte[2][]; // data:data
 //	private static byte [][] column = new byte[2][]; // path cont
-	
+
 	private static byte [] FAMILY = Bytes.toBytes("data");
 
 	private static byte [] COL_CONT = Bytes.toBytes("cont");
@@ -52,7 +52,7 @@ public class TikaTextExtractor {
 
 	static class TikaTextExtractorMapper extends TableMapper<ImmutableBytesWritable, Result> {
 		private SequenceFile.Writer writer = null;
-		
+
 		@Override
 		protected void setup(Context context) throws IOException, InterruptedException {
 			System.out.println(HBaseFileImporter.HDFS_PROP_NAME + "=" + context.getConfiguration().get(HBaseFileImporter.HDFS_PROP_NAME));
@@ -93,12 +93,12 @@ public class TikaTextExtractor {
 			}
 			try {
 				writeToSequenceFile(row.get(), new Tika().parseToString(is));
-			} 
+			}
 			catch (Exception e) {
 				//keep on going
 				System.err.println("Failed to extract text from file in row" + row);
 				e.printStackTrace();
-			} 
+			}
 		}
 
 		public void openSequenceFile(String filePath, Configuration conf) throws IOException {
@@ -106,7 +106,7 @@ public class TikaTextExtractor {
 			Path path = new Path(filePath);
 			writer = SequenceFile.createWriter(fs, conf, path, Text.class, Text.class);
 		}
-	
+
 		public void writeToSequenceFile(byte[] key, String value) throws IOException {
 			if (value.length() > 0) {
 				writer.append(new Text(key), new Text(value));
@@ -118,25 +118,25 @@ public class TikaTextExtractor {
 		String tableName = args[0];
 		Job job = new Job(conf, JOB_NAME + "_" + tableName);
 		job.setJarByClass(TikaTextExtractor.class);
-		
+
 		Scan scan = new Scan();
 		for (int i = 0; i <= 1; i++) {
 			String[] fields = args[i+1].split(":");
 //			if (fields.length != 2) {
 //				reportUsageAndExit();
-//			} 
+//			}
 //			else {
 //				//family[i] = Bytes.toBytes(fields[0]);
 //				//column[i] = Bytes.toBytes(fields[1]);
 //				scan.addColumn(FAMILY, column[i]);
-//				
+//
 //			}
 			scan.addColumn(FAMILY, COL_PATH);
 			scan.addColumn(FAMILY, COL_CONT);
 		}
-		
 
-		
+
+
 		job.getConfiguration().set(SEQ_FILE_NAME, args[3]);
 		job.setOutputFormatClass(NullOutputFormat.class);
 		TableMapReduceUtil.initTableMapperJob(tableName, scan, TikaTextExtractorMapper.class, ImmutableBytesWritable.class, Result.class, job);
@@ -148,7 +148,7 @@ public class TikaTextExtractor {
 		System.err.println("Usage: TikaTextExtractor <tablename> <family:columnPath> <family:columnContent> <sequenceFileNameHDFS>");
 		System.exit(-1);
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		Configuration conf = HBaseConfiguration.create();
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
@@ -161,7 +161,7 @@ public class TikaTextExtractor {
 			reportUsageAndExit();
 		}
 	}
-	
+
 	public static int runPipeline(String tablename, String columnPath, String columnContent, String sequenceFileName) throws Exception{
 	    Configuration conf = HBaseConfiguration.create();
 	    String[] otherArgs = new GenericOptionsParser(conf, new String[] {tablename, columnPath, columnContent, sequenceFileName}).getRemainingArgs();

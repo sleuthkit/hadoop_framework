@@ -22,8 +22,8 @@ public class FileCopyToHDFS {
 		System.out.println("fs.default.name=" + conf.get("fs.default.name"));
 
 	    String localSrc = args[0];
-	    String dst = conf.get("fs.default.name") + args[1];	    
-	    
+	    String dst = conf.get("fs.default.name") + args[1];
+
 	    InputStream in = new BufferedInputStream(new FileInputStream(localSrc));
 		FileSystem fs = FileSystem.get(URI.create(dst), conf);
 	    OutputStream out = fs.create(new Path(dst), new Progressable() {
@@ -31,7 +31,7 @@ public class FileCopyToHDFS {
 	        System. out.print(".");
 	      }
 	    });
-	    
+
 	    IOUtils.copyBytes(in, out, 4096, true);
 	  }
 	}
