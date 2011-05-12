@@ -77,6 +77,18 @@ public class FsEntry extends HashMap<String,Object> {
     return null;
   }
 
+  public InputStream getInputStream() throws IOException {
+    return getInputStream("Content");
+  }
+
+  public InputStream getInputStream(String key) throws IOException {
+    StreamProxy p = Streams.get(key);
+    if (p != null) {
+      return p.open(FS);
+    }
+    return null;
+  }
+
   public boolean hasMetadata() {
     return hasMRec;
   }

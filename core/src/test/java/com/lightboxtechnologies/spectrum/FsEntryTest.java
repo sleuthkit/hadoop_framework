@@ -20,6 +20,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.util.Date;
+import java.io.InputStream;
 
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -199,5 +200,18 @@ public class FsEntryTest {
     e.clear();
     e.put("name", "foo.");
     assertEquals("", e.extension());
+  }
+
+  @Test
+  public void testGetInputStream() throws Exception {
+    FsEntry e = new FsEntry();
+    byte[] expected = {0, 1, 2, 3, 4, 5};
+    byte[] actual   = new byte[6];
+    
+    e.getStreams().put("Content", new BufferProxy(expected));
+    InputStream stream = e.getInputStream();
+    assertTrue(stream != null);
+    assertEquals(6, stream.read(actual)); // a bit dodgy relying on a full read, but it works
+    assertEquals(-1, stream.read());
   }
 }
