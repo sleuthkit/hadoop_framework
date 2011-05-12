@@ -40,7 +40,7 @@
   </build>
 
   <dependencies>
-  <!-- texaspete dependencies -->
+    <!-- texaspete dependencies -->
     <dependency>
       <groupId>org.sleuthkit</groupId>
       <artifactId>sleuthkit-clustering</artifactId>
@@ -64,6 +64,6 @@
       <artifactId>sleuthkit-core</artifactId>
       <version>1-SNAPSHOT</version>
     </dependency> 
-   <!-- other dependencies -->
+    <!-- other dependencies -->
   </dependencies>
 </project>
