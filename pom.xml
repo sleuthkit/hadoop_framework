@@ -24,6 +24,12 @@
     <module>pipeline</module>
     <module>core</module>
   </modules>
+  <repositories>
+    <repository>
+      <id>CDH3 Repository</id>
+      <url>https://repository.cloudera.com/content/repositories/releases/</url>
+    </repository>
+  </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>google-project</id>
