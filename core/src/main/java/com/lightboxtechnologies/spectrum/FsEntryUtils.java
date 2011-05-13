@@ -30,6 +30,20 @@ public class FsEntryUtils {
   protected FsEntryUtils() {}
 
   public static byte[] makeFsEntryKey(byte[] img_md5, byte[] path, int dir_index) {
+    /*
+      FsEntry key is:
+
+      bytes
+      ----------------------------------------------------
+          0  first byte of MD5 hash of parent path
+       1-16  image id MD5
+      17-31  remaining 15 bytes of MD5 hash of parent path
+      32-35  directory index
+
+      The path MD5 is split in order to better spread the keys for one
+      path over the keyspace.
+    */
+
     if (img_md5.length != 16) {
       throw new IllegalArgumentException("Image hash is not an MD5 hash.");
     }
