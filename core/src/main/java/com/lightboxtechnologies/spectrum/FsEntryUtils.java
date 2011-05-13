@@ -30,6 +30,16 @@ public class FsEntryUtils {
   protected FsEntryUtils() {}
 
   public static byte[] makeFsEntryKey(byte[] img_md5, byte[] path, int dir_index) {
+    if (img_md5.length != 16) {
+      throw new IllegalArgumentException("Image hash is not an MD5 hash.");
+    }
+
+    if (dir_index < 0) {
+      throw new IllegalArgumentException(
+        "Directory index " + dir_index " < 0!"
+      );
+    }
+
     // find the last path separator
     int lastsep = -1;
     for (int i = path.length-1; i >= 0; --i) {
