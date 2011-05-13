@@ -16,6 +16,7 @@
         <exclude>org.sleuthkit:sleuthkit-clustering</exclude>
         <exclude>org.apache.mahout:mahout-core</exclude>
         <exclude>org.apache.lucene:lucene-core</exclude>
+	<exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
       </excludes>
     </dependencySet>
     <dependencySet>

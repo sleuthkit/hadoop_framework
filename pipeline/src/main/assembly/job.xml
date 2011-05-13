@@ -18,6 +18,7 @@
         <exclude>org.sleuthkit:sleuthkit-grep</exclude>
         <exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
         <exclude>org.sleuthkit:sleuthkit-core</exclude>
+	<exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
       </excludes>
     </dependencySet>
     <dependencySet>
