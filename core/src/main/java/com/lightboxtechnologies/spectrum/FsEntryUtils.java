@@ -50,7 +50,7 @@ public class FsEntryUtils {
 
     if (dir_index < 0) {
       throw new IllegalArgumentException(
-        "Directory index " + dir_index " < 0!"
+        "Directory index " + dir_index + " < 0!"
       );
     }
 
