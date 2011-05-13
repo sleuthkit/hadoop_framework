@@ -17,7 +17,6 @@
 package com.lightboxtechnologies.nsrl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,6 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat;
 import org.apache.hadoop.hbase.mapreduce.KeyValueSortReducer;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -57,30 +55,13 @@ public class HashLoader {
 
     private final HashRecordProcessor h_proc = new HashRecordProcessor();
 
-    private final Map<String,MfgData> mfg = new HashMap<String,MfgData>();
-    private final Map<String,OSData> os = new HashMap<String,OSData>();
-    private final Map<Integer,List<ProdData>> prod =
-      new HashMap<Integer,List<ProdData>>();
-
-    private long timestamp;
-    private final byte[] size = new byte[Bytes.SIZEOF_LONG];
-    private final ImmutableBytesWritable okey = new ImmutableBytesWritable();
-
-    private static final byte[] family = { '0' };
-
-    // common column names
-    private static final byte[] sha1_col = "sha1".getBytes();
-    private static final byte[] md5_col = "md5".getBytes();
-    private static final byte[] crc32_col = "crc32".getBytes();
-    private static final byte[] size_col = "filesize".getBytes();
-    private static final byte[] nsrl_col = "NSRL".getBytes();
-
-    private static final byte[] one = { 1 };
+    private HashLoaderHelper hlh;
 
     @Override
     protected void setup(Context context) throws IOException {
       final Configuration conf = context.getConfiguration();
 
+      long timestamp;
       // ensure that all mappers have the same timestamp
       try {
         timestamp = Long.parseLong(conf.get("timestamp"));
@@ -96,81 +77,16 @@ public class HashLoader {
 
       final FileSystem fs = FileSystem.get(conf);
 
+      final Map<String,MfgData> mfg = new HashMap<String,MfgData>();
+      final Map<String,OSData> os = new HashMap<String,OSData>();
+      final Map<Integer,List<ProdData>> prod =
+        new HashMap<Integer,List<ProdData>>();
+
       SmallTableLoader.load(
         fs, mfg_filename, mfg, os_filename, os, prod_filename, prod, tok, err
       );
-    }
 
-    protected byte[] makeOutKey(byte[] hash, byte type, byte[] colname) {
-      /*
-        Key format is:
-
-          hash right-padded with zeros to 20 bytes
-          byte 0 for md5, 1 for sha1
-          column name as bytes
-
-        The reason for padding the hash and including the type byte is to
-        ensure that MD5s which are prefixes of SHA1s can be distinguished
-        from them, yet still sort correctly.
-      */
-
-      final byte[] okbytes = new byte[20+1+colname.length];
-      Bytes.putBytes(okbytes, 0, hash, 0, hash.length);
-      okbytes[20] = type;
-      Bytes.putBytes(okbytes, 21, colname, 0, colname.length);
-      return okbytes;
-    }
-
-    protected void writeRow(byte[] key, HashData hd,
-                            List<ProdData> pl, Context context)
-                                     throws InterruptedException, IOException {
-      // md5 is type 0, sha1 is type 1
-      final byte ktype = (byte) (key.length == 16 ? 0 : 1);
-
-      // write the crc32 column
-      okey.set(makeOutKey(key, ktype, crc32_col));
-      context.write(
-        okey, new KeyValue(key, family, crc32_col, timestamp, hd.crc32)
-      );
-
-      switch (ktype) {
-      case 0:
-        // write the sha1 column if the key is not the sha1
-        okey.set(makeOutKey(key, ktype, sha1_col));
-        context.write(
-          okey, new KeyValue(key, family, sha1_col, timestamp, hd.sha1)
-        );
-        break;
-      case 1:
-        // write the md5 column if the key is not the md5
-        okey.set(makeOutKey(key, ktype, md5_col));
-        context.write(
-          okey, new KeyValue(key, family, md5_col, timestamp, hd.md5)
-        );
-        break;
-      }
-
-      // write the file size
-      Bytes.putLong(size, 0, hd.size);
-      okey.set(makeOutKey(key, ktype, size_col));
-      context.write(
-        okey, new KeyValue(key, family, size_col, timestamp, size)
-      );
-
-      // check the NSRL box
-      okey.set(makeOutKey(key, ktype, nsrl_col));
-      context.write(okey, new KeyValue(key, family, nsrl_col, timestamp, one));
-
-      // check the manufacturer/product/os box for each product
-      for (ProdData pd : pl) {
-        final MfgData pmd = mfg.get(pd.mfg_code);
-
-        final byte[] set_col =
-          (pmd.name + '/' + pd.name + ' ' + pd.version).getBytes();
-
-        okey.set(makeOutKey(key, ktype, set_col));
-        context.write(okey, new KeyValue(key, family, set_col, timestamp, one));
-      }
+      hlh = new HashLoaderHelper(prod, mfg, os, timestamp);
     }
 
     @Override
@@ -193,12 +109,9 @@ public class HashLoader {
         return;
       }
 
-      // look up the product and OS data
-      final List<ProdData> pl = prod.get(hd.prod_code);
-
       // create one row keyed to each of the md5 and sha1 hashes
-      writeRow(hd.md5,   hd, pl, context);
-      writeRow(hd.sha1,  hd, pl, context);
+      hlh.writeRow(hd.md5,  hd, context);
+      hlh.writeRow(hd.sha1, hd, context);
     }
   }
 
