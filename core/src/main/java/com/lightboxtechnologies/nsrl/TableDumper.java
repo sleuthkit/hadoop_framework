@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.NavigableMap;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
@@ -94,7 +95,7 @@ public class TableDumper {
   }
 
   public static void main(String[] args) throws Exception {
-    final HBaseConfiguration conf = new HBaseConfiguration();
+    final Configuration conf = HBaseConfiguration.create();
 
     final String[] otherArgs =
       new GenericOptionsParser(conf, args).getRemainingArgs();
