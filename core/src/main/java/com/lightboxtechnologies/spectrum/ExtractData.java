@@ -62,7 +62,7 @@ public class ExtractData {
     job.setOutputValueClass(Text.class);
 
     conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
-    conf.set(FsEntryHBaseOutputFormat.ENTRY_TABLE, otherArgs[0]);
+    conf.set(HBaseTables.ENTRIES_TBL_VAR, otherArgs[0]);
     conf.set("com.lbt.storepath", otherArgs[3]);
     FileOutputFormat.setOutputPath(job, new Path(otherArgs[3]));
 

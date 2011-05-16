@@ -59,7 +59,7 @@ public class JsonImport {
       System.exit(2);
     }
 
-    conf.set(FsEntryHBaseOutputFormat.ENTRY_TABLE, otherArgs[1]);
+    conf.set(HBaseTables.ENTRIES_TBL_VAR, otherArgs[1]);
     final Job job = new Job(conf, "JsonImport");
     job.setJarByClass(JsonImport.class);
     job.setMapperClass(FsEntryMapLoader.class);
