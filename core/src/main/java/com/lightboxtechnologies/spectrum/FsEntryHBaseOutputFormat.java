@@ -61,7 +61,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
   public void	checkOutputSpecs(JobContext context) {}
 
   public static HTable getHTable(TaskAttemptContext ctx, byte[] colFam) throws IOException {
-    final HBaseConfiguration hconf = new HBaseConfiguration();
+    final Configuration hconf = HBaseConfiguration.create();
     final Configuration conf = ctx.getConfiguration();
     final String tblName = conf.get(ENTRY_TABLE, "entries");
     final HBaseAdmin admin = new HBaseAdmin(hconf);
