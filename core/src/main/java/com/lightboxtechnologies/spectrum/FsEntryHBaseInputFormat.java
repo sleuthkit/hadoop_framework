@@ -18,6 +18,9 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -51,19 +54,29 @@ import com.lightboxtechnologies.io.IOUtils;
 public class FsEntryHBaseInputFormat extends InputFormat implements Configurable {
 
   private TableInputFormat TblInput;
-  private Configuration    Conf;
+  private final Log LOG = LogFactory.getLog(FsEntryHBaseInputFormat.class);
 
   public FsEntryHBaseInputFormat() {
     TblInput = new TableInputFormat();
   }
 
+  static public void setupConf(Configuration c) {
+    HBaseConfiguration.addHbaseResources(c);
+  }
+
   public Configuration getConf() {
-    return Conf;
+    return TblInput.getConf();
   }
 
   public void setConf(Configuration c) {
-    Conf = c;
-    TblInput.setConf(Conf);
+    String tblname = c.get(TableInputFormat.INPUT_TABLE);
+    if (tblname != null) {
+      LOG.info("Table name from conf was: " + tblname);
+    }
+    else {
+      LOG.error("Table name was null");
+    }
+    TblInput.setConf(HBaseConfiguration.create(c));
   }
 
   public List<InputSplit> getSplits(JobContext ctx) throws IOException {

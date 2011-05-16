@@ -16,6 +16,8 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -72,6 +74,7 @@ public class PythonJob {
   }
 
   static interface BoxerUnboxer<T,B extends Writable> {
+    public B getWritable();
     public B set(Object o);
     public Class<B> getBoxClass();
     public T unbox(Writable w);
@@ -79,6 +82,10 @@ public class PythonJob {
 
   static class TextBoxerUnboxer implements BoxerUnboxer<String,Text> {
     private final Text Box = new Text();
+
+    public Text getWritable() {
+      return Box;
+    }
 
     public Text set(Object o) {
       if (o instanceof Text) {
@@ -101,12 +108,20 @@ public class PythonJob {
   static class LongBoxerUnboxer implements BoxerUnboxer<Long,LongWritable> {
     private final LongWritable Box = new LongWritable();
 
+    public LongWritable getWritable() {
+      return Box;
+    }
+
     public LongWritable set(Object o) {
       if (o instanceof LongWritable) {
         return (LongWritable)o;
       }
-
-      Box.set((Long)o);
+      else if (o instanceof BigInteger) {
+        Box.set(((BigInteger)o).longValue());
+      }
+      else {
+        Box.set((Long)o);
+      }
       return Box;
     }
 
@@ -121,6 +136,10 @@ public class PythonJob {
 
   static class DoubleBoxerUnboxer implements BoxerUnboxer<Double,DoubleWritable> {
     private final DoubleWritable Box = new DoubleWritable();
+
+    public DoubleWritable getWritable() {
+      return Box;
+    }
 
     public DoubleWritable set(Object o) {
       if (o instanceof DoubleWritable) {
@@ -142,6 +161,10 @@ public class PythonJob {
 
   static class JsonBoxerUnboxer implements BoxerUnboxer<Object,JsonWritable> {
     private final JsonWritable Box = new JsonWritable();
+
+    public JsonWritable getWritable() {
+      return Box;
+    }
 
     public JsonWritable set(Object o) {
       if (o instanceof Map) {
@@ -294,13 +317,16 @@ public class PythonJob {
       }
     }
 
-    public final void emit(OK key, OV value) {
+    public final void emit(Object key, Object value) {
       // emit() is concrete, because Jython didn't seem to pick up on the
       // override, and therefore called the parent function (is this part of
       // the scripting extension??). Making it concrete and then having it
       // call an override works fine. Hence, output().
       try {
-        Ctx.write(OutKey.set(key), OutValue.set(value));
+        // nice to have these on separate lines for exception line # reporting
+        OutKey.set(key);
+        OutValue.set(value);
+        Ctx.write(OutKey.getWritable(), OutValue.getWritable());
       }
       catch (IOException e) {
         LOG.error("Writing output generated an exception");
@@ -405,7 +431,7 @@ public class PythonJob {
   }
 
   public static void main(String[] args) throws Exception {
-    Configuration conf = new Configuration();
+    Configuration conf = HBaseConfiguration.create();
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
     if (otherArgs.length < 4) {
       System.err.println("Usage: PythonJob <table> <outpath> <python_mapper> <python_reducer> [SequenceFileOutputFormat]");
@@ -453,6 +479,7 @@ public class PythonJob {
     else {
       Scan scan = new Scan();
       scan.addFamily(Bytes.toBytes("core"));
+      FsEntryHBaseInputFormat.setupConf(conf);
       job.getConfiguration().set(TableInputFormat.INPUT_TABLE, otherArgs[0]);
       job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
       job.setInputFormatClass(FsEntryHBaseInputFormat.class);
