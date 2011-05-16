@@ -21,7 +21,7 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
@@ -142,13 +142,14 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     SequenceFile.Reader extents = null;
 
     final Path[] files = DistributedCache.getLocalCacheFiles(conf);
-    if (files != null && files.length == 1) {
-      final RawLocalFileSystem localfs = new RawLocalFileSystem();
-      localfs.initialize(null, conf);
+    if (files != null && files.length > 0) {
+      final LocalFileSystem localfs = FileSystem.getLocal(conf);
+      LOG.info("Opening extents file " + files[0]);
       extents = new SequenceFile.Reader(localfs, files[0], conf);
     }
     else if (files == null) {
-      extents = new SequenceFile.Reader(hdpFs, new Path("ceic_extents/part-r-00000"), conf); // TO-DO: fix hard-coding
+      throw new RuntimeException("No file paths retrieved from distributed cache");
+      // extents = new SequenceFile.Reader(hdpFs, new Path("ceic_extents/part-r-00000"), conf); // TO-DO: fix hard-coding
     }
 
     if (extents == null) {

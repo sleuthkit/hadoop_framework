@@ -69,7 +69,8 @@ public class ExtractData {
     final URI extents = new Path(otherArgs[1]).toUri();
     LOG.info("extents file is " + extents);
 
-    DistributedCache.addCacheFile(new Path(otherArgs[1]).toUri(), conf);
+    DistributedCache.addCacheFile(extents, job.getConfiguration());
+    conf.set("com.lbt.extentspath", extents.toString());
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }
