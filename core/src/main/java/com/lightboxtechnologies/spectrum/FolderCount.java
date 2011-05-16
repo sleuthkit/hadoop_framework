@@ -92,7 +92,7 @@ public class FolderCount {
     job.setOutputFormatClass(TextOutputFormat.class);
 
     final Scan scan = new Scan();
-    scan.addFamily(Bytes.toBytes("core"));
+    scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
     job.getConfiguration().set(TableInputFormat.INPUT_TABLE, otherArgs[0]);
     job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
 
