@@ -22,6 +22,8 @@ import org.apache.hadoop.hbase.util.*;
 
 public class HBaseTables {
 
+  public static final String ENTRIES_TBL_VAR = "com.lbt.htable"; // name for Conf objects
+
   static public final String ENTRIES_TBL = "entries";
   static public final byte[] ENTRIES_TBL_B = Bytes.toBytes(ENTRIES_TBL);
 

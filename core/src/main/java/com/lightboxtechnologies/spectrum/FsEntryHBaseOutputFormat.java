@@ -43,8 +43,6 @@ import org.json.simple.JSONAware;
 
 public class FsEntryHBaseOutputFormat extends OutputFormat {
 
-  public static final String ENTRY_TABLE = "com.lbt.htable";
-
   public static class NullOutputCommitter extends OutputCommitter {
     public void 	abortTask(TaskAttemptContext taskContext) {}
     public void 	cleanupJob(JobContext jobContext) {}
@@ -63,12 +61,12 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
   public static HTable getHTable(TaskAttemptContext ctx, byte[] colFam) throws IOException {
     final Configuration hconf = HBaseConfiguration.create();
     final Configuration conf = ctx.getConfiguration();
-    final String tblName = conf.get(ENTRY_TABLE, "entries");
+    final String tblName = conf.get(HBaseTables.ENTRIES_TBL_VAR, HBaseTables.ENTRIES_TBL);
     final HBaseAdmin admin = new HBaseAdmin(hconf);
     if (!admin.tableExists(tblName)) {
     	final HTableDescriptor tableDesc = new HTableDescriptor(tblName);
     	if (!tableDesc.hasFamily(colFam)) {
-    	  final HColumnDescriptor colFamDesc = new HColumnDescriptor("core");
+    	  final HColumnDescriptor colFamDesc = new HColumnDescriptor(HBaseTables.ENTRIES_COLFAM);
     	  colFamDesc.setCompressionType(Compression.Algorithm.GZ);
     		tableDesc.addFamily(colFamDesc);
     	}
@@ -81,13 +79,12 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
   }
 
   public RecordWriter<Text, FsEntry> getRecordWriter(TaskAttemptContext ctx) throws IOException {
-    final byte[] colFam = Bytes.toBytes("core");
-    return new FsEntryHBaseWriter(getHTable(ctx, colFam), colFam);
+    return new FsEntryHBaseWriter(getHTable(ctx, HBaseTables.ENTRIES_COLFAM_B), HBaseTables.ENTRIES_COLFAM_B);
   }
 
   public static class FsEntryHBaseWriter extends RecordWriter<Text, FsEntry> {
     private HTable Table;
-    private byte[] ColFam;
+    final private byte[] ColFam;
 
     FsEntryHBaseWriter(HTable tbl, byte[] colFam) {
       Table = tbl;
@@ -95,6 +92,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     }
 
     public static void addToPut(Put p, Map<String,?> map, byte[] colFam) {
+      // should this be in the -Common class?
       byte[] col = null,
              binVal = null;
       String key = null;
@@ -147,6 +145,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     public static Put createPut(String key, FsEntry entry, byte[] colFam) {
       final Put p = new Put(Bytes.toBytes(key));
 
+      // this logic should really be in FsEntry proper
       final Object o = entry.get("attrs");
       if (o != null && null == entry.getStreams().get("Content")) {
         String data = null;
@@ -188,7 +187,6 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
 
     public void close(TaskAttemptContext ctx) {
       Table = null;
-      ColFam = null;
     }
   }
 }
