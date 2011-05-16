@@ -1,6 +1,6 @@
 Things to be done for extraction:
 
-- Extract table names and other magic values to static variables
+- Extract table names and other magic values to static variables -- done, mostly
 
 - Open the extents file in setup(), not in map()
 
