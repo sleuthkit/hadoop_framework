@@ -104,13 +104,11 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
     private Result Cur;
     private final Text Key;
     private final FsEntry Value;
-    private final byte[] Family;
 
     public FsEntryRecordReader(RecordReader<ImmutableBytesWritable, Result> rr) {
       TblReader = rr;
       Key = new Text("");
       Value = new FsEntry();
-      Family = Bytes.toBytes("core");
     }
 
     public void close() throws IOException {
@@ -124,7 +122,7 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
     }
 
     public FsEntry getCurrentValue() throws IOException, InterruptedException {
-      final Map<byte[], byte[]> family = Cur.getFamilyMap(Family);
+      final Map<byte[], byte[]> family = Cur.getFamilyMap(HBaseTables.ENTRIES_COLFAM_B);
       FsEntryHBaseCommon.populate(family, Value, Value.getStreams());
       return Value;
     }
