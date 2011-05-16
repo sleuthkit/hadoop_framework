@@ -1,0 +1,35 @@
+Things to be done for extraction:
+
+- Extract table names and other magic values to static variables
+
+- Open the extents file in setup(), not in map()
+
+- Pay attention to memory realloc to avoid garbage and gc pauses
+
+- BytesWritable for key
+
+- Use NSRL Bloom Filter to mark known files as "nsrl"
+
+- Use KeyValueSortReducer and HFileOutputFormat for bulk write
+
+- Compression in HBase; LZO or Snappy
+
+- Compressed evidence files and json files
+
+ - Refactor guts of reading extents into an InputStream class (use Joel's stream aggregator)
+		In addition to being arguably cleaner, this could enable feasible use on a workstation in standalone mode.
+
+ - Is there an HFileInputFormat that will let us read the hfiles before they're loaded in hbase?
+
+ - Use Avro in FsEntry for static tsk fields
+
+ - Write custom splitter/scheduler so that chunks without files don't get scheduled
+ or
+ - Alternately, for large fragmented files, mappers use append() to write fragments in order. Hoo-ah!
+
+ - Slack
+
+ - Alternate data streams
+
+ - Revisit overwritten files
+
