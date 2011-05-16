@@ -19,6 +19,11 @@
       <artifactId>hadoop-core</artifactId>
       <version>0.20.2-cdh3u0</version>
     </dependency>
+    <dependency>
+      <groupId>org.sleuthkit</groupId>
+      <artifactId>sleuthkit-hadoop-common</artifactId>
+      <version>1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>

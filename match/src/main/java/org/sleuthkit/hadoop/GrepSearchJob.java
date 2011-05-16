@@ -16,21 +16,11 @@
 
 package org.sleuthkit.hadoop;
 
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -89,7 +79,7 @@ public class GrepSearchJob {
 
             FileOutputFormat.setOutputPath(job, new Path(outputdir));
 
-            job.setMapperClass(GrepSearchJob.GrepMapper.class);
+            job.setMapperClass(GrepMapper.class);
             job.setMapOutputKeyClass(Text.class);
             job.setMapOutputValueClass(Text.class);
 
@@ -97,7 +87,7 @@ public class GrepSearchJob {
             // systems.
             //grepJob.setCombinerClass(SetReducer.class);
 
-            job.setReducerClass(GrepSearchJob.SetReducer.class);
+            job.setReducerClass(SetReducer.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(ArrayWritable.class);
 
@@ -136,67 +126,6 @@ public class GrepSearchJob {
         new GrepSearchJob().run(args);
         //int res = ToolRunner.run(new Configuration(), new GrepSearchJob(), args);
         System.exit(0);
-    }
-
-    // Maps regex matches to an output file.
-    public static class GrepMapper
-    extends Mapper<Text, Text, Text, Text> {
-
-        private List<Pattern> patterns = new ArrayList<Pattern>();
-
-        @Override
-        public void setup(Context ctx) {
-            String[] regexlist = ctx.getConfiguration().get("mapred.mapper.regex").split("\n");
-            System.out.print("Found Regexes: " + regexlist.length);
-
-            for (String item : regexlist) {
-                if ("".equals(item)) continue; // don't add empty regexes
-                try {
-                    patterns.add(Pattern.compile(item));
-                } catch (Exception ex) {
-                    // not much to do...
-                }
-            }
-        }
-
-        @Override
-        public void map(Text key, Text value, Context context)
-        throws IOException {
-            String text = value.toString();
-            //System.out.println("Mapping : " + key.toString() + " value: " + value.toString());
-            for (Pattern item : patterns) {
-                Matcher matcher = item.matcher(text);
-                while (matcher.find()) {
-                    try {
-                        context.write(key, new Text(matcher.group()));
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            }
-        }
-    }
-
-    // Reduces a class using a java set to remove duplicates.
-    public static class SetReducer extends Reducer<Text, Text, Text, ArrayWritable>{
-        @Override
-        public void reduce(Text key, Iterable<Text> values,
-                Context ctx)
-        throws IOException {
-
-            Set<String> s = new HashSet<String>();
-
-            for (Text t : values) {
-                s.add(t.toString());
-            }
-            String[] str = new String[1];
-            try {
-                ctx.write(key, new ArrayWritable(s.toArray(str)));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }
