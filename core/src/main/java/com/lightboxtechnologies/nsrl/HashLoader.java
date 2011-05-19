@@ -58,7 +58,10 @@ public class HashLoader {
     private HashLoaderHelper hlh;
 
     @Override
-    protected void setup(Context context) throws IOException {
+    protected void setup(Context context) throws IOException,
+                                                 InterruptedException {
+      super.setup(context);
+
       final Configuration conf = context.getConfiguration();
 
       long timestamp;
