@@ -175,14 +175,17 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
         }
       }
 
-      addToPut(p, entry, colFam);
-      addToPut(p, entry.getStreams(), colFam);
+      addToPut(p, entry.getChangedItems(), colFam);
+      // addToPut(p, entry.getStreams(), colFam);
 
       return p;
     }
 
     public void write(Text key, FsEntry entry) throws IOException {
-      Table.put(createPut(key.toString(), entry, ColFam));
+      final Put p = createPut(key.toString(), entry, ColFam);
+      if (!p.isEmpty()) {
+        Table.put(p);
+      }
     }
 
     public void close(TaskAttemptContext ctx) {

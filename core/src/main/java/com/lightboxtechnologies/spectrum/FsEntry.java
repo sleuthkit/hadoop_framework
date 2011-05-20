@@ -24,6 +24,8 @@ import org.json.simple.parser.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.Collection;
 import java.io.*;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -42,6 +44,8 @@ public class FsEntry extends HashMap<String,Object> {
   private Date   Updated;
   private long   Size;
 
+  private final Map<String, Object> Changed = new HashMap<String, Object>();
+
   private final Map<String,StreamProxy> Streams = new HashMap<String,StreamProxy>();
 
   private FileSystem FS;
@@ -52,6 +56,68 @@ public class FsEntry extends HashMap<String,Object> {
     Path = null;
     Name = null;
     super.clear();
+    Changed.clear();
+  }
+
+  public Map<String, Object> getChangedItems() {
+    return Changed;
+  }
+
+  public boolean	containsKey(Object key) {
+    return Changed.containsKey(key) || super.containsKey(key);
+  }
+
+  public boolean	containsValue(Object value) {
+    return Changed.containsValue(value) || super.containsValue(value);
+  }
+
+  @Deprecated
+  public Set<Map.Entry<String,Object>>	entrySet() {
+    return null; // needs to be the union, disabling for now
+  }
+
+  @Deprecated
+  public boolean	equals(Object o) {
+    return false;
+  }
+
+  public Object get(Object key) {
+    Object val = Changed.get(key);
+    if (val == null) {
+      val = super.get(key);
+    }
+    return val;
+  }
+
+  public boolean	isEmpty() {
+    return Changed.isEmpty() && super.isEmpty();
+  }
+
+  @Deprecated
+  public Set<String>	keySet() {
+    return null;
+  }
+
+  public Object	put(String key, Object value) {
+    return Changed.put(key, value);
+  }
+
+  public void	putAll(Map<? extends String,? extends Object> m) {
+    Changed.putAll(m);
+  }
+
+  @Deprecated
+  public Object	remove(Object key) {
+    return null;
+  }
+
+  public int	size() {
+    return Changed.size() + super.size(); // could count things twice if same key
+  }
+
+  @Deprecated
+  public Collection<Object>	values() {
+    return null;
   }
 
   public void setFileSystem(FileSystem fs) {

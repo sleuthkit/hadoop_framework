@@ -67,23 +67,32 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
   private Text OutKey = new Text();
   private Text OutValue = new Text();
   private final byte[] Buffer = new byte[SIZE_THRESHOLD];
-  private MessageDigest Hash;
+  private MessageDigest MD5Hash,
+                        SHA1Hash;
   private HTable EntryTbl;
   private final OutputStream NullStream = NullOutputStream.NULL_OUTPUT_STREAM;
+
+  private MessageDigest getHashInstance(final String alg) {
+    MessageDigest hash;
+    try {
+      hash = MessageDigest.getInstance(alg);
+    }
+    catch (NoSuchAlgorithmException ex) {
+      throw new RuntimeException("As if " + alg + " isn't going to be implemented, bloody Java tossers");
+    }
+    return hash;
+  }
 
   @Override
   protected void setup(Context context) throws IOException {
     LOG.info("Setup called");
-    try {
-      Hash = MessageDigest.getInstance("MD5");
-    }
-    catch (NoSuchAlgorithmException ex) {
-      throw new RuntimeException("As if MD5 isn't going to be implemented, bloody Java tossers");
-    }
+    
+    MD5Hash  = getHashInstance("MD5");
+    SHA1Hash = getHashInstance("SHA1");
     EntryTbl = FsEntryHBaseOutputFormat.getHTable(context, Bytes.toBytes("core"));
   }
 
-  String extract(FSDataInputStream file, OutputStream outStream, Map<String,?> attrs, Context ctx) throws IOException {
+  void extract(FSDataInputStream file, OutputStream outStream, Map<String,?> attrs, Context ctx) throws IOException {
     @SuppressWarnings("unchecked")
     final List<Map<String,?>> extents =
       (List<Map<String,?>>)attrs.get("extents");
@@ -124,8 +133,6 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
       LOG.warn("problem reading " + (String)attrs.get("id") + ". read = " + read + "; size = " + size);
       ctx.getCounter(FileTypes.PROBLEMS).increment(1);
     }
-
-    return new String(Hex.encodeHex(Hash.digest()));
   }
 
   LongWritable seekToMapBlock(SequenceFile.Reader extents, long startOffset) throws IOException {
@@ -159,55 +166,51 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     return extents;
   }
 
-  protected Map<String,Object> process_extent_small(FSDataInputStream file, long fileSize, Map<String,?> map, Context context) throws IOException {
-    context.getCounter(FileTypes.SMALL).increment(1);
-
-    String hash = null;
+  protected void hashAndExtract(final Map<String,Object> rec, OutputStream out, FSDataInputStream file, Map<String,?> map, Context context) throws IOException {
+    MD5Hash.reset();
+    SHA1Hash.reset();
     OutputStream dout = null;
     try {
-      dout = new DigestOutputStream(NullStream, Hash);
-      hash = extract(file, dout, map, context);
-      dout.close();
+      dout = new DigestOutputStream(new DigestOutputStream(out, MD5Hash), SHA1Hash);
+      extract(file, dout, map, context);
     }
     finally {
       IOUtils.closeQuietly(dout);
     }
+    rec.put("md5", MD5Hash.digest());
+    rec.put("sha1", SHA1Hash.digest());
+  }
+
+  protected Map<String,Object> process_extent_small(FSDataInputStream file, long fileSize, Map<String,?> map, Context context) throws IOException {
+    context.getCounter(FileTypes.SMALL).increment(1);
+
+    final Map<String,Object> rec = new HashMap<String,Object>();
+    hashAndExtract(rec, NullStream, file, map, context);
 
     // FIXME: makes a second copy; would be nice to give
     // Put a portion of Buffer; can probably do this with
     // java.nio.Buffer.
     final StreamProxy content = new BufferProxy(Arrays.copyOf(Buffer, (int)fileSize));
 
-    final Map<String,Object> rec = new HashMap<String,Object>();
     rec.put("Content", content);
-    rec.put("md5", hash);
     return rec;
   }
 
   protected Map<String,Object> process_extent_large(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException {
     context.getCounter(FileTypes.BIG).increment(1);
 
-    String hash = null;
+    final Map<String,Object> rec = new HashMap<String,Object>();
 
     OutputStream fout =  null;
     try {
       fout = fs.create(outPath, true);
-      OutputStream dout = null;
-      try {
-        dout = new DigestOutputStream(fout, Hash);
-        hash = extract(file, dout, map, context);
-        dout.close();
-      }
-      finally {
-        IOUtils.closeQuietly(dout);
-      }
-
-      fout.close();
+      hashAndExtract(rec, fout, file, map, context);
     }
     finally {
       IOUtils.closeQuietly(fout);
     }
 
+    String hash = new String(Hex.encodeHex((byte[])rec.get("md5")));
     final Path subDir = new Path("ev", hashFolder(hash)),
           hashPath = new Path(subDir, hash);
     fs.mkdirs(subDir);
@@ -219,19 +222,15 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
       LOG.warn("Could not rename " + outPath + " to " + hashPath);
       context.getCounter(FileTypes.PROBLEMS).increment(1);
     }
-
     final StreamProxy content = new FileProxy(hashPath.toString());
-
-    final Map<String,Object> rec = new HashMap<String,Object>();
     rec.put("Content", content);
-    rec.put("md5", hash);
     return rec;
   }
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
     final String id = (String)map.get("id");
     final long fileSize = (Long)map.get("size");
-    Hash.reset();
+    MD5Hash.reset();
 
     final Map<String,Object> rec = fileSize > SIZE_THRESHOLD ?
       process_extent_large(file, fs, outPath, map, context) :
@@ -244,7 +243,7 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     );
 
     OutKey.set(id);
-    OutValue.set((String) rec.get("md5"));
+    OutValue.set(new String(Hex.encodeHex((byte[])rec.get("md5"))));
     context.write(OutKey, OutValue);
   }
 
