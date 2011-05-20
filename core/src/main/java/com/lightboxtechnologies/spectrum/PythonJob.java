@@ -45,6 +45,7 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.python.jsr223.PyScriptEngineFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -219,6 +220,9 @@ public class PythonJob {
       LOG.info("Initializing Python engine");
 
       Engine = new ScriptEngineManager().getEngineByName("python");
+
+      //Engine = new PyScriptEngineFactory().getScriptEngine();
+      //new ScriptEngineManager().getEngineByName("python");
       if (Engine == null) {
         LOG.error("Could not create Python engine!");
       }

@@ -16,17 +16,25 @@
 
 package org.sleuthkit.hadoop;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.ArrayWritable;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
+import org.apache.hadoop.hbase.util.Base64;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.ToolRunner;
+
+import com.lightboxtechnologies.spectrum.FsEntry;
+import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
+import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
+import com.lightboxtechnologies.spectrum.HBaseTables;
 
 /* Extracts matching regexes from input files and counts them. */
 public class GrepSearchJob {
@@ -39,15 +47,20 @@ public class GrepSearchJob {
 
     public int run(String[] args) throws Exception {
         if (args.length < 1) {
-            System.out.println("Grep <regex> [<group>]");
+            // TODO: We don't support groups yet. We could add them.
+            System.out.println("Grep <table> <deviceID> <regexFile> [<group>]");
             ToolRunner.printGenericCommandUsage(System.out);
             return -1;
         }
-        return runPipeline(DEFAULT_INPUT_DIR, DEFAULT_OUTPUT_DIR, args[0]);
+        return runPipeline(args[0], args[1], args[2]);
     }
-
-    public static int runPipeline(String inputdir, String outputdir, String regexFile) {
-
+    
+    // Kicks off a mapreduce job that does the following:
+    // 1. Scan the HBASE table for files on the drive specified by the
+    // device ID.
+    // 2. Run the java regexes from the given regexFile on that file.
+    public static int runPipeline(String table, String deviceID, String regexFile) {
+        
         try {
             Job job = new Job();
             job.setJarByClass(GrepSearchJob.class);
@@ -55,7 +68,7 @@ public class GrepSearchJob {
             job.setJobName("TP$IMG_ID_NUMBER$CommonName$Grep");
 
             FileSystem fs = FileSystem.get(job.getConfiguration());
-            fs.delete(new Path(outputdir), true);
+            //fs.delete(new Path(outputdir), true);
             Path inFile = new Path(regexFile);
             FSDataInputStream in = fs.open(inFile);
 
@@ -74,47 +87,29 @@ public class GrepSearchJob {
             String regexes = b.toString();
 
             job.getConfiguration().set("mapred.mapper.regex", regexes);
-
-            FileInputFormat.setInputPaths(job, new Path(inputdir));
-
-            FileOutputFormat.setOutputPath(job, new Path(outputdir));
-
+            
+            
             job.setMapperClass(GrepMapper.class);
             job.setMapOutputKeyClass(Text.class);
-            job.setMapOutputValueClass(Text.class);
+            job.setMapOutputValueClass(FsEntry.class);
 
-            // We could set a combiner here to improve performance on distributed
-            // systems.
-            //grepJob.setCombinerClass(SetReducer.class);
+            // we are not reducing.
+            job.setNumReduceTasks(0);
 
-            job.setReducerClass(SetReducer.class);
             job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(ArrayWritable.class);
+            job.setOutputValueClass(FsEntry.class);
 
-            job.setInputFormatClass(SequenceFileInputFormat.class);
-
-            job.setOutputFormatClass(SequenceFileOutputFormat.class);
+            job.setInputFormatClass(FsEntryHBaseInputFormat.class);
+            job.setOutputFormatClass(FsEntryHBaseOutputFormat.class);
+            
+            final Scan scan = new Scan();
+            scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
+            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
+            job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
 
 
             System.out.println("About to run the job...");
-
-            // Possibly, we may want to base some sorting code off of this later.
-            //JobClient.runJob(grepJob);
-
-            //JobConf sortJob = new JobConf(GrepSearchJob.class);
-            //sortJob.setJobName("grep-sort");
-
-            //FileInputFormat.setInputPaths(sortJob, tempDir);
-            //sortJob.setInputFormat(SequenceFileInputFormat.class);
-
-            //sortJob.setMapperClass(InverseMapper.class);
-
-            //sortJob.setNumReduceTasks(1);                 // write a single file
-            //FileOutputFormat.setOutputPath(sortJob, new Path(OUTPUT_DIR));
-            //sortJob.setOutputKeyComparatorClass           // sort by decreasing freq
-            //(LongWritable.DecreasingComparator.class);
-
-            //JobClient.runJob(sortJob);
+            
             return job.waitForCompletion(true) ? 0 : 1;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -122,6 +117,24 @@ public class GrepSearchJob {
         }
     }
 
+    
+    static String convertScanToString(Scan scan) throws IOException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataOutputStream dos = null;
+        try {
+          dos = new DataOutputStream(out);
+          scan.write(dos);
+          dos.close();
+        }
+        finally {
+          IOUtils.closeQuietly(dos);
+        }
+
+        return Base64.encodeBytes(out.toByteArray());
+      }
+
+    
     public static void main(String[] args) throws Exception {
         new GrepSearchJob().run(args);
         //int res = ToolRunner.run(new Configuration(), new GrepSearchJob(), args);

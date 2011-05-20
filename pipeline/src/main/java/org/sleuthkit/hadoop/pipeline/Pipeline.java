@@ -24,7 +24,7 @@ import org.sleuthkit.hadoop.TikaTextExtractor;
 import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
 
 public class Pipeline {
-
+/*
     // The storage place of raw files containing:
 
     // content: raw file content bytes
@@ -76,4 +76,5 @@ public class Pipeline {
 
         ClusterDocuments.runPipeline(TFIDF_DIR, CLUSTERS_DIR, DICTIONARY_DIR);
     }
+*/
 }

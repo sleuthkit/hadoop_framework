@@ -23,11 +23,12 @@ public abstract class SKMapper<keyin, valin, keyout, valout>
 extends Mapper<keyin, valin, keyout, valout> {
 
     private String id;
+    public static final String ID_KEY = "org.sleuthkit.hadoop.imageid";
     
     
     @Override
     public void setup(Context ctx) {
-        id = ctx.getConfiguration().get("org.sleuthkit.hadoop.imageid", "DEFAULT_IMAGE_ID");
+        id = ctx.getConfiguration().get(ID_KEY, "DEFAULT_IMAGE_ID");
         System.out.println(id);
     }
     
