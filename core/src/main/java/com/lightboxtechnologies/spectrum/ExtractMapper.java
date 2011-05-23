@@ -72,23 +72,12 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
   private HTable EntryTbl;
   private final OutputStream NullStream = NullOutputStream.NULL_OUTPUT_STREAM;
 
-  private MessageDigest getHashInstance(final String alg) {
-    MessageDigest hash;
-    try {
-      hash = MessageDigest.getInstance(alg);
-    }
-    catch (NoSuchAlgorithmException ex) {
-      throw new RuntimeException("As if " + alg + " isn't going to be implemented, bloody Java tossers");
-    }
-    return hash;
-  }
-
   @Override
   protected void setup(Context context) throws IOException {
     LOG.info("Setup called");
     
-    MD5Hash  = getHashInstance("MD5");
-    SHA1Hash = getHashInstance("SHA1");
+    MD5Hash  = FsEntryUtils.getHashInstance("MD5");
+    SHA1Hash = FsEntryUtils.getHashInstance("SHA1");
     EntryTbl = FsEntryHBaseOutputFormat.getHTable(context, Bytes.toBytes("core"));
   }
 

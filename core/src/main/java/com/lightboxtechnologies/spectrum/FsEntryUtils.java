@@ -27,9 +27,35 @@ import org.apache.hadoop.hbase.util.Bytes;
  */
 public class FsEntryUtils {
 
-  protected FsEntryUtils() {}
+  MessageDigest Hasher;
 
-  public static byte[] makeFsEntryKey(byte[] img_md5, byte[] path, int dir_index) {
+  static MessageDigest getHashInstance(final String alg) {
+    MessageDigest hash;
+    try {
+      hash = MessageDigest.getInstance(alg);
+    }
+    catch (NoSuchAlgorithmException ex) {
+      throw new RuntimeException("As if " + alg + " isn't going to be implemented, bloody Java tossers");
+    }
+    return hash;
+  }
+
+  FsEntryUtils() {
+    Hasher = getHashInstance("MD5");
+  }
+
+  public void calcFsEntryID(byte[] result, byte[] imgID, String path, int dirIndex) {
+    makeFsEntryKey(result, imgID, path.getBytes(), dirIndex, Hasher);
+  }
+
+  public static byte[] makeFsEntryKey(byte[] imgID, byte[] path, int dirIndex) {
+    byte[] ret = new byte[36];
+    MessageDigest hasher = getHashInstance("MD5");
+    makeFsEntryKey(ret, imgID, path, dirIndex, hasher);
+    return ret;
+  }
+
+  public static void makeFsEntryKey(byte[] result, byte[] img_md5, byte[] path, int dir_index, MessageDigest hasher) {
     /*
       FsEntry key is:
 
@@ -43,6 +69,10 @@ public class FsEntryUtils {
       The path MD5 is split in order to better spread the keys for one
       path over the keyspace.
     */
+
+    if (result.length < 36) {
+      throw new IllegalArgumentException("result byte array needs to be at least 36 bytes in length.");
+    }
 
     if (img_md5.length != 16) {
       throw new IllegalArgumentException("Image hash is not an MD5 hash.");
@@ -70,27 +100,15 @@ public class FsEntryUtils {
     }
  
     // hash the base file path
-    MessageDigest hasher = null;
-    try {
-      hasher = MessageDigest.getInstance("MD5");
-    }
-    catch (NoSuchAlgorithmException ex) {
-      throw new RuntimeException(
-        "As if MD5 isn't going to be implemented, bloody Java tossers"
-      );
-    }
-
+    hasher.reset();
     hasher.update(path, 0, lastsep);
     final byte[] path_md5 = hasher.digest();
 
     // build the key
-    final byte[] key = new byte[36]; // 2 md5 + int
-    key[0] =  path_md5[0];
+    result[0] =  path_md5[0];
     int off = 1;
-    off = Bytes.putBytes(key, off, img_md5, 0, img_md5.length);
-    off = Bytes.putBytes(key, off, path_md5, 1, path_md5.length-1);
-    Bytes.putInt(key, off, dir_index);
-
-    return key;
+    off = Bytes.putBytes(result, off, img_md5, 0, img_md5.length);
+    off = Bytes.putBytes(result, off, path_md5, 1, path_md5.length-1);
+    Bytes.putInt(result, off, dir_index);
   }
 }
