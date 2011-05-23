@@ -20,6 +20,12 @@
       <artifactId>sleuthkit-core</artifactId>
       <version>1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sleuthkit</groupId>
+      <artifactId>sleuthkit-hadoop-common</artifactId>
+      <version>1-SNAPSHOT</version>
+    </dependency>
+
     
     <dependency>
       <groupId>org.apache.tika</groupId>

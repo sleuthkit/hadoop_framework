@@ -106,6 +106,7 @@ public class GrepSearchJob {
             scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
             job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
             job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
+            job.getConfiguration().set(SKMapper.ID_KEY, deviceID);
 
 
             System.out.println("About to run the job...");

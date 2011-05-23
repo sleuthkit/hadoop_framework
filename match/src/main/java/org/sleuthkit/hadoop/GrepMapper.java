@@ -31,12 +31,19 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
                 // not much to do...
             }
         }
+        super.setup(ctx);
     }
 
     @Override
     public void map(Text key, FsEntry value, Context context)
     throws IOException {
-        String text = value.toString();
+        String text;
+        try {
+             text = (String)value.get("sleuthkit.text");
+        } catch (Exception ex) {
+            System.err.println("No FsEntry for File: " + key.toString());
+            return;
+        }
         Set<String> s = new HashSet<String>();
         for (Pattern item : patterns) {
             Matcher matcher = item.matcher(text);

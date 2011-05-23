@@ -30,6 +30,7 @@ public class FSEntryTikaTextExtractor {
             try {
                 String output = new Tika().parseToString(proxy);
                 value.put("sleuthkit.text", output);
+                context.write(key, value);
             }
             catch (Exception e) {
                 //keep on going
@@ -64,7 +65,7 @@ public class FSEntryTikaTextExtractor {
         scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
         job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
         job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
-        
+        System.out.println("Spinning of MR Job...");
         job.waitForCompletion(true);
     }
     

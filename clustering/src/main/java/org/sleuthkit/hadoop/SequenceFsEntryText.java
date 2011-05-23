@@ -12,7 +12,6 @@ import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.util.Base64;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
@@ -41,14 +40,13 @@ public class SequenceFsEntryText {
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
         SequenceFileOutputFormat.setOutputPath(job, new Path(outDir));
-        
+
 
         final Scan scan = new Scan();
         scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
         job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
         job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
         job.getConfiguration().set(SKMapper.ID_KEY, id);
-        
 
         job.waitForCompletion(true);
     }
