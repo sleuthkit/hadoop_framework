@@ -45,7 +45,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.python.jsr223.PyScriptEngineFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
