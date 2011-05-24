@@ -71,14 +71,15 @@ bool handle_client_request(int c_sock) {
   ssize_t rlen, wlen;
   size_t len, off;
 
+// FIXME: inefficient, maybe make this a class member?
   char buf[4096];
 
   // read command length from client
   off = 0;
   while (off < sizeof(len)) {
-    off += rlen = recv(c_sock, &len+off, sizeof(len)-off, 0);
+    off += rlen = read(c_sock, &len+off, sizeof(len)-off);
     if (rlen == -1) {
-      THROW("recv: " << strerror(errno));
+      THROW("read: " << strerror(errno));
     }
     else if (rlen == 0) {
       // client has disconnected
