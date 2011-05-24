@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -9,12 +10,12 @@
 #include <vector>
 
 #include <unistd.h>
+#include <netinet/in.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#include <netinet/in.h>
 
 #include <boost/scoped_array.hpp>
-#include <boost/shared_ptr.hpp>
 
 #define THROW(msg) \
   { \
@@ -23,19 +24,97 @@
     throw std::runtime_error(ss.str()); \
   }
 
+/*
 void closer(int* sock) {
   // Always Be Closing
   if (close(*sock) == -1) {
     THROW("close: " << strerror(errno));
   }
 }
+*/
 
-int main(int argc, char** arvg) {
+void pump(int in, int out, char* buf, size_t len) {
+  ssize_t rlen, wlen;
+
+  // read from input file descriptor
+  while ((rlen = read(in, buf, sizeof(buf)))) {
+    if (rlen == -1) {
+      THROW("read: " << strerror(errno));
+    }
+
+    // write to output file descriptor
+    wlen = write(out, buf, rlen);
+    if (wlen == -1) {
+      THROW("write: " << strerror(errno));
+    }
+  }
+}
+
+int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
+  // fork the child
+  const int pid = fork();
+  if (pid == -1) {
+    THROW("fork: " << strerror(errno));
+  }
+
+  if (pid != 0) {
+    // we are the parent
+    return pid;
+  }
+
+  // close the pipe ends we don't use
+  if (close(in_pipe[1]) == -1) {
+    THROW("close: " << strerror(errno));
+  }
+
+  if (close(out_pipe[0]) == -1) {
+    THROW("close: " << strerror(errno));
+  }
+
+  if (close(err_pipe[0]) == -1) {
+    THROW("close: " << strerror(errno));
+  }
+
+  // read child's stdin from parent
+  if (dup2(in_pipe[0], STDIN_FILENO) == -1) {
+    THROW("dup2: " << strerror(errno));
+  }
+
+  if (close(in_pipe[0]) == -1) {
+    THROW("close: " << strerror(errno));
+  }
+
+  // send child's stdout to parent
+  if (dup2(out_pipe[1], STDOUT_FILENO) == -1) {
+    THROW("dup2: " << strerror(errno));
+  }
+
+  if (close(out_pipe[1]) == -1) {
+    THROW("close: " << strerror(errno));
+  }
+
+  // send child's stderr to parent
+  if (dup2(err_pipe[1], STDERR_FILENO) == -1) {
+    THROW("dup2: " << strerror(errno));
+  }
+
+  if (close(err_pipe[1]) == -1) {
+    THROW("close: " << strerror(errno));
+  }
+
+  // run the command
+  if (execvp(argv[0], argv) == -1) {
+    THROW("execvp: " << strerror(errno));
+  }
+
+  THROW("wtf: execvp returned something other than -1");
+}
+
+int main(int argc, char** argv) {
   try {
     // get the socket
-    boost::shared_ptr<int> s_sock(new int, closer);
-    *s_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (*s_sock == -1) {
+    int s_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (s_sock == -1) {
       THROW("socket: " << strerror(errno));
     }
 
@@ -44,11 +123,12 @@ int main(int argc, char** arvg) {
     ipaddr.s_addr = INADDR_ANY;
 
     sockaddr_in s_addr;
+    memset(&s_addr, 0, sizeof(s_addr));
     s_addr.sin_family = AF_INET;
     s_addr.sin_port   = 31337;
     s_addr.sin_addr   = ipaddr;
 
-    if (bind(*s_sock, (sockaddr*) &s_addr, sizeof(sockaddr_in)) == -1) {
+    if (bind(s_sock, (sockaddr*) &s_addr, sizeof(s_addr)) == -1) {
       THROW("bind: " << strerror(errno));
     }
 
@@ -57,32 +137,33 @@ int main(int argc, char** arvg) {
     size_t count, len, off;
 
     bool done = false;
-    do {
+    while (1) {
       // listen on our socket
-      if (listen(*s_sock, 10) == -1) {
+      if (listen(s_sock, 10) == -1) {
         THROW("listen: " << strerror(errno));
       }
 
       // accept connection from client
       sockaddr_in c_addr;
-      socklen_t c_addr_len = sizeof(sockaddr_in);
+      memset(&c_addr, 0, sizeof(c_addr));
+      socklen_t c_addr_len = sizeof(c_addr);
 
-      boost::shared_ptr<int> c_sock(new int, closer);
-      *c_sock = accept(*s_sock, (sockaddr*) &c_addr, &c_addr_len);
-      if (*c_sock == -1) {
+      int c_sock = accept(s_sock, (sockaddr*) &c_addr, &c_addr_len);
+      if (c_sock == -1) {
         THROW("accept: " << strerror(errno));
       } 
 
-      do {
+      while (1) {
         // read command length from client
         count = sizeof(len);
         while (count > 0) {
-          rlen = recv(*c_sock, &len, count, 0);
+          rlen = recv(c_sock, &len, count, 0);
           if (rlen == -1) {
             THROW("recv: " << strerror(errno));
           }
           else if (rlen == 0) {
-            THROW("recv: client shut down socket"); 
+            // client shut down socket
+            goto CLIENT_CLEANUP;
           }
 
           count -= rlen;
@@ -93,7 +174,7 @@ int main(int argc, char** arvg) {
 
         off = 0;
         while (off < len) {
-          rlen = recv(*c_sock, cmd.get()+off, len-off, 0);
+          rlen = recv(c_sock, cmd.get()+off, len-off, 0);
           if (rlen == -1) {
             THROW("recv: " << strerror(errno));
           }
@@ -116,142 +197,280 @@ int main(int argc, char** arvg) {
           }
         }
 
-        int cp_pipe[2], pc_pipe[2];
+        // set up the pipes; pipes named from the POV of the child
+        int in_pipe[2], out_pipe[2], err_pipe[2];
 
-        // set up the pipes        
-        if (pipe(cp_pipe) == -1) {
+        if (pipe(in_pipe) == -1) {
           THROW("pipe: " << strerror(errno));
         }
 
-        if (pipe(pc_pipe) == -1) {
+        if (pipe(out_pipe) == -1) {
           THROW("pipe: " << strerror(errno));
         }
 
-        // fork the child
-        const int pid = fork();
-        if (pid == -1) {
+        if (pipe(err_pipe) == -1) {
+          THROW("pipe: " << strerror(errno));
+        }
+
+        // fork the child to run the command
+        const int ch_pid = exec_cmd(args.data(), in_pipe, out_pipe, err_pipe);
+
+        // close the pipe ends we don't use
+        if (close(out_pipe[1]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+
+        if (close(err_pipe[1]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+
+        if (close(in_pipe[0]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+
+
+
+
+        fd_set rfds;
+        const int nfds =
+          std::max(out_pipe[0], std::max(err_pipe[0], c_sock)) + 1;
+       
+        do {
+          FD_ZERO(&rfds);
+      
+          if (out_pipe[0] != -1) {
+            FD_SET(out_pipe[0], &rfds);
+          }
+
+          if (err_pipe[0] != -1) {
+            FD_SET(err_pipe[0], &rfds);
+          }
+
+          FD_SET(c_sock, &rfds);
+
+          if (select(nfds, &rfds, NULL, NULL, NULL) == -1) {
+            THROW("select: " << strerror(errno));
+          }
+
+          if (FD_ISSET(c_sock, &rfds)) {
+/*
+            // read from client socket
+            rlen = read(c_sock, buf, sizeof(buf));
+            if (rlen == -1) {
+              THROW("read: " << strerror(errno));
+            }
+            else if (rlen == 0) {
+               
+            }
+            else {
+              // write to child stdin
+              wlen = write(in_pipe[1], buf, rlen);
+              if (wlen == -1) {
+                THROW("write: " << strerror(errno));
+              }
+            }
+*/
+          }
+          
+          if (FD_ISSET(out_pipe[0], &rfds)) {
+            // read from child stdout
+            rlen = read(out_pipe[0], buf, sizeof(buf));
+            if (rlen == -1) {
+              THROW("read: " << strerror(errno));
+            }
+            else if (rlen == 0) {
+              // child closed stdout
+              if (close(out_pipe[0]) == -1) {
+                THROW("close: " << strerror(errno));
+              }
+
+              out_pipe[0] = -1;
+            }
+            else {
+              // write to parent stdout
+              wlen = write(STDOUT_FILENO, buf, rlen);
+              if (wlen == -1) {
+                THROW("write: " << strerror(errno));
+              }
+            }
+          }
+      
+          if (FD_ISSET(err_pipe[0], &rfds)) {
+            // read from child stdout
+            rlen = read(err_pipe[0], buf, sizeof(buf));
+            if (rlen == -1) {
+              THROW("read: " << strerror(errno));
+            }
+            else if (rlen == 0) {
+              // child closed stderr
+              if (close(err_pipe[0]) == -1) {
+                THROW("close: " << strerror(errno));
+              }
+
+              err_pipe[0] = -1;
+            }
+            else {
+              // write to parent stderr
+              wlen = write(STDERR_FILENO, buf, rlen);
+              if (wlen == -1) {
+                THROW("write: " << strerror(errno));
+              }
+            }
+          }
+        } while (out_pipe[0] != -1 && err_pipe[0] != -1);
+
+        // close the child's pipes
+        if (close(in_pipe[1]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+
+/*
+        if (close(out_pipe[0]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+
+        if (close(err_pipe[0]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+*/
+
+        // wait for the child to exit
+        if (waitpid(ch_pid, NULL, 0) == -1) {
+          THROW("waitpid: " << strerror(errno));
+        }
+
+/*
+        // fork pump for child's out
+        const int out_pid = fork();
+        if (out_pid == -1) {
           THROW("fork: " << strerror(errno));
         }
 
-        if (pid == 0) {   // we are the child
-
+        if (out_pid == 0) {   // we are the out pump
           // close the pipe ends we don't use
-          if (close(pc_pipe[1]) == -1) {
+          if (close(in_pipe[1]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-          if (close(cp_pipe[0]) == -1) {
+          if (close(err_pipe[0]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-          // read child's stdin from parent
-          if (dup2(pc_pipe[0], STDIN_FILENO) == -1) {
-            THROW("dup2: " << strerror(errno));
-          }
+          // pump child's out to parent's out
+          pump(out_pipe[0], STDOUT_FILENO, buf, sizeof(buf));
 
-          if (close(pc_pipe[0]) == -1) {
+          // close the out pipe from the child
+          if (close(out_pipe[0]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-          // send child's stdout to parent
-          if (dup2(cp_pipe[1], STDOUT_FILENO) == -1) {
-            THROW("dup2: " << strerror(errno));
-          }
-
-          if (close(cp_pipe[1]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          // run the command
-          if (execvp(args[0], args.data()) == -1) {
-            THROW("execvp: " << strerror(errno));
-          }
-
-          THROW("wtf: execvp returned something other than -1");
+          exit(0);
         }
-        else {            // we are the parent
+      
+        // close the pipe ends we don't use 
+        if (close(out_pipe[0]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
 
+        // fork pump for child's err
+        const int err_pid = fork();
+        if (err_pid == -1) {
+          THROW("fork: " << strerror(errno));
+        }
+
+        if (err_pid == 0) {   // we are the err pump
           // close the pipe ends we don't use
-          if (close(cp_pipe[1]) == -1) {
+          if (close(in_pipe[1]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-          if (close(pc_pipe[0]) == -1) {
+          // pump child's err to parent's err
+          pump(err_pipe[0], STDERR_FILENO, buf, sizeof(buf));
+
+          // close the err pipe from the child
+          if (close(err_pipe[0]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-/*
-          // read data length from client
-          count = sizeof(len);
-          while (count > 0) {
-            rlen = recv(*c_sock, &len, count, 0);
-            if (rlen == -1) {
-              THROW("recv: " << strerror(errno));
-            }
-            else if (rlen == 0) {
-              THROW("recv: client shut down socket"); 
-            }
+          exit(0);
+        }
 
-            count -= rlen;
-          }
+        // we are the parent
 
-          while (count > 0) {
-            // read input from socket
-            rlen = recv(*c_sock, buf, 0, 0);
-            if (rlen == -1) {
-              THROW("recv: " << strerror(errno));
-            }
-            else if (rlen == 0) {
-              THROW("recv: client shut down socket"); 
-            }
-
-            count -= rlen;
-
-            // write input to child's stdin
-            wlen = write(pc_pipe[0], buf, rlen);
-            if (wlen == -1) {
-              THROW("send: " << strerror(errno));
-            }
-          }
+        // close the pipe ends we don't use 
+        if (close(err_pipe[0]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
 */
 
-          // close the pipe to the child 
-          if (close(pc_pipe[1]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          // read output from child's stdout
-          while ((rlen = read(cp_pipe[0], buf, sizeof(buf)))) {
-            if (rlen == -1) {
-              THROW("read: " << strerror(errno));
-//              break;
-            }
-
 /*
-            // write output to socket
-            wlen = send(*c_sock, buf, rlen, 0);
-            if (wlen == -1) {
-              THROW("send: " << strerror(errno));
-            }
-*/
-
-            std::cout << buf << std::endl;
+        // read data length from client
+        count = sizeof(len);
+        while (count > 0) {
+          rlen = recv(c_sock, &len, count, 0);
+          if (rlen == -1) {
+            THROW("recv: " << strerror(errno));
           }
+          else if (rlen == 0) {
+            THROW("recv: client shut down socket"); 
+          }
+
+          count -= rlen;
+        }
+
+        while (count > 0) {
+          // read input from socket
+          rlen = recv(c_sock, buf, 0, 0);
+          if (rlen == -1) {
+            THROW("recv: " << strerror(errno));
+          }
+          else if (rlen == 0) {
+            THROW("recv: client shut down socket"); 
+          }
+
+          count -= rlen;
+
+          // write input to child's stdin
+          wlen = write(pc_pipe[0], buf, rlen);
+          if (wlen == -1) {
+            THROW("send: " << strerror(errno));
+          }
+        }
+
+        // close the child's in 
+        if (close(in_pipe[1]) == -1) {
+          THROW("close: " << strerror(errno));
+        }
+
+        // wait for the child to exit
+        if (waitpid(ch_pid, NULL, 0) == -1) {
+          THROW("waitpid: " << strerror(errno));
+        }
+
+        // wait for the out pump to exit
+        if (waitpid(out_pid, NULL, 0) == -1) {
+          THROW("waitpid: " << strerror(errno));
+        }
         
-          // close the pipe from the child
-          if (close(cp_pipe[0]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          // wait for the child to exit
-          if (waitpid(pid, NULL, 0) == -1) {
-            THROW("waitpid: " << strerror(errno));
-          }
+        // wait for the err pump to exit
+        if (waitpid(err_pid, NULL, 0) == -1) {
+          THROW("waitpid: " << strerror(errno));
         }
+*/
+      }
 
-      } while (!done);
-// TODO: do something to disconnect properly
-    } while (!done);
+      CLIENT_CLEANUP:
+     
+      // close the client socket 
+      if (close(c_sock) == -1) {
+        THROW("close: " << strerror(errno));
+      }
+    }
+
+    // close the server socket
+    if (close(s_sock) == -1) {
+      THROW("close: " << strerror(errno));
+    }
   }
   catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
