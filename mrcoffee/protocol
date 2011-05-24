@@ -9,7 +9,7 @@ Protocol used by MRCoffee:
 7. MRCoffee writes data from command's stdout (if length > 0).
 8. MRCoffee writes length of data from command's stderr.
 9. MRCoffee writes data from command's stderr (if length > 0).
-10. Client goes back to 1, or disconnects.
+10. Client goes back to 2, or disconnects.
 
 NOTES:
 
