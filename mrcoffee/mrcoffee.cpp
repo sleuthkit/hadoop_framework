@@ -219,8 +219,8 @@ int main(int argc, char** argv) {
         int nfds;
        
         do {
+          // create the set of file descriptors on which to select
           nfds = 0;
-
           FD_ZERO(&rfds);
       
           if (out_pipe[0] != -1) {
@@ -236,6 +236,7 @@ int main(int argc, char** argv) {
           FD_SET(c_sock, &rfds);
           nfds = std::max(nfds, c_sock);
 
+          // determine whether any data is ready to be read
           if (select(nfds+1, &rfds, NULL, NULL, NULL) == -1) {
             THROW("select: " << strerror(errno));
           }
@@ -259,7 +260,8 @@ int main(int argc, char** argv) {
             }
 */
           }
-          
+         
+          // collect data from child stdout
           if (FD_ISSET(out_pipe[0], &rfds)) {
             // read from child stdout
             rlen = read(out_pipe[0], buf, sizeof(buf));
@@ -280,6 +282,7 @@ int main(int argc, char** argv) {
             }
           }
       
+          // collect data from child stderr
           if (FD_ISSET(err_pipe[0], &rfds)) {
             // read from child stdout
             rlen = read(err_pipe[0], buf, sizeof(buf));
@@ -305,16 +308,6 @@ int main(int argc, char** argv) {
         if (close(in_pipe[1]) == -1) {
           THROW("close: " << strerror(errno));
         }
-
-/*
-        if (close(out_pipe[0]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
-
-        if (close(err_pipe[0]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
-*/
 
         // wait for the child to exit
         if (waitpid(ch_pid, NULL, 0) == -1) {
