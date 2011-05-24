@@ -1,0 +1,17 @@
+Protocol used by MRCoffee:
+
+1. Client connects to MRCoffee.
+2. Client writes length of command line.
+3. Client writes command line, with arguments separated by nulls.
+4. Client writes length of data for command's stdin.
+5. Client writes data for command's stdin (if length > 0).
+6. MRCoffee writes length of data from command's stdout.
+7. MRCoffee writes data from command's stdout (if length > 0).
+8. MRCoffee writes length of data from command's stderr.
+9. MRCoffee writes data from command's stderr (if length > 0).
+10. Client goes back to 1, or disconnects.
+
+NOTES:
+
+  * All lengths are little-endian, sizeof(size_t) bytes.
+
