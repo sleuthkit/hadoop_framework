@@ -17,15 +17,6 @@
 
 #include "io.h"
 
-/*
-void closer(int* sock) {
-  // Always Be Closing
-  if (close(*sock) == -1) {
-    THROW("close: " << strerror(errno));
-  }
-}
-*/
-
 int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   // fork the child
   const int pid = fork();
@@ -40,31 +31,28 @@ int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
 
   // close the pipe ends we don't use
   if (in_pipe[1] != -1) {
-    CLOSE(in_pipe[1]);
+    CHECK(close((in_pipe[1])));
   }
 
-  CLOSE(out_pipe[0]);
-  CLOSE(err_pipe[0]);
+  CHECK(close((out_pipe[0])));
+  CHECK(close((err_pipe[0])));
 
   // read child's stdin from parent
   if (in_pipe[0] != -1) {
-    DUP2(in_pipe[0], STDIN_FILENO);
-    CLOSE(in_pipe[0]);
+    CHECK(dup2(in_pipe[0], STDIN_FILENO));
+    CHECK(close(in_pipe[0]));
   }
 
   // send child's stdout to parent
-  DUP2(out_pipe[1], STDOUT_FILENO);
-  CLOSE(out_pipe[1]);
+  CHECK(dup2(out_pipe[1], STDOUT_FILENO));
+  CHECK(close(out_pipe[1]));
 
   // send child's stderr to parent
-  DUP2(err_pipe[1], STDERR_FILENO);
-  CLOSE(err_pipe[1]);
+  CHECK(dup2(err_pipe[1], STDERR_FILENO));
+  CHECK(close(err_pipe[1]));
 
   // run the command
-  if (execvp(argv[0], argv) == -1) {
-    THROW("execvp: " << strerror(errno));
-  }
-
+  CHECK(execvp(argv[0], argv));
   THROW("wtf: execvp returned something other than -1");
 }
 
@@ -112,24 +100,24 @@ bool handle_client_request(int c_sock) {
 
   if (in_len > 0) {
     // create in pipe only if the client will send data
-    PIPE(in_pipe);
+    CHECK(pipe(in_pipe));
   }
   else {
     in_pipe[0] = in_pipe[1] = -1;
   }
 
-  PIPE(out_pipe);
-  PIPE(err_pipe);
+  CHECK(pipe(out_pipe));
+  CHECK(pipe(err_pipe));
 
   // fork the child to run the command
   const int ch_pid = exec_cmd(args.data(), in_pipe, out_pipe, err_pipe);
 
   // close the pipe ends we don't use
-  CLOSE(out_pipe[1]);
-  CLOSE(err_pipe[1]);
+  CHECK(close((out_pipe[1])));
+  CHECK(close((err_pipe[1])));
 
   if (in_pipe[0] != -1) {
-    CLOSE(in_pipe[0]);
+    CHECK(close((in_pipe[0])));
   }
 
   std::vector<char> ch_out, ch_err;
@@ -169,9 +157,7 @@ bool handle_client_request(int c_sock) {
     }
 
     // determine whether any file descriptors are ready
-    if (select(nfds+1, &rfds, &wfds, NULL, NULL) == -1) {
-      THROW("select: " << strerror(errno));
-    }
+    CHECK(select(nfds+1, &rfds, &wfds, NULL, NULL));
 
     // read data from client socket
     if (FD_ISSET(c_sock, &rfds)) {
@@ -206,7 +192,7 @@ bool handle_client_request(int c_sock) {
 
           if (in_len == 0) {
             // close child's stdin
-            CLOSE(in_pipe[1]);
+            CHECK(close((in_pipe[1])));
             in_pipe[1] = -1;
           }
         }
@@ -222,7 +208,7 @@ bool handle_client_request(int c_sock) {
       }
       else if (rlen == 0) {
         // child closed stdout
-        CLOSE(out_pipe[0]);
+        CHECK(close((out_pipe[0])));
         out_pipe[0] = -1;
       }
       else {
@@ -240,7 +226,7 @@ bool handle_client_request(int c_sock) {
       }
       else if (rlen == 0) {
         // child closed stderr
-        CLOSE(err_pipe[0]);
+        CHECK(close((err_pipe[0])));
         err_pipe[0] = -1;
       }
       else {
@@ -251,9 +237,7 @@ bool handle_client_request(int c_sock) {
   } while (in_pipe[1] != -1 || out_pipe[0] != -1 || err_pipe[0] != -1);
 
   // wait for the child to exit
-  if (waitpid(ch_pid, NULL, 0) == -1) {
-    THROW("waitpid: " << strerror(errno));
-  }
+  CHECK(waitpid(ch_pid, NULL, 0));
 
   // send child's stdout to the client
   len = ch_out.size();
@@ -269,12 +253,11 @@ bool handle_client_request(int c_sock) {
 }
 
 int main(int argc, char** argv) {
+  int s_sock;
+
   try {
     // get the socket
-    int s_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (s_sock == -1) {
-      THROW("socket: " << strerror(errno));
-    }
+    CHECK((s_sock = socket(AF_INET, SOCK_STREAM, 0)));
 
     // bind to all interfaces 
     in_addr ipaddr;
@@ -286,22 +269,16 @@ int main(int argc, char** argv) {
     s_addr.sin_port   = 31337;
     s_addr.sin_addr   = ipaddr;
 
-    if (bind(s_sock, (sockaddr*) &s_addr, sizeof(s_addr)) == -1) {
-      THROW("bind: " << strerror(errno));
-    }
+    CHECK(bind(s_sock, (sockaddr*) &s_addr, sizeof(s_addr)));
 
     // listen on our socket
-    if (listen(s_sock, 10) == -1) {
-      THROW("listen: " << strerror(errno));
-    }
+    CHECK(listen(s_sock, 10));
 
     // ignore SIGCHLD to prevent zombie children
     struct sigaction r_act;
     r_act.sa_handler = SIG_IGN;
 
-    if (sigaction(SIGCHLD, &r_act, NULL) == -1) {
-      THROW("sigaction: " << strerror(errno));
-    }
+    CHECK(sigaction(SIGCHLD, &r_act, NULL));
 
     // start the server loop 
     for (;;) {
@@ -310,20 +287,16 @@ int main(int argc, char** argv) {
       memset(&c_addr, 0, sizeof(c_addr));
       socklen_t c_addr_len = sizeof(c_addr);
 
-      int c_sock = accept(s_sock, (sockaddr*) &c_addr, &c_addr_len);
-      if (c_sock == -1) {
-        THROW("accept: " << strerror(errno));
-      } 
+      int c_sock;
+      CHECK((c_sock = accept(s_sock, (sockaddr*) &c_addr, &c_addr_len)));
 
       // fork to handle client requests
-      const int pid = fork();
-      if (pid == -1) {
-        THROW("fork: " << strerror(errno));
-      }
+      int pid;
+      CHECK((pid = fork()));
 
       if (pid != 0) {
         // close the client socket, parent doesn't use it 
-        CLOSE(c_sock);
+        CHECK(close((c_sock)));
         // parent loops back to accept more client requests
         continue;
       }
@@ -331,36 +304,30 @@ int main(int argc, char** argv) {
       // reset SIGCHLD action, as request handler waits on its child
       struct sigaction c_act;
       c_act.sa_handler = SIG_DFL;
-
-      if (sigaction(SIGCHLD, &c_act, NULL) == -1) {
-        THROW("sigaction: " << strerror(errno));
-      }
+      CHECK(sigaction(SIGCHLD, &c_act, NULL));
 
       // child handles client requests
       try {
         while (handle_client_request(c_sock));
       }
       catch (std::exception& e) {
+        close(c_sock);
         std::cerr << e.what() << std::endl;
         exit(1);
       }
 
       // close the client socket
-      if (shutdown(c_sock, SHUT_RDWR) == -1) {
-        THROW("shutdown: " << strerror(errno));
-      }
-
-      CLOSE(c_sock);
+      CHECK(shutdown(c_sock, SHUT_RDWR));
+      CHECK(close((c_sock)));
       exit(0);
     }
 
     // close the server socket
-    if (shutdown(s_sock, SHUT_RDWR) == -1) {
-      THROW("shutdown: " << strerror(errno));
-    }
-    CLOSE(s_sock);
+    CHECK(shutdown(s_sock, SHUT_RDWR));
+    CHECK(close((s_sock)));
   }
   catch (std::exception& e) {
+    close(s_sock);
     std::cerr << e.what() << std::endl;
     exit(1);
   }

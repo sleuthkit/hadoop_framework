@@ -65,9 +65,7 @@ int main(int argc, char** argv) {
     s_addr.sin_port = 31337;
     s_addr.sin_addr = ipaddr; 
 
-    if (connect(*c_sock, (sockaddr*) &s_addr, sizeof(sockaddr_in)) == -1) {
-      THROW("connect: " << strerror(errno));
-    }
+    CHECK(connect(*c_sock, (sockaddr*) &s_addr, sizeof(sockaddr_in)));
 
     // send lines from stdin to the server
     size_t len;
