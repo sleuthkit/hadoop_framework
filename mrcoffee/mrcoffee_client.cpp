@@ -23,6 +23,29 @@ void closer(int* sock) {
   }
 }
 
+void pump(int in, int out, char* buf, size_t blen, size_t len) {
+  ssize_t rlen, wlen;
+  size_t off = 0;
+  while (off < len) {
+    off += rlen = read(in, buf, std::min(blen, len-off));
+    if (rlen == -1) {
+      THROW("read: " << strerror(errno));
+    }
+    else if (rlen == 0) {
+      THROW("read: unexpected EOF"); 
+    }
+
+    wlen = write(out, buf, rlen);
+    if (wlen == -1) {
+      THROW("write: " << strerror(errno));
+    }
+    else if (wlen != rlen) {
+// FIXME: gimpy, should keep available and written positions in buffer
+      THROW("write: wlen != rlen");
+    }
+  }
+}
+
 int main(int argc, char** argv) {
   try {
 
@@ -81,47 +104,13 @@ int main(int argc, char** argv) {
       read_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // read command's stdout
-      off = 0;
-      while (off < len) {
-        off += rlen = recv(*c_sock, buf, std::min(sizeof(buf), len-off), 0);
-        if (rlen == -1) {
-          THROW("recv: " << strerror(errno));
-        }
-        else if (rlen == 0) {
-          THROW("recv: other side shut down socket"); 
-        }
-
-        wlen = write(STDOUT_FILENO, buf, rlen);
-        if (wlen == -1) {
-          THROW("write: " << strerror(errno));
-        }
-        else if (wlen != rlen) {
-          THROW("write: wlen != rlen");
-        }
-      }
+      pump(*c_sock, STDOUT_FILENO, buf, sizeof(buf), len);
 
       // read length of command's stderr
       read_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // read command's stderr
-      off = 0;
-      while (off < len) {
-        off += rlen = recv(*c_sock, buf, std::min(sizeof(buf), len-off), 0);
-        if (rlen == -1) {
-          THROW("recv: " << strerror(errno));
-        }
-        else if (rlen == 0) {
-          THROW("recv: other side shut down socket"); 
-        }
-
-        wlen = write(STDERR_FILENO, buf, rlen);
-        if (wlen == -1) {
-          THROW("write: " << strerror(errno));
-        }
-        else if (wlen != rlen) {
-          THROW("write: wlen != rlen");
-        }
-      }
+      pump(*c_sock, STDERR_FILENO, buf, sizeof(buf), len);
     }
 
 // TODO: close socket
