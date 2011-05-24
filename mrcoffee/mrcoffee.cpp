@@ -6,6 +6,7 @@
 #include <iterator>
 #include <vector>
 
+#include <signal.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/select.h>
@@ -289,12 +290,21 @@ int main(int argc, char** argv) {
       THROW("bind: " << strerror(errno));
     }
 
-    while (1) {
-      // listen on our socket
-      if (listen(s_sock, 10) == -1) {
-        THROW("listen: " << strerror(errno));
-      }
+    // listen on our socket
+    if (listen(s_sock, 10) == -1) {
+      THROW("listen: " << strerror(errno));
+    }
 
+    // ignore SIGCHLD to prevent zombie children
+    struct sigaction r_act;
+    r_act.sa_handler = SIG_IGN;
+
+    if (sigaction(SIGCHLD, &r_act, NULL) == -1) {
+      THROW("sigaction: " << strerror(errno));
+    }
+
+    // start the server loop 
+    for (;;) {
       // accept connection from client
       sockaddr_in c_addr;
       memset(&c_addr, 0, sizeof(c_addr));
@@ -305,22 +315,50 @@ int main(int argc, char** argv) {
         THROW("accept: " << strerror(errno));
       } 
 
-      // handle client requests
+      // fork to handle client requests
+      const int pid = fork();
+      if (pid == -1) {
+        THROW("fork: " << strerror(errno));
+      }
+
+      if (pid != 0) {
+        // close the client socket, parent doesn't use it 
+        CLOSE(c_sock);
+        // parent loops back to accept more client requests
+        continue;
+      }
+
+      // reset SIGCHLD action, as request handler waits on its child
+      struct sigaction c_act;
+      c_act.sa_handler = SIG_DFL;
+
+      if (sigaction(SIGCHLD, &c_act, NULL) == -1) {
+        THROW("sigaction: " << strerror(errno));
+      }
+
+      // child handles client requests
       try {
         while (handle_client_request(c_sock));
       }
       catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
+        exit(1);
       }
 
-      // close the client socket 
+      // close the client socket
+      if (shutdown(c_sock, SHUT_RDWR) == -1) {
+        THROW("shutdown: " << strerror(errno));
+      }
+
       CLOSE(c_sock);
+      exit(0);
     }
 
     // close the server socket
-    if (close(s_sock) == -1) {
-      THROW("close: " << strerror(errno));
+    if (shutdown(s_sock, SHUT_RDWR) == -1) {
+      THROW("shutdown: " << strerror(errno));
     }
+    CLOSE(s_sock);
   }
   catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
