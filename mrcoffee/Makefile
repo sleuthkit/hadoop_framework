@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS = -c -O -g -pg -W -Wall -Wextra -pedantic -pipe -MMD -MP
+CPPFLAGS = -c -O -g -pg -W -Wall -Wextra -pedantic -std=c++0x -pipe -MMD -MP
 #CPPFLAGS = -c -O3 -W -Wall -Wextra -pedantic -pipe -MMD -MP
 LDFLAGS = -lstdc++
 
