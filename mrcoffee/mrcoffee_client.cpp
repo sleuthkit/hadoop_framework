@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <boost/scoped_array.hpp>
 #include <boost/shared_ptr.hpp>
 
 #define THROW(msg) \
@@ -55,22 +56,39 @@ int main(int argc, char** argv) {
     size_t rlen;
     std::string line;
 
-    while (1) {
-      std::getline(std::cin, line);
+    while (std::getline(std::cin, line)) {
+      // parse command line into arguments
 
-      // send line length
+      // send length of command line
       rlen = line.length()+1;
-
       wlen = send(*c_sock, &rlen, sizeof(rlen), 0);     
       if (wlen == -1) {
         THROW("send: " << strerror(errno));
       }
 
-      // send line
-      wlen = send(*c_sock, line.c_str(), line.length()+1, 0);
+      // convert spaces to nulls
+      boost::scoped_array<char> cmd(new char[line.length()+1]);
+      memcpy(cmd.get(), line.c_str(), line.length()+1);     
+
+      for (unsigned int i = 0; i < line.length()+1; ++i) {
+        if (cmd[i] == ' ') {
+          cmd[i] = '\0';
+        }
+      }
+
+      // send the command line 
+      wlen = send(*c_sock, cmd.get(), line.length()+1, 0);
       if (wlen == -1) {
         THROW("send: " << strerror(errno));
       }
+ 
+      // send data length
+      rlen = 0;
+      wlen = send(*c_sock, &rlen, sizeof(rlen), 0);     
+      if (wlen == -1) {
+        THROW("send: " << strerror(errno));
+      }
+
     }
 
 // TODO: close socket
