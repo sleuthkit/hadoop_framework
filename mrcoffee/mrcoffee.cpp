@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
               ch_err.insert(ch_err.end(), buf, buf+rlen);
             }
           }
-        } while (in_pipe[1] != -1 && out_pipe[0] != -1 && err_pipe[0] != -1);
+        } while (in_pipe[1] != -1 || out_pipe[0] != -1 || err_pipe[0] != -1);
 
         // wait for the child to exit
         if (waitpid(ch_pid, NULL, 0) == -1) {
