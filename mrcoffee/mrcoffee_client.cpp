@@ -70,8 +70,7 @@ int main(int argc, char** argv) {
     }
 
     // send lines from stdin to the server
-    ssize_t rlen, wlen;
-    size_t len, off;
+    size_t len;
     std::string line;
 
     char buf[4096];
