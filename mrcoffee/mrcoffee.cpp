@@ -67,6 +67,205 @@ int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   THROW("wtf: execvp returned something other than -1");
 }
 
+bool handle_client_request(int c_sock) {
+  ssize_t rlen, wlen;
+  size_t len, off;
+
+  char buf[4096];
+
+  // read command length from client
+  off = 0;
+  while (off < sizeof(len)) {
+    off += rlen = recv(c_sock, &len+off, sizeof(len)-off, 0);
+    if (rlen == -1) {
+      THROW("recv: " << strerror(errno));
+    }
+    else if (rlen == 0) {
+      // client has disconnected
+      return false;
+    }
+  }
+
+  // read command line from client
+  boost::scoped_array<char> cmdline(new char[len]);
+  read_bytes(c_sock, cmdline.get(), len);
+
+  // break command line into command and arguments
+  std::vector<char*> args;
+  args.push_back(cmdline.get());
+  for (unsigned int i = 0; i < len-1; ++i) {
+    if (cmdline[i] == '\0') {
+      args.push_back(cmdline.get()+i+1);
+    }
+  } 
+  
+  args.push_back(NULL); // last arg for execvp must be NULL
+
+  // read data length from client
+  size_t in_len;
+  read_bytes(c_sock, (char*) &in_len, sizeof(in_len));
+
+  // set up the pipes; pipes named from the POV of the child
+  int in_pipe[2], out_pipe[2], err_pipe[2];
+
+  if (in_len > 0) {
+    // create in pipe only if the client will send data
+    PIPE(in_pipe);
+  }
+  else {
+    in_pipe[0] = in_pipe[1] = -1;
+  }
+
+  PIPE(out_pipe);
+  PIPE(err_pipe);
+
+  // fork the child to run the command
+  const int ch_pid = exec_cmd(args.data(), in_pipe, out_pipe, err_pipe);
+
+  // close the pipe ends we don't use
+  CLOSE(out_pipe[1]);
+  CLOSE(err_pipe[1]);
+
+  if (in_pipe[0] != -1) {
+    CLOSE(in_pipe[0]);
+  }
+
+  std::vector<char> ch_out, ch_err;
+
+  // read from client socket, child stdout, stderr and write to child
+  // stdin as data is available
+  fd_set rfds, wfds;
+  int nfds;
+
+  char in_buf[4096];
+  size_t in_available = 0, in_written = 0;
+
+  do {
+    // create the set of file descriptors on which to select
+    nfds = 0;
+    FD_ZERO(&rfds);
+    FD_ZERO(&wfds);
+
+    if (out_pipe[0] != -1) {
+      FD_SET(out_pipe[0], &rfds);
+      nfds = std::max(nfds, out_pipe[0]);
+    }
+
+    if (err_pipe[0] != -1) {
+      FD_SET(err_pipe[0], &rfds);
+      nfds = std::max(nfds, err_pipe[0]);
+    }
+
+    if (in_len > 0) {
+      FD_SET(c_sock, &rfds);
+      nfds = std::max(nfds, c_sock);
+    }
+
+    if (in_pipe[1] != -1) {
+      FD_SET(in_pipe[1], &wfds);
+      nfds = std::max(nfds, in_pipe[1]);
+    }
+
+    // determine whether any file descriptors are ready
+    if (select(nfds+1, &rfds, &wfds, NULL, NULL) == -1) {
+      THROW("select: " << strerror(errno));
+    }
+
+    // read data from client socket
+    if (FD_ISSET(c_sock, &rfds)) {
+      // read from client socket
+      rlen = read(c_sock, in_buf+in_available,
+                  std::min(sizeof(in_buf)-in_available, in_len));
+      if (rlen == -1) {
+        THROW("read: " << strerror(errno));
+      }
+      else if (rlen == 0) {
+        THROW("read: client shut down socket"); 
+      }
+      else {
+        in_len -= rlen;
+        in_available += rlen;
+      }
+    }
+
+    // write data to child stdin        
+    if (FD_ISSET(in_pipe[1], &wfds)) {
+      wlen = write(in_pipe[1], in_buf+in_written,
+                   in_available-in_written);
+      if (wlen == -1) {
+        THROW("write: " << strerror(errno));
+      }
+      else {
+        in_written += wlen;
+
+        if (in_written == in_available) {
+          // output has caught up with input
+          in_written = in_available = 0;
+
+          if (in_len == 0) {
+            // close child's stdin
+            CLOSE(in_pipe[1]);
+            in_pipe[1] = -1;
+          }
+        }
+      }
+    }
+
+    // collect data from child stdout
+    if (FD_ISSET(out_pipe[0], &rfds)) {
+      // read from child stdout
+      rlen = read(out_pipe[0], buf, sizeof(buf));
+      if (rlen == -1) {
+        THROW("read: " << strerror(errno));
+      }
+      else if (rlen == 0) {
+        // child closed stdout
+        CLOSE(out_pipe[0]);
+        out_pipe[0] = -1;
+      }
+      else {
+        // store child's stdout in ch_out
+        ch_out.insert(ch_out.end(), buf, buf+rlen);
+      }
+    }
+
+    // collect data from child stderr
+    if (FD_ISSET(err_pipe[0], &rfds)) {
+      // read from child stdout
+      rlen = read(err_pipe[0], buf, sizeof(buf));
+      if (rlen == -1) {
+        THROW("read: " << strerror(errno));
+      }
+      else if (rlen == 0) {
+        // child closed stderr
+        CLOSE(err_pipe[0]);
+        err_pipe[0] = -1;
+      }
+      else {
+        // store child stderr in ch_err
+        ch_err.insert(ch_err.end(), buf, buf+rlen);
+      }
+    }
+  } while (in_pipe[1] != -1 || out_pipe[0] != -1 || err_pipe[0] != -1);
+
+  // wait for the child to exit
+  if (waitpid(ch_pid, NULL, 0) == -1) {
+    THROW("waitpid: " << strerror(errno));
+  }
+
+  // send child's stdout to the client
+  len = ch_out.size();
+  write_bytes(c_sock, (char*) &len, sizeof(len));
+  write_bytes(c_sock, ch_out.data(), len);
+
+  // send child's stderr to the client
+  len = ch_err.size();
+  write_bytes(c_sock, (char*) &len, sizeof(len));
+  write_bytes(c_sock, ch_err.data(), len);
+
+  return true;
+}
+
 int main(int argc, char** argv) {
   try {
     // get the socket
@@ -89,11 +288,6 @@ int main(int argc, char** argv) {
       THROW("bind: " << strerror(errno));
     }
 
-    char buf[4096];
-    ssize_t rlen, wlen;
-    size_t len, off;
-
-    bool done = false;
     while (1) {
       // listen on our socket
       if (listen(s_sock, 10) == -1) {
@@ -110,204 +304,16 @@ int main(int argc, char** argv) {
         THROW("accept: " << strerror(errno));
       } 
 
-      while (1) {
-        // read command length from client
-        off = 0;
-        while (off < sizeof(len)) {
-          off += rlen = recv(c_sock, &len+off, sizeof(len)-off, 0);
-          if (rlen == -1) {
-            THROW("recv: " << strerror(errno));
-          }
-          else if (rlen == 0) {
-            // client has disconnected
-            goto CLIENT_CLEANUP;
-          }
-        }
-
-        // read command line from client
-        boost::scoped_array<char> cmdline(new char[len]);
-        read_bytes(c_sock, cmdline.get(), len);
-
-        // break command line into command and arguments
-        std::vector<char*> args;
-        args.push_back(cmdline.get());
-        for (unsigned int i = 0; i < len-1; ++i) {
-          if (cmdline[i] == '\0') {
-            args.push_back(cmdline.get()+i+1);
-          }
-        } 
-        
-        args.push_back(NULL); // last arg for execvp must be NULL
-
-        // read data length from client
-        size_t in_len;
-        read_bytes(c_sock, (char*) &in_len, sizeof(in_len));
-
-        // set up the pipes; pipes named from the POV of the child
-        int in_pipe[2], out_pipe[2], err_pipe[2];
-
-        if (in_len > 0) {
-          // create in pipe only if the client will send data
-          PIPE(in_pipe);
-        }
-        else {
-          in_pipe[0] = in_pipe[1] = -1;
-        }
-
-        PIPE(out_pipe);
-        PIPE(err_pipe);
-
-        // fork the child to run the command
-        const int ch_pid = exec_cmd(args.data(), in_pipe, out_pipe, err_pipe);
-
-        // close the pipe ends we don't use
-        CLOSE(out_pipe[1]);
-        CLOSE(err_pipe[1]);
-
-        if (in_pipe[0] != -1) {
-          CLOSE(in_pipe[0]);
-        }
-
-        std::vector<char> ch_out, ch_err;
-
-        // read from client socket, child stdout, stderr and write to child
-        // stdin as data is available
-        fd_set rfds, wfds;
-        int nfds;
-
-        char in_buf[4096];
-        size_t in_available = 0, in_written = 0;
-
-        do {
-          // create the set of file descriptors on which to select
-          nfds = 0;
-          FD_ZERO(&rfds);
-          FD_ZERO(&wfds);
-      
-          if (out_pipe[0] != -1) {
-            FD_SET(out_pipe[0], &rfds);
-            nfds = std::max(nfds, out_pipe[0]);
-          }
-
-          if (err_pipe[0] != -1) {
-            FD_SET(err_pipe[0], &rfds);
-            nfds = std::max(nfds, err_pipe[0]);
-          }
-
-          if (in_len > 0) {
-            FD_SET(c_sock, &rfds);
-            nfds = std::max(nfds, c_sock);
-          }
-
-          if (in_pipe[1] != -1) {
-            FD_SET(in_pipe[1], &wfds);
-            nfds = std::max(nfds, in_pipe[1]);
-          }
-
-          // determine whether any file descriptors are ready
-          if (select(nfds+1, &rfds, &wfds, NULL, NULL) == -1) {
-            THROW("select: " << strerror(errno));
-          }
-
-          // read data from client socket
-          if (FD_ISSET(c_sock, &rfds)) {
-            // read from client socket
-            rlen = read(c_sock, in_buf+in_available,
-                        std::min(sizeof(in_buf)-in_available, in_len));
-            if (rlen == -1) {
-              THROW("read: " << strerror(errno));
-            }
-            else if (rlen == 0) {
-              THROW("read: client shut down socket"); 
-            }
-            else {
-              in_len -= rlen;
-              in_available += rlen;
-            }
-          }
-
-          // write data to child stdin        
-          if (FD_ISSET(in_pipe[1], &wfds)) {
-            wlen = write(in_pipe[1], in_buf+in_written,
-                         in_available-in_written);
-            if (wlen == -1) {
-              THROW("write: " << strerror(errno));
-            }
-            else {
-              in_written += wlen;
-
-              if (in_written == in_available) {
-                // output has caught up with input
-                in_written = in_available = 0;
-
-                if (in_len == 0) {
-                  // close child's stdin
-                  CLOSE(in_pipe[1]);
-                  in_pipe[1] = -1;
-                }
-              }
-            }
-          }
-
-          // collect data from child stdout
-          if (FD_ISSET(out_pipe[0], &rfds)) {
-            // read from child stdout
-            rlen = read(out_pipe[0], buf, sizeof(buf));
-            if (rlen == -1) {
-              THROW("read: " << strerror(errno));
-            }
-            else if (rlen == 0) {
-              // child closed stdout
-              CLOSE(out_pipe[0]);
-              out_pipe[0] = -1;
-            }
-            else {
-              // store child's stdout in ch_out
-              ch_out.insert(ch_out.end(), buf, buf+rlen);
-            }
-          }
-      
-          // collect data from child stderr
-          if (FD_ISSET(err_pipe[0], &rfds)) {
-            // read from child stdout
-            rlen = read(err_pipe[0], buf, sizeof(buf));
-            if (rlen == -1) {
-              THROW("read: " << strerror(errno));
-            }
-            else if (rlen == 0) {
-              // child closed stderr
-              CLOSE(err_pipe[0]);
-              err_pipe[0] = -1;
-            }
-            else {
-              // store child stderr in ch_err
-              ch_err.insert(ch_err.end(), buf, buf+rlen);
-            }
-          }
-        } while (in_pipe[1] != -1 || out_pipe[0] != -1 || err_pipe[0] != -1);
-
-        // wait for the child to exit
-        if (waitpid(ch_pid, NULL, 0) == -1) {
-          THROW("waitpid: " << strerror(errno));
-        }
-
-        // send child's stdout to the client
-        len = ch_out.size();
-        write_bytes(c_sock, (char*) &len, sizeof(len));
-        write_bytes(c_sock, ch_out.data(), len);
-
-        // send child's stderr to the client
-        len = ch_err.size();
-        write_bytes(c_sock, (char*) &len, sizeof(len));
-        write_bytes(c_sock, ch_err.data(), len);
+      // handle client requests
+      try {
+        while (handle_client_request(c_sock));
+      }
+      catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
       }
 
-      CLIENT_CLEANUP:
-     
       // close the client socket 
-      if (close(c_sock) == -1) {
-        THROW("close: " << strerror(errno));
-      }
+      CLOSE(c_sock);
     }
 
     // close the server socket
