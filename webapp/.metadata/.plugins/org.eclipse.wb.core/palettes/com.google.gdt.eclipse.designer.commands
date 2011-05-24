@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<commands>
+	<addCategory
+		id="category_1303936708316"
+		name="Custom"
+		description="Container for custom components"
+		visible="true"
+		open="true"/>
+	<addComponent
+		id="custom_1303936708315"
+		name="Login"
+		description="Creates com.mz.LoginManager.client.Login component."
+		visible="true"
+		class="com.mz.LoginManager.client.Login"
+		category="category_1303936708316"/>
+</commands>

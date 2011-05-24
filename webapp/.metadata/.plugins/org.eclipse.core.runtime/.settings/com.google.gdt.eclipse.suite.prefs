@@ -1,0 +1,12 @@
+#Tue May 03 16:30:11 EDT 2011
+addedNewWizardActions1.2_org.eclipse.jdt.ui.JavaBrowsingPerspective=com.google.gdt.eclipse.suite.wizards.newProjectWizard|com.google.gwt.eclipse.core.newModuleWizard|com.google.gwt.eclipse.core.newHostPageWizard|com.google.gwt.eclipse.core.newEntryPointWizard|com.google.gwt.eclipse.core.newClientBundleWizard|com.google.gwt.eclipse.core.newUiBinderWizard
+versionForLastForcedRebuild_LoginManager=2.2.1.v201103311225
+addedNewWizardActions1.2_org.eclipse.jst.j2ee.J2EEPerspective=com.google.gdt.eclipse.suite.wizards.newProjectWizard|com.google.gwt.eclipse.core.newModuleWizard|com.google.gwt.eclipse.core.newHostPageWizard|com.google.gwt.eclipse.core.newEntryPointWizard|com.google.gwt.eclipse.core.newClientBundleWizard|com.google.gwt.eclipse.core.newUiBinderWizard
+versionForLastForcedRebuild_SampleApp=2.2.1.v201103311225
+versionForLastForcedRebuild_tp-web=2.2.1.v201103311225
+eclipse.preferences.version=1
+SdkRegistrants_1303846122240=com.google.gwt.eclipse.sdkbundle_2.2.0.v201103311225
+versionForLastForcedRebuild_tpweb=2.2.1.v201103311225
+SdkRegistrants_null=com.google.gwt.eclipse.sdkbundle_2.2.0.v201103311225
+addedNewWizardActions1.2_org.eclipse.jdt.ui.JavaPerspective=com.google.gdt.eclipse.suite.wizards.newProjectWizard|com.google.gwt.eclipse.core.newModuleWizard|com.google.gwt.eclipse.core.newHostPageWizard|com.google.gwt.eclipse.core.newEntryPointWizard|com.google.gwt.eclipse.core.newClientBundleWizard|com.google.gwt.eclipse.core.newUiBinderWizard
+versionForLastForcedRebuild_rpc-ex=2.2.1.v201103311225
