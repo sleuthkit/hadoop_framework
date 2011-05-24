@@ -136,22 +136,30 @@ int main(int argc, char** arvg) {
         if (pid == 0) {   // we are the child
 
           // close the pipe ends we don't use
-          if (close(pc_pipe[0]) == -1) {
+          if (close(pc_pipe[1]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-          if (close(cp_pipe[1]) == -1) {
+          if (close(cp_pipe[0]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
           // read child's stdin from parent
-          if (dup2(STDIN_FILENO, pc_pipe[1]) == -1) {
+          if (dup2(pc_pipe[0], STDIN_FILENO) == -1) {
             THROW("dup2: " << strerror(errno));
           }
 
+          if (close(pc_pipe[0]) == -1) {
+            THROW("close: " << strerror(errno));
+          }
+
           // send child's stdout to parent
-          if (dup2(STDOUT_FILENO, cp_pipe[0]) == -1) {
+          if (dup2(cp_pipe[1], STDOUT_FILENO) == -1) {
             THROW("dup2: " << strerror(errno));
+          }
+
+          if (close(cp_pipe[1]) == -1) {
+            THROW("close: " << strerror(errno));
           }
 
           // run the command
@@ -164,14 +172,15 @@ int main(int argc, char** arvg) {
         else {            // we are the parent
 
           // close the pipe ends we don't use
-          if (close(cp_pipe[0]) == -1) {
+          if (close(cp_pipe[1]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
-          if (close(pc_pipe[1]) == -1) {
+          if (close(pc_pipe[0]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
+/*
           // read data length from client
           count = sizeof(len);
           while (count > 0) {
@@ -204,16 +213,18 @@ int main(int argc, char** arvg) {
               THROW("send: " << strerror(errno));
             }
           }
-       
+*/
+
           // close the pipe to the child 
-          if (close(pc_pipe[0]) == -1) {
+          if (close(pc_pipe[1]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
           // read output from child's stdout
-          while ((rlen = read(cp_pipe[1], buf, 0))) {
+          while ((rlen = read(cp_pipe[0], buf, sizeof(buf)))) {
             if (rlen == -1) {
               THROW("read: " << strerror(errno));
+//              break;
             }
 
 /*
@@ -228,7 +239,7 @@ int main(int argc, char** arvg) {
           }
         
           // close the pipe from the child
-          if (close(cp_pipe[1]) == -1) {
+          if (close(cp_pipe[0]) == -1) {
             THROW("close: " << strerror(errno));
           }
 
