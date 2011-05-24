@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/scoped_array.hpp>
 
 #include "io.h"
@@ -253,10 +254,17 @@ bool handle_client_request(int c_sock) {
 }
 
 int main(int argc, char** argv) {
-  int s_sock;
+  int s_sock = -1;
 
   try {
-    // get the socket
+    if (argc != 2) {
+      THROW("incorrect number of arguments");
+    }
+
+    // get the port
+    const in_port_t port = htons(boost::lexical_cast<in_port_t>(argv[1]));
+
+    // create the socket
     CHECK((s_sock = socket(AF_INET, SOCK_STREAM, 0)));
 
     // bind to all interfaces 
@@ -266,7 +274,7 @@ int main(int argc, char** argv) {
     sockaddr_in s_addr;
     memset(&s_addr, 0, sizeof(s_addr));
     s_addr.sin_family = AF_INET;
-    s_addr.sin_port   = 31337;
+    s_addr.sin_port   = port;
     s_addr.sin_addr   = ipaddr;
 
     CHECK(bind(s_sock, (sockaddr*) &s_addr, sizeof(s_addr)));

@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/scoped_array.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -49,6 +50,13 @@ void pump(int in, int out, char* buf, size_t blen, size_t len) {
 int main(int argc, char** argv) {
   try {
 
+    if (argc != 2) {
+      THROW("incorrect number of arguments");
+    }
+
+    // get the port
+    const in_port_t port = htons(boost::lexical_cast<in_port_t>(argv[1]));
+
     // get the socket
     boost::shared_ptr<int> c_sock(new int, closer);
     *c_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -62,7 +70,7 @@ int main(int argc, char** argv) {
 
     sockaddr_in s_addr;
     s_addr.sin_family = AF_INET;
-    s_addr.sin_port = 31337;
+    s_addr.sin_port = port;
     s_addr.sin_addr = ipaddr; 
 
     CHECK(connect(*c_sock, (sockaddr*) &s_addr, sizeof(sockaddr_in)));
