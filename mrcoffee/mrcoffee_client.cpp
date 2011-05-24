@@ -52,18 +52,23 @@ int main(int argc, char** argv) {
     }
 
     // send lines from stdin to the server
-    ssize_t wlen;
-    size_t rlen;
+    ssize_t rlen, wlen;
+    size_t len, off;
     std::string line;
+
+    char buf[4096];
 
     while (std::getline(std::cin, line)) {
       // parse command line into arguments
 
       // send length of command line
-      rlen = line.length()+1;
-      wlen = send(*c_sock, &rlen, sizeof(rlen), 0);     
-      if (wlen == -1) {
-        THROW("send: " << strerror(errno));
+      len = line.length()+1;
+      off = 0;
+      while (off < sizeof(len)) {
+        off += wlen = send(*c_sock, &len+off, sizeof(len)-off, 0);     
+        if (wlen == -1) {
+          THROW("send: " << strerror(errno));
+        }
       }
 
       // convert spaces to nulls
@@ -76,19 +81,82 @@ int main(int argc, char** argv) {
         }
       }
 
-      // send the command line 
-      wlen = send(*c_sock, cmd.get(), line.length()+1, 0);
-      if (wlen == -1) {
-        THROW("send: " << strerror(errno));
+      // send the command line
+      off = 0;
+      while (off < line.length()+1) {
+        off += wlen = send(*c_sock, cmd.get()+off, line.length()+1-off, 0);
+        if (wlen == -1) {
+          THROW("send: " << strerror(errno));
+        }
       }
  
       // send data length
-      rlen = 0;
-      wlen = send(*c_sock, &rlen, sizeof(rlen), 0);     
-      if (wlen == -1) {
-        THROW("send: " << strerror(errno));
+      len = 0;
+      off = 0;
+      while (off < sizeof(len)) {
+        off += wlen = send(*c_sock, &len+off, sizeof(len)-off, 0);
+        if (wlen == -1) {
+          THROW("send: " << strerror(errno));
+        }
       }
 
+      // read length of command's stdout
+      off = 0;
+      while (off < sizeof(len)) {
+        off += rlen = recv(*c_sock, &len+off, sizeof(len)-off, 0);
+        if (rlen == -1) {
+          THROW("recv: " << strerror(errno));
+        }
+        else if (rlen == 0) {
+          THROW("recv: client shut down socket"); 
+        }
+      }
+
+      // read command's stdout
+      off = 0;
+      while (off < len) {
+        off += rlen = recv(*c_sock, buf, std::min(sizeof(buf), len-off), 0);
+        if (rlen == -1) {
+          THROW("recv: " << strerror(errno));
+        }
+        else if (rlen == 0) {
+          THROW("recv: client shut down socket"); 
+        }
+
+        wlen = write(STDOUT_FILENO, buf, rlen);
+        if (wlen == -1) {
+          THROW("write: " << strerror(errno));
+        }
+      }
+
+      // read length of command's stderr
+      off = 0;
+      while (off < sizeof(len)) {
+        off += rlen = recv(*c_sock, &len+off, sizeof(len)-off, 0);
+        if (rlen == -1) {
+          THROW("recv: " << strerror(errno));
+        }
+        else if (rlen == 0) {
+          THROW("recv: client shut down socket"); 
+        }
+      }
+
+      // read command's stderr
+      off = 0;
+      while (off < len) {
+        off += rlen = recv(*c_sock, buf, std::min(sizeof(buf), len-off), 0);
+        if (rlen == -1) {
+          THROW("recv: " << strerror(errno));
+        }
+        else if (rlen == 0) {
+          THROW("recv: client shut down socket"); 
+        }
+
+        wlen = write(STDERR_FILENO, buf, rlen);
+        if (wlen == -1) {
+          THROW("write: " << strerror(errno));
+        }
+      }
     }
 
 // TODO: close socket
