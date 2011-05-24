@@ -21,6 +21,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.MapWritable;
@@ -78,6 +79,31 @@ public class PythonJob {
     public B set(Object o);
     public Class<B> getBoxClass();
     public T unbox(Writable w);
+  }
+
+  static class BytesBoxerUnboxer implements BoxerUnboxer<byte[], BytesWritable> {
+    private final BytesWritable Box = new BytesWritable();
+
+    public BytesWritable getWritable() {
+      return Box;
+    }
+    
+    public BytesWritable set(Object o) {
+      if (o instanceof BytesWritable) {
+        return (BytesWritable)o;
+      }
+      byte[] b = (byte[])o;
+      Box.set(b, 0, b.length);
+      return Box;
+    }
+
+    public Class<BytesWritable> getBoxClass() {
+      return BytesWritable.class;
+    }
+
+    public byte[] unbox(Writable w) {
+      return ((BytesWritable)w).getBytes();
+    }
   }
 
   static class TextBoxerUnboxer implements BoxerUnboxer<String,Text> {
@@ -202,6 +228,9 @@ public class PythonJob {
     }
     else if ("json".equals(type)) {
       return new JsonBoxerUnboxer();
+    }
+    else if ("bytes".equals(type)) {
+      return new BytesBoxerUnboxer();
     }
     return null;
   }

@@ -20,10 +20,12 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.BytesWritable;
 
 import com.lightboxtechnologies.spectrum.PythonJob.*;
 
@@ -49,6 +51,16 @@ public class PythonJobTest {
     final DoubleBoxerUnboxer d = new DoubleBoxerUnboxer();
     assertEquals(Math.PI, d.set(Math.PI).get(), 0.000001);
     assertEquals(DoubleWritable.class, d.getBoxClass());
+  }
+
+  @Test
+  public void testBytesBoxerUnboxer() {
+    final BytesBoxerUnboxer b = new BytesBoxerUnboxer();
+    final byte[] expected =  { (byte)0x05, (byte)0x31, (byte)0x9a };
+    byte[] actual = b.set(expected).get();
+    actual = Arrays.copyOf(actual, b.getWritable().getLength());
+    assertArrayEquals(expected, actual);
+    assertEquals(BytesWritable.class, b.getBoxClass());
   }
 
   @Test
@@ -80,5 +92,10 @@ public class PythonJobTest {
   public void testUnboxDouble() {
     DoubleBoxerUnboxer d = new DoubleBoxerUnboxer();
     assertEquals(3.14159, d.unbox(new DoubleWritable(3.14159)), 0.000001);
+  }
+
+  @Test
+  public void testCreateBytes() {
+    assertTrue(PythonJob.createOutputType("bytes") instanceof BytesBoxerUnboxer);
   }
 }
