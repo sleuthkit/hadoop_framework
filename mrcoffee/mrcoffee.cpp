@@ -34,6 +34,27 @@ void closer(int* sock) {
 }
 */
 
+void write_chars(int fd, const char* buf, size_t len) {
+  // write length of buffer
+  ssize_t wlen;
+  size_t off = 0;
+  while (off < sizeof(len)) {
+    off += wlen = write(fd, &len+off, sizeof(len)-off);
+    if (wlen == -1) {
+      THROW("write: " << strerror(errno));
+    }
+  }
+
+  // write buffer
+  off = 0;
+  while (off < len) {
+    off += wlen = write(fd, buf+off, len-off);
+    if (wlen == -1) {
+      THROW("write: " << strerror(errno));
+    }
+  }
+}
+
 int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   // fork the child
   const int pid = fork();
@@ -241,7 +262,7 @@ int main(int argc, char** argv) {
         int nfds;
 
         char in_buf[4096];
-        unsigned int in_available = 0, in_written = 0;
+        size_t in_available = 0, in_written = 0;
 
         do {
           // create the set of file descriptors on which to select
@@ -365,12 +386,11 @@ int main(int argc, char** argv) {
           THROW("waitpid: " << strerror(errno));
         }
 
-        // print child's stdout and stderr 
-        std::copy(ch_out.begin(), ch_out.end(),
-          std::ostream_iterator<char>(std::cout)); 
-        
-        std::copy(ch_err.begin(), ch_err.end(),
-          std::ostream_iterator<char>(std::cerr));
+        // send child's stdout to the client
+        write_chars(c_sock, ch_out.data(), ch_out.size());
+
+        // send child's stderr to the client
+        write_chars(c_sock, ch_err.data(), ch_err.size());
       }
 
       CLIENT_CLEANUP:
