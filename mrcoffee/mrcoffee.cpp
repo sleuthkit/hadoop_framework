@@ -1,13 +1,9 @@
 
 #include <algorithm>
-#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 #include <iterator>
-#include <sstream>
-#include <stdexcept>
 #include <vector>
 
 #include <unistd.h>
@@ -18,12 +14,7 @@
 
 #include <boost/scoped_array.hpp>
 
-#define THROW(msg) \
-  { \
-    std::stringstream ss; \
-    ss << msg << ", line " << __LINE__; \
-    throw std::runtime_error(ss.str()); \
-  }
+#include "io.h"
 
 /*
 void closer(int* sock) {
@@ -33,27 +24,6 @@ void closer(int* sock) {
   }
 }
 */
-
-void write_chars(int fd, const char* buf, size_t len) {
-  // write length of buffer
-  ssize_t wlen;
-  size_t off = 0;
-  while (off < sizeof(len)) {
-    off += wlen = write(fd, &len+off, sizeof(len)-off);
-    if (wlen == -1) {
-      THROW("write: " << strerror(errno));
-    }
-  }
-
-  // write buffer
-  off = 0;
-  while (off < len) {
-    off += wlen = write(fd, buf+off, len-off);
-    if (wlen == -1) {
-      THROW("write: " << strerror(errno));
-    }
-  }
-}
 
 int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   // fork the child
@@ -69,47 +39,25 @@ int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
 
   // close the pipe ends we don't use
   if (in_pipe[1] != -1) {
-    if (close(in_pipe[1]) == -1) {
-      THROW("close: " << strerror(errno));
-    }
+    CLOSE(in_pipe[1]);
   }
 
-  if (close(out_pipe[0]) == -1) {
-    THROW("close: " << strerror(errno));
-  }
-
-  if (close(err_pipe[0]) == -1) {
-    THROW("close: " << strerror(errno));
-  }
+  CLOSE(out_pipe[0]);
+  CLOSE(err_pipe[0]);
 
   // read child's stdin from parent
   if (in_pipe[0] != -1) {
-    if (dup2(in_pipe[0], STDIN_FILENO) == -1) {
-      THROW("dup2: " << strerror(errno));
-    }
-
-    if (close(in_pipe[0]) == -1) {
-      THROW("close: " << strerror(errno));
-    }
+    DUP2(in_pipe[0], STDIN_FILENO);
+    CLOSE(in_pipe[0]);
   }
 
   // send child's stdout to parent
-  if (dup2(out_pipe[1], STDOUT_FILENO) == -1) {
-    THROW("dup2: " << strerror(errno));
-  }
-
-  if (close(out_pipe[1]) == -1) {
-    THROW("close: " << strerror(errno));
-  }
+  DUP2(out_pipe[1], STDOUT_FILENO);
+  CLOSE(out_pipe[1]);
 
   // send child's stderr to parent
-  if (dup2(err_pipe[1], STDERR_FILENO) == -1) {
-    THROW("dup2: " << strerror(errno));
-  }
-
-  if (close(err_pipe[1]) == -1) {
-    THROW("close: " << strerror(errno));
-  }
+  DUP2(err_pipe[1], STDERR_FILENO);
+  CLOSE(err_pipe[1]);
 
   // run the command
   if (execvp(argv[0], argv) == -1) {
@@ -178,17 +126,7 @@ int main(int argc, char** argv) {
 
         // read command line from client
         boost::scoped_array<char> cmdline(new char[len]);
-
-        off = 0;
-        while (off < len) {
-          off += rlen = recv(c_sock, cmdline.get()+off, len-off, 0);
-          if (rlen == -1) {
-            THROW("recv: " << strerror(errno));
-          }
-          else if (rlen == 0) {
-            THROW("recv: client shut down socket"); 
-          }
-        }
+        read_bytes(c_sock, cmdline.get(), len);
 
         // break command line into command and arguments
         std::vector<char*> args;
@@ -203,55 +141,31 @@ int main(int argc, char** argv) {
 
         // read data length from client
         size_t in_len;
-
-        off = 0;
-        while (off < sizeof(in_len)) {
-          off += rlen = recv(c_sock, &in_len+off, sizeof(in_len)-off, 0);
-          if (rlen == -1) {
-            THROW("recv: " << strerror(errno));
-          }
-          else if (rlen == 0) {
-            THROW("recv: client shut down socket"); 
-          }
-        }
+        read_bytes(c_sock, (char*) &in_len, sizeof(in_len));
 
         // set up the pipes; pipes named from the POV of the child
         int in_pipe[2], out_pipe[2], err_pipe[2];
 
         if (in_len > 0) {
           // create in pipe only if the client will send data
-          if (pipe(in_pipe) == -1) {
-            THROW("pipe: " << strerror(errno));
-          }
+          PIPE(in_pipe);
         }
         else {
           in_pipe[0] = in_pipe[1] = -1;
         }
 
-        if (pipe(out_pipe) == -1) {
-          THROW("pipe: " << strerror(errno));
-        }
-
-        if (pipe(err_pipe) == -1) {
-          THROW("pipe: " << strerror(errno));
-        }
+        PIPE(out_pipe);
+        PIPE(err_pipe);
 
         // fork the child to run the command
         const int ch_pid = exec_cmd(args.data(), in_pipe, out_pipe, err_pipe);
 
         // close the pipe ends we don't use
-        if (close(out_pipe[1]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
-
-        if (close(err_pipe[1]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
+        CLOSE(out_pipe[1]);
+        CLOSE(err_pipe[1]);
 
         if (in_pipe[0] != -1) {
-          if (close(in_pipe[0]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
+          CLOSE(in_pipe[0]);
         }
 
         std::vector<char> ch_out, ch_err;
@@ -328,10 +242,7 @@ int main(int argc, char** argv) {
 
                 if (in_len == 0) {
                   // close child's stdin
-                  if (close(in_pipe[1]) == -1) {
-                    THROW("close: " << strerror(errno));
-                  }
-
+                  CLOSE(in_pipe[1]);
                   in_pipe[1] = -1;
                 }
               }
@@ -347,10 +258,7 @@ int main(int argc, char** argv) {
             }
             else if (rlen == 0) {
               // child closed stdout
-              if (close(out_pipe[0]) == -1) {
-                THROW("close: " << strerror(errno));
-              }
-
+              CLOSE(out_pipe[0]);
               out_pipe[0] = -1;
             }
             else {
@@ -368,10 +276,7 @@ int main(int argc, char** argv) {
             }
             else if (rlen == 0) {
               // child closed stderr
-              if (close(err_pipe[0]) == -1) {
-                THROW("close: " << strerror(errno));
-              }
-
+              CLOSE(err_pipe[0]);
               err_pipe[0] = -1;
             }
             else {
@@ -387,10 +292,14 @@ int main(int argc, char** argv) {
         }
 
         // send child's stdout to the client
-        write_chars(c_sock, ch_out.data(), ch_out.size());
+        len = ch_out.size();
+        write_bytes(c_sock, (char*) &len, sizeof(len));
+        write_bytes(c_sock, ch_out.data(), len);
 
         // send child's stderr to the client
-        write_chars(c_sock, ch_err.data(), ch_err.size());
+        len = ch_err.size();
+        write_bytes(c_sock, (char*) &len, sizeof(len));
+        write_bytes(c_sock, ch_err.data(), len);
       }
 
       CLIENT_CLEANUP:

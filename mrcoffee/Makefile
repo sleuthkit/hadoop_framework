@@ -3,19 +3,19 @@ CPPFLAGS = -c -O -g -pg -W -Wall -Wextra -pedantic -pipe -MMD -MP
 #CPPFLAGS = -c -O3 -W -Wall -Wextra -pedantic -pipe -MMD -MP
 LDFLAGS = -lstdc++
 
-SOURCES = mrcoffee.cpp mrcoffee_client.cpp
+SOURCES = mrcoffee.cpp mrcoffee_client.cpp io.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPS = $(SOURCES:.cpp=.d)
 
 all: mrcoffee mrcoffee_client
 
-mrcoffee: mrcoffee.o
+mrcoffee: mrcoffee.o io.o
 
-mrcoffee_client: mrcoffee_client.o
+mrcoffee_client: mrcoffee_client.o io.o
 
 -include $(DEPS)
 
 clean:
-	$(RM) mrcoffee mrcoffee.o mrcoffee_client mrcoffee_client.o
+	$(RM) mrcoffee mrcoffee_client $(OBJECTS) $(DEPS)
 
 .PHONY: all clean

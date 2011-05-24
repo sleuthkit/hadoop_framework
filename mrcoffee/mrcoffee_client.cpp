@@ -14,12 +14,7 @@
 #include <boost/scoped_array.hpp>
 #include <boost/shared_ptr.hpp>
 
-#define THROW(msg) \
-  { \
-    std::stringstream ss; \
-    ss << msg << ", line " << __LINE__; \
-    throw std::runtime_error(ss.str()); \
-  }
+#include "io.h"
 
 void closer(int* sock) {
   // Always Be Closing
@@ -63,13 +58,7 @@ int main(int argc, char** argv) {
 
       // send length of command line
       len = line.length()+1;
-      off = 0;
-      while (off < sizeof(len)) {
-        off += wlen = send(*c_sock, &len+off, sizeof(len)-off, 0);     
-        if (wlen == -1) {
-          THROW("send: " << strerror(errno));
-        }
-      }
+      write_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // convert spaces to nulls
       boost::scoped_array<char> cmd(new char[line.length()+1]);
@@ -82,35 +71,14 @@ int main(int argc, char** argv) {
       }
 
       // send the command line
-      off = 0;
-      while (off < line.length()+1) {
-        off += wlen = send(*c_sock, cmd.get()+off, line.length()+1-off, 0);
-        if (wlen == -1) {
-          THROW("send: " << strerror(errno));
-        }
-      }
+      write_bytes(*c_sock, cmd.get(), line.length()+1);
  
-      // send data length
+      // send data length (zero, in our case)
       len = 0;
-      off = 0;
-      while (off < sizeof(len)) {
-        off += wlen = send(*c_sock, &len+off, sizeof(len)-off, 0);
-        if (wlen == -1) {
-          THROW("send: " << strerror(errno));
-        }
-      }
+      write_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // read length of command's stdout
-      off = 0;
-      while (off < sizeof(len)) {
-        off += rlen = recv(*c_sock, &len+off, sizeof(len)-off, 0);
-        if (rlen == -1) {
-          THROW("recv: " << strerror(errno));
-        }
-        else if (rlen == 0) {
-          THROW("recv: client shut down socket"); 
-        }
-      }
+      read_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // read command's stdout
       off = 0;
@@ -120,26 +88,20 @@ int main(int argc, char** argv) {
           THROW("recv: " << strerror(errno));
         }
         else if (rlen == 0) {
-          THROW("recv: client shut down socket"); 
+          THROW("recv: other side shut down socket"); 
         }
 
         wlen = write(STDOUT_FILENO, buf, rlen);
         if (wlen == -1) {
           THROW("write: " << strerror(errno));
         }
+        else if (wlen != rlen) {
+          THROW("write: wlen != rlen");
+        }
       }
 
       // read length of command's stderr
-      off = 0;
-      while (off < sizeof(len)) {
-        off += rlen = recv(*c_sock, &len+off, sizeof(len)-off, 0);
-        if (rlen == -1) {
-          THROW("recv: " << strerror(errno));
-        }
-        else if (rlen == 0) {
-          THROW("recv: client shut down socket"); 
-        }
-      }
+      read_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // read command's stderr
       off = 0;
@@ -149,12 +111,15 @@ int main(int argc, char** argv) {
           THROW("recv: " << strerror(errno));
         }
         else if (rlen == 0) {
-          THROW("recv: client shut down socket"); 
+          THROW("recv: other side shut down socket"); 
         }
 
         wlen = write(STDERR_FILENO, buf, rlen);
         if (wlen == -1) {
           THROW("write: " << strerror(errno));
+        }
+        else if (wlen != rlen) {
+          THROW("write: wlen != rlen");
         }
       }
     }
