@@ -47,8 +47,10 @@ int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   }
 
   // close the pipe ends we don't use
-  if (close(in_pipe[1]) == -1) {
-    THROW("close: " << strerror(errno));
+  if (in_pipe[1] != -1) {
+    if (close(in_pipe[1]) == -1) {
+      THROW("close: " << strerror(errno));
+    }
   }
 
   if (close(out_pipe[0]) == -1) {
@@ -60,12 +62,14 @@ int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   }
 
   // read child's stdin from parent
-  if (dup2(in_pipe[0], STDIN_FILENO) == -1) {
-    THROW("dup2: " << strerror(errno));
-  }
+  if (in_pipe[0] != -1) {
+    if (dup2(in_pipe[0], STDIN_FILENO) == -1) {
+      THROW("dup2: " << strerror(errno));
+    }
 
-  if (close(in_pipe[0]) == -1) {
-    THROW("close: " << strerror(errno));
+    if (close(in_pipe[0]) == -1) {
+      THROW("close: " << strerror(errno));
+    }
   }
 
   // send child's stdout to parent
@@ -118,7 +122,7 @@ int main(int argc, char** argv) {
 
     char buf[4096];
     ssize_t rlen, wlen;
-    size_t count, len, off;
+    size_t len, off;
 
     bool done = false;
     while (1) {
@@ -139,53 +143,68 @@ int main(int argc, char** argv) {
 
       while (1) {
         // read command length from client
-        count = sizeof(len);
-        while (count > 0) {
-          rlen = recv(c_sock, &len, count, 0);
+        off = 0;
+        while (off < sizeof(len)) {
+          off += rlen = recv(c_sock, &len+off, sizeof(len)-off, 0);
           if (rlen == -1) {
             THROW("recv: " << strerror(errno));
           }
           else if (rlen == 0) {
-            // client shut down socket
+            // client has disconnected
             goto CLIENT_CLEANUP;
           }
-
-          count -= rlen;
         }
 
         // read command line from client
-        boost::scoped_array<char> cmd(new char[len]);
+        boost::scoped_array<char> cmdline(new char[len]);
 
         off = 0;
         while (off < len) {
-          rlen = recv(c_sock, cmd.get()+off, len-off, 0);
+          off += rlen = recv(c_sock, cmdline.get()+off, len-off, 0);
           if (rlen == -1) {
             THROW("recv: " << strerror(errno));
           }
           else if (rlen == 0) {
             THROW("recv: client shut down socket"); 
           }
-
-          count -= rlen;
-          off += rlen;
         }
 
         // break command line into command and arguments
-// TODO: crap way of doing this, clobbers guarded spaces
         std::vector<char*> args;
-        args.push_back(cmd.get());
-        for (unsigned int i = 0; i < len; ++i) {
-          if (cmd[i] == ' ') {
-            cmd[i] = '\0';
-            args.push_back(cmd.get()+i+1);
+        args.push_back(cmdline.get());
+        for (unsigned int i = 0; i < len-1; ++i) {
+          if (cmdline[i] == '\0') {
+            args.push_back(cmdline.get()+i+1);
+          }
+        } 
+        
+        args.push_back(NULL); // last arg for execvp must be NULL
+
+        // read data length from client
+        size_t in_len;
+
+        off = 0;
+        while (off < sizeof(in_len)) {
+          off += rlen = recv(c_sock, &in_len+off, sizeof(in_len)-off, 0);
+          if (rlen == -1) {
+            THROW("recv: " << strerror(errno));
+          }
+          else if (rlen == 0) {
+            THROW("recv: client shut down socket"); 
           }
         }
 
         // set up the pipes; pipes named from the POV of the child
         int in_pipe[2], out_pipe[2], err_pipe[2];
 
-        if (pipe(in_pipe) == -1) {
-          THROW("pipe: " << strerror(errno));
+        if (in_len > 0) {
+          // create in pipe only if the client will send data
+          if (pipe(in_pipe) == -1) {
+            THROW("pipe: " << strerror(errno));
+          }
+        }
+        else {
+          in_pipe[0] = in_pipe[1] = -1;
         }
 
         if (pipe(out_pipe) == -1) {
@@ -208,20 +227,27 @@ int main(int argc, char** argv) {
           THROW("close: " << strerror(errno));
         }
 
-        if (close(in_pipe[0]) == -1) {
-          THROW("close: " << strerror(errno));
+        if (in_pipe[0] != -1) {
+          if (close(in_pipe[0]) == -1) {
+            THROW("close: " << strerror(errno));
+          }
         }
 
         std::vector<char> ch_out, ch_err;
 
-        // read from client socket, child stdout, stderr as data is available
-        fd_set rfds;
+        // read from client socket, child stdout, stderr and write to child
+        // stdin as data is available
+        fd_set rfds, wfds;
         int nfds;
-       
+
+        char in_buf[4096];
+        unsigned int in_available = 0, in_written = 0;
+
         do {
           // create the set of file descriptors on which to select
           nfds = 0;
           FD_ZERO(&rfds);
+          FD_ZERO(&wfds);
       
           if (out_pipe[0] != -1) {
             FD_SET(out_pipe[0], &rfds);
@@ -233,34 +259,64 @@ int main(int argc, char** argv) {
             nfds = std::max(nfds, err_pipe[0]);
           }
 
-          FD_SET(c_sock, &rfds);
-          nfds = std::max(nfds, c_sock);
+          if (in_len > 0) {
+            FD_SET(c_sock, &rfds);
+            nfds = std::max(nfds, c_sock);
+          }
 
-          // determine whether any data is ready to be read
-          if (select(nfds+1, &rfds, NULL, NULL, NULL) == -1) {
+          if (in_pipe[1] != -1) {
+            FD_SET(in_pipe[1], &wfds);
+            nfds = std::max(nfds, in_pipe[1]);
+          }
+
+          // determine whether any file descriptors are ready
+          if (select(nfds+1, &rfds, &wfds, NULL, NULL) == -1) {
             THROW("select: " << strerror(errno));
           }
 
+          // read data from client socket
           if (FD_ISSET(c_sock, &rfds)) {
-/*
             // read from client socket
-            rlen = read(c_sock, buf, sizeof(buf));
+            rlen = read(c_sock, in_buf+in_available,
+                        std::min(sizeof(in_buf)-in_available, in_len));
             if (rlen == -1) {
               THROW("read: " << strerror(errno));
             }
             else if (rlen == 0) {
-               
+              THROW("read: client shut down socket"); 
             }
             else {
-              // write to child stdin
-              wlen = write(in_pipe[1], buf, rlen);
-              if (wlen == -1) {
-                THROW("write: " << strerror(errno));
+              in_len -= rlen;
+              in_available += rlen;
+            }
+          }
+
+          // write data to child stdin        
+          if (FD_ISSET(in_pipe[1], &wfds)) {
+            wlen = write(in_pipe[1], in_buf+in_written,
+                         in_available-in_written);
+            if (wlen == -1) {
+              THROW("write: " << strerror(errno));
+            }
+            else {
+              in_written += wlen;
+
+              if (in_written == in_available) {
+                // output has caught up with input
+                in_written = in_available = 0;
+
+                if (in_len == 0) {
+                  // close child's stdin
+                  if (close(in_pipe[1]) == -1) {
+                    THROW("close: " << strerror(errno));
+                  }
+
+                  in_pipe[1] = -1;
+                }
               }
             }
-*/
           }
-         
+
           // collect data from child stdout
           if (FD_ISSET(out_pipe[0], &rfds)) {
             // read from child stdout
@@ -302,79 +358,19 @@ int main(int argc, char** argv) {
               ch_err.insert(ch_err.end(), buf, buf+rlen);
             }
           }
-        } while (out_pipe[0] != -1 && err_pipe[0] != -1);
-
-        // close the child's pipes
-        if (close(in_pipe[1]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
+        } while (in_pipe[1] != -1 && out_pipe[0] != -1 && err_pipe[0] != -1);
 
         // wait for the child to exit
         if (waitpid(ch_pid, NULL, 0) == -1) {
           THROW("waitpid: " << strerror(errno));
         }
 
-        // print child's 
+        // print child's stdout and stderr 
         std::copy(ch_out.begin(), ch_out.end(),
           std::ostream_iterator<char>(std::cout)); 
         
         std::copy(ch_err.begin(), ch_err.end(),
           std::ostream_iterator<char>(std::cerr));
-
-/*
-        // read data length from client
-        count = sizeof(len);
-        while (count > 0) {
-          rlen = recv(c_sock, &len, count, 0);
-          if (rlen == -1) {
-            THROW("recv: " << strerror(errno));
-          }
-          else if (rlen == 0) {
-            THROW("recv: client shut down socket"); 
-          }
-
-          count -= rlen;
-        }
-
-        while (count > 0) {
-          // read input from socket
-          rlen = recv(c_sock, buf, 0, 0);
-          if (rlen == -1) {
-            THROW("recv: " << strerror(errno));
-          }
-          else if (rlen == 0) {
-            THROW("recv: client shut down socket"); 
-          }
-
-          count -= rlen;
-
-          // write input to child's stdin
-          wlen = write(pc_pipe[0], buf, rlen);
-          if (wlen == -1) {
-            THROW("send: " << strerror(errno));
-          }
-        }
-
-        // close the child's in 
-        if (close(in_pipe[1]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
-
-        // wait for the child to exit
-        if (waitpid(ch_pid, NULL, 0) == -1) {
-          THROW("waitpid: " << strerror(errno));
-        }
-
-        // wait for the out pump to exit
-        if (waitpid(out_pid, NULL, 0) == -1) {
-          THROW("waitpid: " << strerror(errno));
-        }
-        
-        // wait for the err pump to exit
-        if (waitpid(err_pid, NULL, 0) == -1) {
-          THROW("waitpid: " << strerror(errno));
-        }
-*/
       }
 
       CLIENT_CLEANUP:
