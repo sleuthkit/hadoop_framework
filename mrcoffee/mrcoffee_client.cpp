@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 
+#include <endian.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -85,7 +86,7 @@ int main(int argc, char** argv) {
       // parse command line into arguments
 
       // send length of command line
-      len = line.length()+1;
+      len = htobe64(line.length()+1);
       write_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // convert spaces to nulls
@@ -102,17 +103,19 @@ int main(int argc, char** argv) {
       write_bytes(*c_sock, cmd.get(), line.length()+1);
  
       // send data length (zero, in our case)
-      len = 0;
+      len = htobe64(0);
       write_bytes(*c_sock, (char*) &len, sizeof(len));
 
       // read length of command's stdout
       read_bytes(*c_sock, (char*) &len, sizeof(len));
+      len = be64toh(len);
 
       // read command's stdout
       pump(*c_sock, STDOUT_FILENO, buf, sizeof(buf), len);
 
       // read length of command's stderr
       read_bytes(*c_sock, (char*) &len, sizeof(len));
+      len = be64toh(len);
 
       // read command's stderr
       pump(*c_sock, STDERR_FILENO, buf, sizeof(buf), len);

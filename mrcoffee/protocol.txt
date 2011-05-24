@@ -13,5 +13,5 @@ Protocol used by MRCoffee:
 
 NOTES:
 
-  * All lengths are little-endian, sizeof(size_t) bytes.
+  * All lengths are big-endian, sizeof(size_t) bytes.
 

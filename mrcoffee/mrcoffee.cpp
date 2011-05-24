@@ -6,6 +6,7 @@
 #include <iterator>
 #include <vector>
 
+#include <endian.h>
 #include <signal.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -77,6 +78,8 @@ bool handle_client_request(int c_sock) {
     }
   }
 
+  len = be64toh(len);
+
   // read command line from client
   boost::scoped_array<char> cmdline(new char[len]);
   read_bytes(c_sock, cmdline.get(), len);
@@ -95,6 +98,7 @@ bool handle_client_request(int c_sock) {
   // read data length from client
   size_t in_len;
   read_bytes(c_sock, (char*) &in_len, sizeof(in_len));
+  in_len = be64toh(in_len);
 
   // set up the pipes; pipes named from the POV of the child
   int in_pipe[2], out_pipe[2], err_pipe[2];
@@ -241,14 +245,14 @@ bool handle_client_request(int c_sock) {
   CHECK(waitpid(ch_pid, NULL, 0));
 
   // send child's stdout to the client
-  len = ch_out.size();
+  len = htobe64(ch_out.size());
   write_bytes(c_sock, (char*) &len, sizeof(len));
-  write_bytes(c_sock, ch_out.data(), len);
+  write_bytes(c_sock, ch_out.data(), ch_out.size());
 
   // send child's stderr to the client
-  len = ch_err.size();
+  len = htobe64(ch_err.size());
   write_bytes(c_sock, (char*) &len, sizeof(len));
-  write_bytes(c_sock, ch_err.data(), len);
+  write_bytes(c_sock, ch_err.data(), ch_err.size());
 
   return true;
 }
