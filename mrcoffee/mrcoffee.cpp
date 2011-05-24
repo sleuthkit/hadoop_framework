@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -32,23 +33,6 @@ void closer(int* sock) {
   }
 }
 */
-
-void pump(int in, int out, char* buf, size_t len) {
-  ssize_t rlen, wlen;
-
-  // read from input file descriptor
-  while ((rlen = read(in, buf, sizeof(buf)))) {
-    if (rlen == -1) {
-      THROW("read: " << strerror(errno));
-    }
-
-    // write to output file descriptor
-    wlen = write(out, buf, rlen);
-    if (wlen == -1) {
-      THROW("write: " << strerror(errno));
-    }
-  }
-}
 
 int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
   // fork the child
@@ -228,27 +212,31 @@ int main(int argc, char** argv) {
           THROW("close: " << strerror(errno));
         }
 
+        std::vector<char> ch_out, ch_err;
 
-
-
+        // read from client socket, child stdout, stderr as data is available
         fd_set rfds;
-        const int nfds =
-          std::max(out_pipe[0], std::max(err_pipe[0], c_sock)) + 1;
+        int nfds;
        
         do {
+          nfds = 0;
+
           FD_ZERO(&rfds);
       
           if (out_pipe[0] != -1) {
             FD_SET(out_pipe[0], &rfds);
+            nfds = std::max(nfds, out_pipe[0]);
           }
 
           if (err_pipe[0] != -1) {
             FD_SET(err_pipe[0], &rfds);
+            nfds = std::max(nfds, err_pipe[0]);
           }
 
           FD_SET(c_sock, &rfds);
+          nfds = std::max(nfds, c_sock);
 
-          if (select(nfds, &rfds, NULL, NULL, NULL) == -1) {
+          if (select(nfds+1, &rfds, NULL, NULL, NULL) == -1) {
             THROW("select: " << strerror(errno));
           }
 
@@ -287,11 +275,8 @@ int main(int argc, char** argv) {
               out_pipe[0] = -1;
             }
             else {
-              // write to parent stdout
-              wlen = write(STDOUT_FILENO, buf, rlen);
-              if (wlen == -1) {
-                THROW("write: " << strerror(errno));
-              }
+              // store child's stdout in ch_out
+              ch_out.insert(ch_out.end(), buf, buf+rlen);
             }
           }
       
@@ -310,11 +295,8 @@ int main(int argc, char** argv) {
               err_pipe[0] = -1;
             }
             else {
-              // write to parent stderr
-              wlen = write(STDERR_FILENO, buf, rlen);
-              if (wlen == -1) {
-                THROW("write: " << strerror(errno));
-              }
+              // store child stderr in ch_err
+              ch_err.insert(ch_err.end(), buf, buf+rlen);
             }
           }
         } while (out_pipe[0] != -1 && err_pipe[0] != -1);
@@ -339,69 +321,12 @@ int main(int argc, char** argv) {
           THROW("waitpid: " << strerror(errno));
         }
 
-/*
-        // fork pump for child's out
-        const int out_pid = fork();
-        if (out_pid == -1) {
-          THROW("fork: " << strerror(errno));
-        }
-
-        if (out_pid == 0) {   // we are the out pump
-          // close the pipe ends we don't use
-          if (close(in_pipe[1]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          if (close(err_pipe[0]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          // pump child's out to parent's out
-          pump(out_pipe[0], STDOUT_FILENO, buf, sizeof(buf));
-
-          // close the out pipe from the child
-          if (close(out_pipe[0]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          exit(0);
-        }
-      
-        // close the pipe ends we don't use 
-        if (close(out_pipe[0]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
-
-        // fork pump for child's err
-        const int err_pid = fork();
-        if (err_pid == -1) {
-          THROW("fork: " << strerror(errno));
-        }
-
-        if (err_pid == 0) {   // we are the err pump
-          // close the pipe ends we don't use
-          if (close(in_pipe[1]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          // pump child's err to parent's err
-          pump(err_pipe[0], STDERR_FILENO, buf, sizeof(buf));
-
-          // close the err pipe from the child
-          if (close(err_pipe[0]) == -1) {
-            THROW("close: " << strerror(errno));
-          }
-
-          exit(0);
-        }
-
-        // we are the parent
-
-        // close the pipe ends we don't use 
-        if (close(err_pipe[0]) == -1) {
-          THROW("close: " << strerror(errno));
-        }
-*/
+        // print child's 
+        std::copy(ch_out.begin(), ch_out.end(),
+          std::ostream_iterator<char>(std::cout)); 
+        
+        std::copy(ch_err.begin(), ch_err.end(),
+          std::ostream_iterator<char>(std::cerr));
 
 /*
         // read data length from client
