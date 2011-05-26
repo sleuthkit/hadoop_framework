@@ -16,5 +16,6 @@ Protocol used by MRCoffee:
 
 NOTES:
 
-  * All lengths are big-endian, sizeof(size_t) bytes.
+  * All numbers are big-endian. All lengths are sizeof(size_t) bytes.
+  File descriptors are ints; we assume sizeof(int) == 4 bytes.
 
