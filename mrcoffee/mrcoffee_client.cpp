@@ -32,15 +32,15 @@ int main(int argc, char** argv) {
       THROW("incorrect number of arguments");
     }
 
-    // get the port
-    const in_port_t port = htobe16(boost::lexical_cast<in_port_t>(argv[2]));
-
     // get the socket
     boost::shared_ptr<int> c_sock(new int, closer);
     *c_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (*c_sock == -1) {
       THROW("socket: " << strerror(errno));
     }
+
+    // get the port
+    const in_port_t port = htobe16(boost::lexical_cast<in_port_t>(argv[2]));
 
     // connect to the server
     in_addr ipaddr;
