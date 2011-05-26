@@ -28,12 +28,12 @@ void closer(int* sock) {
 int main(int argc, char** argv) {
   try {
 
-    if (argc != 2) {
+    if (argc != 3) {
       THROW("incorrect number of arguments");
     }
 
     // get the port
-    const in_port_t port = htobe16(boost::lexical_cast<in_port_t>(argv[1]));
+    const in_port_t port = htobe16(boost::lexical_cast<in_port_t>(argv[2]));
 
     // get the socket
     boost::shared_ptr<int> c_sock(new int, closer);
@@ -44,7 +44,9 @@ int main(int argc, char** argv) {
 
     // connect to the server
     in_addr ipaddr;
-    ipaddr.s_addr = inet_addr("127.0.0.1");
+    if (inet_aton(argv[1], &ipaddr) == 0) {
+      THROW("inet_aton: " << strerror(errno));
+    }
 
     sockaddr_in s_addr;
     s_addr.sin_family = AF_INET;

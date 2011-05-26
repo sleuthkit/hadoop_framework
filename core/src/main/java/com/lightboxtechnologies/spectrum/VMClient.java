@@ -13,15 +13,15 @@ public class VMClient {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 1) {
+    if (args.length != 2) {
       throw new IllegalArgumentException("incorrect number of arguments");
     }
 
-    // get the port
-    final short port = Short.parseShort(args[0]);
-
     // set up the socket
-    final InetAddress addr = InetAddress.getByName(null); // loopback
+    final InetAddress addr = InetAddress.getByName(args[0]);
+
+    // get the port
+    final short port = Short.parseShort(args[1]);
 
     Socket sock = null;
     try {
