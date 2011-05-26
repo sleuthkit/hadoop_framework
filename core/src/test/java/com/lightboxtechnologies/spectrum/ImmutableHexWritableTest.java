@@ -35,4 +35,14 @@ public class ImmutableHexWritableTest {
       new ImmutableHexWritable(hex.decode(str.getBytes()));
     assertEquals(str, ihw.toString().toUpperCase());
   }
+
+  @Test
+  public void toStringOffsetTest() throws Exception {
+    final byte[] bytes = {
+      (byte) 0x00, (byte) 0xDE, (byte) 0xAD,
+      (byte) 0xBE, (byte) 0xEF, (byte) 0x00
+    };
+    final ImmutableHexWritable ihw = new ImmutableHexWritable(bytes, 1, 4);
+    assertEquals("DEADBEEF", ihw.toString().toUpperCase());
+  }
 }

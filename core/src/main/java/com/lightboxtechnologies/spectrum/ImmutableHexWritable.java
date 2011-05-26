@@ -48,10 +48,8 @@ public class ImmutableHexWritable extends ImmutableBytesWritable {
 
   @Override
   public String toString() {
-    // NB: This follows the broken behavior of the superclass's toString(),
-    // which also ignores the offset and length.
     final Hex hex = new Hex();
-    final byte[] bytes = get();
+    final byte[] bytes = copyBytes();
     return new String(hex.encode(bytes));
   }
 }
