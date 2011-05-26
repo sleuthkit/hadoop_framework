@@ -40,7 +40,7 @@ public class VMClient {
           try {
             stdin = new BufferedReader(new InputStreamReader(System.in));
    
-            byte[] size = new byte[8]; 
+            final byte[] buf = new byte[4096];
             String line;
             while ((line = stdin.readLine()) != null) {
               // parse command line into arguments
@@ -63,23 +63,35 @@ public class VMClient {
 
               // send data length (zero, in our case)
               out.writeLong(0);
-              
-              // read length of command's stdout
-              final int outlen = (int) in.readLong();
 
-              // read command's stdout
-              final byte[] cmdout = new byte[outlen];
-              in.readFully(cmdout);
-             
-              // read length of command's stderr
-              final int errlen = (int) in.readLong();
+              boolean out_done = false, err_done = false;
+              while (!out_done || !err_done) {
+                // read file descriptor
+                final int fd = in.readInt();
 
-              // read command's stderr
-              final byte[] cmderr = new byte[errlen];
-              in.readFully(cmderr);
+                // read length of block
+                long len = in.readLong();
 
-              System.out.write(cmdout); 
-              System.err.write(cmderr); 
+                // check whether one of the streams has ended
+                if (len == 0) {
+                  if (fd == 1) {      // stdout
+                    out_done = true;
+                    continue;
+                  }
+                  else if (fd == 2) { // stderr
+                    err_done = true;
+                    continue;
+                  }
+                }
+
+                // read the data block
+                int size;
+                for ( ; len > 0; len -= size) {
+                  size = (int) Math.min(buf.length, len);
+                  in.readFully(buf, 0, size);
+                  (fd == 1 ? System.out : System.err).write(buf, 0, size);
+                }
+              }
             }
 
             stdin.close();

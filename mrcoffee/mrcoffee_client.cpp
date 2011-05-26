@@ -25,29 +25,6 @@ void closer(int* sock) {
   }
 }
 
-void pump(int in, int out, char* buf, size_t blen, size_t len) {
-  ssize_t rlen, wlen;
-  size_t off = 0;
-  while (off < len) {
-    off += rlen = read(in, buf, std::min(blen, len-off));
-    if (rlen == -1) {
-      THROW("read: " << strerror(errno));
-    }
-    else if (rlen == 0) {
-      THROW("read: unexpected EOF"); 
-    }
-
-    wlen = write(out, buf, rlen);
-    if (wlen == -1) {
-      THROW("write: " << strerror(errno));
-    }
-    else if (wlen != rlen) {
-// FIXME: gimpy, should keep available and written positions in buffer
-      THROW("write: wlen != rlen");
-    }
-  }
-}
-
 int main(int argc, char** argv) {
   try {
 
@@ -56,7 +33,7 @@ int main(int argc, char** argv) {
     }
 
     // get the port
-    const in_port_t port = htons(boost::lexical_cast<in_port_t>(argv[1]));
+    const in_port_t port = htobe16(boost::lexical_cast<in_port_t>(argv[1]));
 
     // get the socket
     boost::shared_ptr<int> c_sock(new int, closer);
@@ -77,6 +54,7 @@ int main(int argc, char** argv) {
     CHECK(connect(*c_sock, (sockaddr*) &s_addr, sizeof(sockaddr_in)));
 
     // send lines from stdin to the server
+    int fd;
     size_t len;
     std::string line;
 
@@ -106,19 +84,36 @@ int main(int argc, char** argv) {
       len = htobe64(0);
       write_bytes(*c_sock, (char*) &len, sizeof(len));
 
-      // read length of command's stdout
-      read_bytes(*c_sock, (char*) &len, sizeof(len));
-      len = be64toh(len);
+      bool out_done = false, err_done = false;
+      while (!out_done || !err_done) {
+        // read file descriptor
+        read_bytes(*c_sock, (char*) &fd, sizeof(fd));
+        fd = be32toh(fd);
 
-      // read command's stdout
-      pump(*c_sock, STDOUT_FILENO, buf, sizeof(buf), len);
+        // read length of block
+        read_bytes(*c_sock, (char*) &len, sizeof(len));
+        len = be64toh(len);
 
-      // read length of command's stderr
-      read_bytes(*c_sock, (char*) &len, sizeof(len));
-      len = be64toh(len);
+        // check whether one of the streams has ended
+        if (len == 0) {
+          if (fd == STDOUT_FILENO) {
+            out_done = true;
+            continue;
+          }
+          else if (fd == STDERR_FILENO) {
+            err_done = true;
+            continue;
+          }
+        }
 
-      // read command's stderr
-      pump(*c_sock, STDERR_FILENO, buf, sizeof(buf), len);
+        // read the data block
+        size_t size;
+        for ( ; len > 0; len -= size) {
+          size = std::min(sizeof(buf), len);
+          read_bytes(*c_sock, buf, size);
+          write_bytes(fd, buf, size);
+        }
+      }
     }
 
 // TODO: close socket
