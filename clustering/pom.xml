@@ -26,11 +26,6 @@
       <artifactId>mahout-core</artifactId>
       <version>0.4</version>
     </dependency>
-    <dependency>
-      <groupId>org.sleuthkit</groupId>
-      <artifactId>sleuthkit-hadoop-common</artifactId>
-      <version>1-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 
   <dependencyManagement>

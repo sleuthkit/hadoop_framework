@@ -1,14 +1,8 @@
 package org.sleuthkit.hadoop;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.hadoop.io.Text;
+import org.json.simple.JSONArray;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 
@@ -20,9 +14,16 @@ extends SKMapper<Text, FsEntry, Text, Text> {
     public void map(Text key, FsEntry value, Context context)
     throws IOException {
         try {
-            String output = (String)value.get("sleuthkit.text");
+            String output = (String)value.get(HBaseConstants.EXTRACTED_TEXT);
             if (output != null) {
-                context.write(key, new Text(output));
+                String fsResults = context.getConfiguration().get(SequenceFsEntryText.GREP_MATCHES_TO_SEARCH);
+                if (fsResults == null || fsResults.equals("")) { return; }
+                
+                JSONArray grepResults = (JSONArray)value.get(fsResults);
+                if ((grepResults != null) && (grepResults.size() > 0)) {
+                    context.write(key, new Text(output));
+                }
+                
             }
             else {
                 System.out.println("Warning: No text for key: " + key.toString());

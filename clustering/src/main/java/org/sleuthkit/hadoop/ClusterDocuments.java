@@ -45,7 +45,7 @@ import org.apache.mahout.math.Vector;
 public class ClusterDocuments {
 
 
-    public static int runPipeline(String input, String output, String dictionary) {
+    public static int runPipeline(String input, String output, String dictionary, double t1, double t2, String imageID, String friendlyName) {
         Configuration conf = new Configuration();
         conf.set("mapred.child.java.opts", "-Xmx4096m");
         Path canopyInputPath = new Path(input);
@@ -60,7 +60,7 @@ public class ClusterDocuments {
         Path kmeansClusters = new Path(output + "/canopy/clusters-0");
 
         try {
-            CanopyDriver.run(conf, canopyInputPath, canopyOutputPath, new CosineDistanceMeasure(), .8, .65, true, false);
+            CanopyDriver.run(conf, canopyInputPath, canopyOutputPath, new CosineDistanceMeasure(), t1, t2, true, false);
         } catch (Exception e) {
             return 1;
         }
@@ -73,10 +73,8 @@ public class ClusterDocuments {
 
         try {
             // Map vector names to clusters
-            Job job = new Job();
+            Job job = SKJobFactory.createJob(imageID, friendlyName, "VectorNamesToClusters");
             job.setJarByClass(ClusterDocuments.class);
-
-            job.setJobName("TP$IMG_ID_NUMBER$CommonName$AssociateClusters");
 
             FileInputFormat.setInputPaths(job, new Path(output + "/kmeans/clusteredPoints/"));
             FileOutputFormat.setOutputPath(job, new Path(output + "/kmeans/reducedClusters/"));
@@ -97,10 +95,8 @@ public class ClusterDocuments {
             ////////////////////////////////
             // Output top cluster matches //
             ////////////////////////////////
-            job = new Job();
+            job = SKJobFactory.createJob(imageID, friendlyName, "TopClusterMatchPrinting");
             job.setJarByClass(ClusterDocuments.class);
-
-            job.setJobName("TP$IMG_ID_NUMBER$CommonName$TopClusterWords");
 
 
             // Get the final kmeans iteration. This is sort of a pain but for
@@ -143,6 +139,7 @@ public class ClusterDocuments {
 
         return 0;
     }
+    
 
     // Aggregates vector names and their associated clusters
     public static class ClusterMapper

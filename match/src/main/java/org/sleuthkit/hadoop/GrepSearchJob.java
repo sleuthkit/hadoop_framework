@@ -48,24 +48,22 @@ public class GrepSearchJob {
     public int run(String[] args) throws Exception {
         if (args.length < 1) {
             // TODO: We don't support groups yet. We could add them.
-            System.out.println("Grep <table> <deviceID> <regexFile> [<group>]");
+            System.out.println("Grep <table> <deviceID> <regexFile> <friendlyName> [<group>]");
             ToolRunner.printGenericCommandUsage(System.out);
             return -1;
         }
-        return runPipeline(args[0], args[1], args[2]);
+        return runPipeline(args[0], args[1], args[2], args[3]);
     }
     
     // Kicks off a mapreduce job that does the following:
     // 1. Scan the HBASE table for files on the drive specified by the
     // device ID.
     // 2. Run the java regexes from the given regexFile on that file.
-    public static int runPipeline(String table, String deviceID, String regexFile) {
+    public static int runPipeline(String table, String deviceID, String regexFile, String friendlyName) {
         
         try {
-            Job job = new Job();
+            Job job = SKJobFactory.createJob(deviceID, friendlyName, "GrepSearch");
             job.setJarByClass(GrepSearchJob.class);
-
-            job.setJobName("TP$IMG_ID_NUMBER$CommonName$Grep");
 
             FileSystem fs = FileSystem.get(job.getConfiguration());
             //fs.delete(new Path(outputdir), true);

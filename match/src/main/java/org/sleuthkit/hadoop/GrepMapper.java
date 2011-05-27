@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.Text;
+import org.json.simple.JSONArray;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 
@@ -17,7 +18,7 @@ public class GrepMapper
 extends SKMapper<Text, FsEntry, Text, FsEntry> {
 
     private List<Pattern> patterns = new ArrayList<Pattern>();
-
+    
     @Override
     public void setup(Context ctx) {
         String[] regexlist = ctx.getConfiguration().get("mapred.mapper.regex").split("\n");
@@ -39,7 +40,8 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
     throws IOException {
         String text;
         try {
-             text = (String)value.get("sleuthkit.text");
+             text = (String)value.get(HBaseConstants.EXTRACTED_TEXT);
+             if (text == null || text.equals("")) { return; }
         } catch (Exception ex) {
             System.err.println("No FsEntry for File: " + key.toString());
             return;
@@ -51,9 +53,14 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
             while (matcher.find()) {
                 s.add(matcher.group());
             }
-            value.put("grep.results", s);
         }
+        
         try {
+            JSONArray ar = new JSONArray();
+            ar.addAll(s);
+            
+            value.put(HBaseConstants.GREP_RESULTS, ar);
+            
             context.write(key, value);
         } catch (InterruptedException e) {
             e.printStackTrace();

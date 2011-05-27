@@ -18,13 +18,15 @@
 package org.sleuthkit.hadoop.pipeline;
 
 import org.sleuthkit.hadoop.ClusterDocuments;
+import org.sleuthkit.hadoop.FSEntryTikaTextExtractor;
 import org.sleuthkit.hadoop.GrepSearchJob;
 import org.sleuthkit.hadoop.HBaseFileImporter;
+import org.sleuthkit.hadoop.SequenceFsEntryText;
 import org.sleuthkit.hadoop.TikaTextExtractor;
 import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
 
 public class Pipeline {
-/*
+
     // The storage place of raw files containing:
 
     // content: raw file content bytes
@@ -61,20 +63,20 @@ public class Pipeline {
     public static final String DICTIONARY_DIR = "hdfs://localhost/texaspete/vectors/dictionary.file-0";
 
     public static void main(String[] argv) throws Exception {
-        // TODO: Run the TIKA code here, collecting content from text files.
+        String imageID = argv[0];
+        String seqDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/text";
+        String tokenDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/tokens";
+        String vectorDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/vectors";
+        String clusterDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/clusters";
+        String dictionaryDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/vectors/dictionary.file-0";
 
+        FSEntryTikaTextExtractor.runPipeline("entries", imageID, "FriendlyName");
+        GrepSearchJob.runPipeline("entries", imageID, GREP_KEYWORDS, "FriendlyName");
+        SequenceFsEntryText.runTask("entries", seqDumpDirectory, imageID, "FriendlyName");
 
-        HBaseFileImporter.runPipeline(argv[0]);
+        TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
 
-        TikaTextExtractor.runPipeline("fileTable", "data:path", "data:cont", "hdfs://localhost/texaspete/text/outfile");
-
-        // Run the GREP search code.
-
-        GrepSearchJob.runPipeline(TIKA_OUT_DIR, GREP_OUT_DIR, GREP_KEYWORDS);
-
-        TokenizeAndVectorizeDocuments.runPipeline(TIKA_OUT_DIR, TOKEN_OUT_DIR, VECTOR_DIR);
-
-        ClusterDocuments.runPipeline(TFIDF_DIR, CLUSTERS_DIR, DICTIONARY_DIR);
+        ClusterDocuments.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, "FriendlyName");
     }
-*/
+
 }

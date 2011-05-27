@@ -21,20 +21,17 @@
       <version>1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sleuthkit</groupId>
-      <artifactId>sleuthkit-hadoop-common</artifactId>
-      <version>1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
       <version>0.20.2-cdh3u0</version>
     </dependency>
     <dependency>
-      <groupId>org.sleuthkit</groupId>
-      <artifactId>sleuthkit-hadoop-common</artifactId>
-      <version>1-SNAPSHOT</version>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1</version>
     </dependency>
+
+
   </dependencies>
 
   <dependencyManagement>

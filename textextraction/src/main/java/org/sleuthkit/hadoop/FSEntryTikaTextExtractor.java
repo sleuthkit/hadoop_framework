@@ -12,7 +12,6 @@ import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.util.Base64;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.tika.Tika;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
@@ -21,7 +20,7 @@ import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
 import com.lightboxtechnologies.spectrum.HBaseTables;
 public class FSEntryTikaTextExtractor {
 
-    static class TikaTextExtractorMapper extends Mapper<Text, FsEntry, Text, FsEntry> {
+    static class TikaTextExtractorMapper extends SKMapper<Text, FsEntry, Text, FsEntry> {
 
         @Override
         public void map(Text key, FsEntry value, Context context) throws IOException {
@@ -29,7 +28,7 @@ public class FSEntryTikaTextExtractor {
             System.out.println("Extracting Text from file:" + key.toString());
             try {
                 String output = new Tika().parseToString(proxy);
-                value.put("sleuthkit.text", output);
+                value.put(HBaseConstants.EXTRACTED_TEXT, output);
                 context.write(key, value);
             }
             catch (Exception e) {
@@ -45,11 +44,11 @@ public class FSEntryTikaTextExtractor {
         System.exit(-1);
     }
 
-    public static void runTask(String table, String imageID) throws Exception {
-        final Configuration conf = new Configuration();
-        //final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+    public static void runTask(String table, String imageID, String friendlyName) throws Exception {
+        
+        Job job = SKJobFactory.createJob(imageID, friendlyName, "TikaTextExtraction");
 
-        final Job job = new Job(conf, "Text Extraction with FsEntry");
+        
         job.setJarByClass(FSEntryTikaTextExtractor.class);
         job.setMapperClass(TikaTextExtractorMapper.class);
 
@@ -65,6 +64,7 @@ public class FSEntryTikaTextExtractor {
         scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
         job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
         job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
+        job.getConfiguration().set(SKMapper.ID_KEY, imageID);
         System.out.println("Spinning of MR Job...");
         job.waitForCompletion(true);
     }
@@ -86,15 +86,15 @@ public class FSEntryTikaTextExtractor {
       }
 
     public static void main (String[] argv) throws Exception { 
-        runPipeline(argv[0], argv[1]);
+        runPipeline(argv[0], argv[1], argv[2]);
     }
     
-    public static int runPipeline(String tablename, String deviceID) throws Exception{
+    public static int runPipeline(String tablename, String deviceID, String friendlyName) throws Exception{
         // We probably won't have that outdir there down the line, but for
         // testing I've left it in. Since there are not yet set methods, we
         // are simply dumping the outputted text to a sequence file. Once we
         // get one, we'll have to move that part to separate step.
-        runTask(tablename, deviceID);
+        runTask(tablename, deviceID, friendlyName);
         return 0;
 
     }

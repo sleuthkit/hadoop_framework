@@ -19,15 +19,16 @@ import com.lightboxtechnologies.spectrum.HBaseTables;
 
 public class SequenceFsEntryText {
 
+    public static final String GREP_MATCHES_TO_SEARCH = "org.sleuthkit.grepsearchfield";
+    
     public static void main(String[] argv) throws Exception {
-        runTask(argv[0], argv[1], argv[2]);
+        runTask(argv[0], argv[1], argv[2], argv[3]);
     }
     
-    public static void runTask(String table, String outDir, String id) throws Exception {
-        final Configuration conf = new Configuration();
+    public static void runTask(String table, String outDir, String id, String friendlyName) throws Exception {
         //final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-        final Job job = new Job(conf, "Text Extraction with FsEntry");
+        Job job = SKJobFactory.createJob(id, friendlyName, "GrepMatchesToSequenceFiles");
         job.setJarByClass(SequenceFsEntryText.class);
         job.setMapperClass(SequenceFsEntryTextMapper.class);
 
@@ -47,7 +48,10 @@ public class SequenceFsEntryText {
         job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
         job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
         job.getConfiguration().set(SKMapper.ID_KEY, id);
-
+        // we want to search the default grep results. If there are any, then
+        // dump the text to a file.
+        job.getConfiguration().set(GREP_MATCHES_TO_SEARCH, HBaseConstants.GREP_RESULTS);
+        
         job.waitForCompletion(true);
     }
     

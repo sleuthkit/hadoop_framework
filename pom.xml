@@ -18,11 +18,10 @@
     <url>http://bericotechnologies.jira.com/browse/TXPETE</url>
   </issueManagement>
   <modules>
-    <module>common</module>
+    <module>core</module>
     <module>clustering</module>
     <module>match</module>
     <module>textextraction</module>
-    <module>core</module>
     <module>pipeline</module>
   </modules>
   <repositories>
