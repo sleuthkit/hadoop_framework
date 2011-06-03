@@ -8,16 +8,15 @@ Copyright (c) 2010 Lightbox Technologies, Inc. All rights reserved.
 package com.lightboxtechnologies.spectrum;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import org.json.simple.JSONAware;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.*;
-
 import org.apache.hadoop.hbase.util.Bytes;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class FsEntryHBaseCommon {
 
@@ -30,7 +29,7 @@ public class FsEntryHBaseCommon {
   public static final byte FILE_STREAM = 6;
 
   public static byte typeVal(Object o) {
-    if (o instanceof Long) {
+    if (o instanceof Long || o instanceof Integer) {
       return LONG;
     }
     else if (o instanceof String) {
@@ -39,7 +38,7 @@ public class FsEntryHBaseCommon {
     else if (o instanceof Date) {
       return DATE;
     }
-    else if (o instanceof JSONAware) {
+    else if (o instanceof Map || o instanceof List) {
       return JSON;
     }
     else if (o instanceof byte[]) {
@@ -76,6 +75,8 @@ public class FsEntryHBaseCommon {
     return Bytes.toString(colSpec, 1, colSpec.length-1);
   }
 
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   @SuppressWarnings("fallthrough")
   public static Object unmarshall(byte[] colSpec, byte[] colVal) {
     byte type = colSpec[0];
@@ -88,10 +89,9 @@ public class FsEntryHBaseCommon {
         return new Date(Bytes.toLong(colVal));
       case JSON:
         try {
-          final JSONParser p = new JSONParser();
-          return p.parse(Bytes.toString(colVal));
+          return mapper.readValue(colVal, Object.class);
         }
-        catch (ParseException e) {
+        catch (IOException e) {
           // does not parse, failover to byte array
         }
       case BYTE_ARRAY:

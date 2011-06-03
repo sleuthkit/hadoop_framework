@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.List;
 import java.io.IOException;
 
-import org.json.simple.JSONAware;
-
 public class FsEntryHBaseOutputFormat extends OutputFormat {
 
   public static class NullOutputCommitter extends OutputCommitter {
@@ -111,7 +109,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
             binVal = Bytes.toBytes((String)val);
             break;
           case FsEntryHBaseCommon.LONG:
-            binVal = Bytes.toBytes((Long)val);
+            binVal = Bytes.toBytes(((Number)val).longValue());
             break;
           case FsEntryHBaseCommon.DATE:
             binVal = Bytes.toBytes(((Date)val).getTime());
@@ -145,19 +143,19 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     public static Put createPut(String key, FsEntry entry, byte[] colFam) {
       final Put p = new Put(Bytes.toBytes(key));
 
-      // this logic should really be in FsEntry proper
+      // FIXME: this logic should really be in FsEntry proper
       final Object o = entry.get("attrs");
       if (o != null && null == entry.getStreams().get("Content")) {
         String data = null;
         for (Map<String,Object> attr : (List<Map<String,Object>>)o) {
-          Long flags = (Long)attr.get("flags"),
-               type  = (Long)attr.get("type");
-          String name = (String)attr.get("name");
+          final Number flags = (Number) attr.get("flags"),
+                       type  = (Number) attr.get("type");
+          final String name = (String) attr.get("name");
           if (flags != null && (flags.longValue() & 0x04) != 0
             && type != null && (type.longValue() & 0x80) != 0
             && name != null && name.equals("$Data"))
           {
-            data = (String)attr.get("rd_buf");
+            data = (String) attr.get("rd_buf");
             break;
           }
         }
