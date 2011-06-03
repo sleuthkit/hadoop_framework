@@ -18,9 +18,6 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
-import org.json.simple.*;
-import org.json.simple.parser.*;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +26,8 @@ import java.util.Collection;
 import java.io.*;
 
 import org.apache.hadoop.fs.FileSystem;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 import org.python.core.PyFile;
 
@@ -49,8 +48,6 @@ public class FsEntry extends HashMap<String,Object> {
   private final Map<String,StreamProxy> Streams = new HashMap<String,StreamProxy>();
 
   private FileSystem FS;
-
-  JSONParser Parser;
 
   public void clear() {
     Path = null;
@@ -229,44 +226,49 @@ public class FsEntry extends HashMap<String,Object> {
     return Size;
   }
 
-  private static Date addDate(Map<String,Object> map, String name, JSONObject rec, String recName) {
-    final long ts = ((Number)rec.get(recName)).longValue();
-    if (ts > 0) {
-      Date date = new Date(ts * 1000);
-      map.put(name, date);
-      return date;
+  private static Date addDate(Map<String,Object> map, String name, Map<String,Object> rec, String recName) {
+    if (rec.containsKey(recName)) {
+      final Object o = rec.get(recName);
+      if (o instanceof Number) {
+        final long ts = ((Number) o).longValue();
+        if (ts > 0) {
+          final Date date = new Date(ts * 1000);
+          map.put(name, date);
+          return date;
+        }
+      }
     }
     return null;
   }
 
-  private static void addOptLong(Map<String,Object> map, String name, JSONObject rec, String recName) {
+  private static void addOptLong(Map<String,Object> map, String name, Map<String,Object> rec, String recName) {
     if (rec.containsKey(recName)) {
       map.put(name, rec.get(recName));
     }
   }
 
-  public boolean parseJson(String jsonstr) {
-    if (null == Parser) {
-      Parser = new JSONParser();
-    }
+  private static final ObjectMapper mapper = new ObjectMapper();
 
-    JSONObject json = null;
+  public boolean parseJson(String jsonstr) {
+    
+    // slurp the JSON into a temporary map
+    Map<String,Object> json = null;
     try {
-      json = (JSONObject)Parser.parse(jsonstr);
+      json = mapper.readValue(jsonstr, Map.class);
     }
-    catch (ParseException e) {
+    catch (IOException e) {
       return false;
     }
 
     final Map<String,Object> map = new HashMap<String,Object>();
 
     try {
-      final JSONObject nRec = JSON.getAs(json, "name", JSONObject.class);
+      final Map<String,Object> nRec = JSON.getAs(json, "name", Map.class);
       final String p = JSON.getAs(json, "path", String.class);
       final String n = JSON.getAs(nRec, "name", String.class);
 
       if (json.containsKey("fs")) {
-        final JSONObject fsRec = JSON.getAs(json, "fs", JSONObject.class);
+        final Map<String,Object> fsRec = JSON.getAs(json, "fs", Map.class);
         map.put("fs_byte_offset", fsRec.get("byteOffset"));
         map.put("fs_id", fsRec.get("fsID"));
         map.put("fs_block_size", fsRec.get("blockSize"));
@@ -274,7 +276,7 @@ public class FsEntry extends HashMap<String,Object> {
 
       long sz = 0;
       if (json.containsKey("meta")) {
-        final JSONObject mRec = JSON.getAs(json, "meta", JSONObject.class);
+        final Map<String,Object> mRec = JSON.getAs(json, "meta", Map.class);
         Created = addDate(map, "created", mRec, "crtime");
         Written = addDate(map, "written", mRec, "mtime");
         Accessed = addDate(map, "accessed", mRec, "atime");

@@ -19,11 +19,12 @@ package com.lightboxtechnologies.spectrum;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.util.Date;
 import java.io.InputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class FsEntryTest {
   @Test
@@ -35,10 +36,10 @@ public class FsEntryTest {
     assertEquals("myname", e.getName());
     assertEquals("/my/path/myname-2", e.getID());
     assertEquals(null, e.getCreated());
-    assertEquals(3L, e.get("name_flags"));
-    assertEquals(2L, e.get("meta_seq"));
-    assertEquals(2L, e.get("name_type"));
-    assertEquals(2L, e.get("dirIndex"));
+    assertEquals(3, e.get("name_flags"));
+    assertEquals(2, e.get("meta_seq"));
+    assertEquals(2, e.get("name_type"));
+    assertEquals(2, e.get("dirIndex"));
   }
 
   @Test
@@ -114,36 +115,32 @@ public class FsEntryTest {
     FsEntry e = new FsEntry();
     assertTrue(e.parseJson("{\"path\":\"a/path/\", \"name\":{\"name\":\"aname\",\"dirIndex\":2}, \"meta\":{\"size\":1, \"crtime\":258970620, \"mtime\":285249600, \"atime\":1123948800, \"ctime\":1261555200"
       + ", \"flags\":5,\"uid\":0,\"gid\":519,\"type\":2,\"seq\":3,\"mode\":511,\"content_len\":0,\"addr\":12345,\"nlink\":2}}"));
-    assertEquals(5L, e.get("meta_flags"));
-    assertEquals(0L, e.get("uid"));
-    assertEquals(519L, e.get("gid"));
-    assertEquals(2L, e.get("meta_type"));
-    assertEquals(3L, e.get("seq"));
-    assertEquals(511L, e.get("mode"));
-    assertEquals(0L, e.get("content_len"));
-    assertEquals(12345L, e.get("meta_addr"));
-    assertEquals(2L, e.get("nlink"));
+    assertEquals(5, e.get("meta_flags"));
+    assertEquals(0, e.get("uid"));
+    assertEquals(519, e.get("gid"));
+    assertEquals(2, e.get("meta_type"));
+    assertEquals(3, e.get("seq"));
+    assertEquals(511, e.get("mode"));
+    assertEquals(0, e.get("content_len"));
+    assertEquals(12345, e.get("meta_addr"));
+    assertEquals(2, e.get("nlink"));
   }
 
   @Test
   public void testFsFields() {
     FsEntry e = new FsEntry();
     assertTrue(e.parseJson("{\"fs\":{\"byteOffset\":987,\"fsID\":\"12asdb4qw4\"},\"path\":\"a/path/\", \"name\":{\"name\":\"aname\",\"dirIndex\":2}}"));
-    assertEquals(987L, e.get("fs_byte_offset"));
+    assertEquals(987, e.get("fs_byte_offset"));
     assertEquals("12asdb4qw4", e.get("fs_id"));
   }
 
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   @Test
-  public void testAttrs() {
-    FsEntry e = new FsEntry();
-    JSONParser p = new JSONParser();
-    Object obj = null;
-    try {
-      obj = p.parse("[{\"whatever\":1}, {\"yo\":\"mama\"}]");
-    }
-    catch (ParseException ex) {
-      assertTrue(false);
-    }
+  public void testAttrs() throws IOException {
+    final FsEntry e = new FsEntry();
+    final Object obj = mapper.readValue("[{\"whatever\":1}, {\"yo\":\"mama\"}]", List.class);
+
     assertTrue(e.parseJson("{\"path\":\"a/path/\", \"name\":{\"name\":\"aname\",\"dirIndex\":2}, \"attrs\":[{\"whatever\":1}, {\"yo\":\"mama\"}]}"));
     assertEquals(obj, e.get("attrs"));
     // map.put("attrs", rec.get("attrs")) -- just copy over the map directly--should be an array
