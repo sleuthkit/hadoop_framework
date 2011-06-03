@@ -35,8 +35,6 @@ import java.util.Set;
 import java.util.List;
 import java.io.IOException;
 
-import org.json.simple.JSONAware;
-
 public class FsEntryJsonInputFormat extends FileInputFormat implements Configurable {
 
   private Configuration    Conf;
