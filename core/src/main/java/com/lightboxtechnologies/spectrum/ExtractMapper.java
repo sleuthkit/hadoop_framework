@@ -161,7 +161,14 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     OutputStream dout = null;
     try {
       dout = new DigestOutputStream(new DigestOutputStream(out, MD5Hash), SHA1Hash);
-      extract(file, dout, map, context);
+// FIXME: Temporary workaround to prevent IndexOutOfBoundsExceptions from killing the ingest process.
+      try {
+        extract(file, dout, map, context);
+      }
+      catch (IndexOutOfBoundsException e) {
+        LOG.warn("Balls!\n" + e);
+        context.getCounter(FileTypes.PROBLEMS).increment(1);
+      }
     }
     finally {
       IOUtils.closeQuietly(dout);
