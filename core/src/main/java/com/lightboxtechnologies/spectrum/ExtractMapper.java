@@ -96,20 +96,30 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
       long curAddr = (Long)dataRun.get("addr");
       final long length = Math.min((Long)dataRun.get("len"), size - read),
                 endAddr = curAddr + length;
-      int len = 0;
+      int rlen;
       while (curAddr < endAddr) {
-// FIXME: dodgy math: could endAddr - curAddr be negative if cast to an int?
-        len = file.read(curAddr, Buffer, bufOffset, (int)Math.min(Buffer.length - bufOffset, endAddr - curAddr));
-        curAddr += len;
-        bufOffset += len;
+        // NB: endAddr - curAddr might be larger than 2^31-1, so we must
+        // check that it doesn't overflow an int.
+        rlen = Math.min(Buffer.length - bufOffset,
+                 (int) Math.min(endAddr - curAddr, Integer.MAX_VALUE));
+
+        // read the next chunk to the buffer
+        rlen = file.read(curAddr, Buffer, bufOffset, rlen);
+        curAddr += rlen;
+        bufOffset += rlen;
+
         if (bufOffset == Buffer.length) {
+          // full buffer, flush it
           bufOffset = 0;
           outStream.write(Buffer, 0, Buffer.length);
           ctx.progress();
         }
       }
+
       read += length;
     }
+
+    // flush the remaining bytes
     outStream.write(Buffer, 0, bufOffset);
     outStream.flush();
 
