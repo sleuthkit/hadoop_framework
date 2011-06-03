@@ -55,7 +55,6 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UTFDataFormatException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -330,7 +329,8 @@ public class PythonJob {
       return OutValue.getBoxClass();
     }
 
-    public void call(String fn, Object key, Object value, TaskInputOutputContext<IK,IV,OK,OV> ctx) {
+    public void call(String fn, Object key, Object value,
+                                     TaskInputOutputContext<IK,IV,OK,OV> ctx) {
       Ctx = ctx;
       if (FirstTime) {
         LOG.info("calling " + fn + " for the first time");
@@ -340,27 +340,8 @@ public class PythonJob {
         Invoker.invokeFunction(fn, key, value, this);
       }
       catch (Throwable t) {
-        // FIXME: DataOutputStream can't serialize Strings whose length
-        // doesn't fit into a short. Until such time as we use a JSON
-        // library which doesn't use DataOutputStream, we "handle" this
-        // absurd state of affairs by writing to the log and dropping the
-        // String on the floor. For additional merriment, the
-        // UTFDataFormatException we're looking for can be nested arbitrarily           // deeply inside a chain of other exceptions, and if there are any
-        // unrelated exceptions of this type, we'll catch those, too. FOAD.
-        boolean stupidUTFException = false;
-        for (Throwable cause = t; cause != null; cause = cause.getCause()) {
-          if (cause instanceof UTFDataFormatException) {
-            LOG.warn(fn + " had string longer than 65535 bytes");
-            LOG.warn(t);
-            stupidUTFException = true;
-            break;
-          }
-        }
-
-        if (!stupidUTFException) {
-          LOG.warn(fn + " generated exception");
-          throw new RuntimeException(t);
-        }
+        LOG.warn(fn + " generated exception");
+        throw new RuntimeException(t);
       }
 
       if (FirstTime) {
