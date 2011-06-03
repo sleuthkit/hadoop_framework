@@ -24,74 +24,66 @@ import java.util.Map;
 
 import org.apache.hadoop.io.Writable;
 
-import org.json.simple.*;
-import org.json.simple.parser.*;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class JsonWritable implements Writable {
-  public static interface JsonDispatch {
-    public String write(Object o);
-  }
-
-  public static class MapDispatch implements JsonDispatch {
-    public String write(Object o) {
-      return JSONObject.toJSONString((Map)o);
-    }
-  }
-
-  public static class ListDispatch implements JsonDispatch {
-    public String write(Object o) {
-      return JSONArray.toJSONString((List)o);
-    }
-  }
-
-  private final JSONParser Parser = new JSONParser();
-  private JsonDispatch Writer;
   private Object Data;
   private String Json;
 
-  private static final MapDispatch MapDisp = new MapDispatch();
-  private static final ListDispatch ListDisp = new ListDispatch();
-
   public void set(List l) {
     Data = l;
-    Writer = ListDisp;
     Json = null;
   }
 
-  public void set(Map m) {
+  public void set(Map<String,?> m) {
     Data = m;
-    Writer = MapDisp;
     Json = null;
   }
 
   public Object get() {
-    // Lazily parses the JSON string; we don't pay the parse tax
-    // with just reading and writing
     try {
-      Data = Parser.parse(Json);
+      return getData();
     }
-    catch (Exception e) {
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
-
-    Writer = Data instanceof Map ? MapDisp: ListDisp;
-    return Data;
   }
 
   public void readFields(DataInput in) throws IOException {
     Json = in.readUTF();
   }
 
-  public void write(DataOutput out) {
-    try {
-      out.writeUTF(Json == null ? Writer.write(Data): Json); // if we already have the serialized form, use it
+  private static final ObjectMapper mapper = new ObjectMapper();
+
+  public void write(DataOutput out) throws IOException {
+    out.writeUTF(getJSON());
+  }
+
+  private String getJSON() throws IOException {
+    // cache serialized form
+    if (Json == null && Data != null) {
+      Json = mapper.writeValueAsString(Data);
+      return Json;
     }
-    catch (IOException err) {
-      throw new RuntimeException(err);
+    else {
+      return "";
     }
   }
 
+  private Object getData() throws IOException {
+    // cache unserialized form
+    if (Data == null) {
+      Data = mapper.readValue(Json, Object.class);
+    }
+    return Data;
+  }
+
   public String toString() {
-    return Json == null ? (Data != null ? Writer.write(Data): ""): Json;
+    try {    
+      return getJSON();
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

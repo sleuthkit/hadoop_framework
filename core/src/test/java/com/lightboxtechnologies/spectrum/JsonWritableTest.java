@@ -33,10 +33,11 @@ import java.util.Map;
 public class JsonWritableTest {
   @Test
   public void testSetList() throws IOException {
-    final List<Long> input = Arrays.asList(new Long[] {5L, 89L, 2458L, 24L, 64L, 17L});
-    assertEquals(6, input.size());
-    final List<Long> expected = new ArrayList<Long>();
-    expected.addAll(input);
+    final List<Number> expected = Arrays.asList(
+      new Number[] {5, 89, 2458, 24, 64, 17, Long.MAX_VALUE }
+    );
+
+    final List<Number> input = new ArrayList<Number>(expected);
     assertEquals(expected, input);
 
     final JsonWritable w1 = new JsonWritable();
@@ -45,20 +46,22 @@ public class JsonWritableTest {
     w1.write(new DataOutputStream(out));
 
     final JsonWritable w2 = new JsonWritable();
-    w2.readFields(new DataInputStream(new ByteArrayInputStream(out.toByteArray())));
-    assertArrayEquals(expected.toArray(), ((List)w2.get()).toArray());
+    w2.readFields(
+      new DataInputStream(new ByteArrayInputStream(out.toByteArray())));
+
+    assertEquals(expected, w2.get());
   }
 
   @Test
   public void testSetMap() throws IOException {
-    final Map<String,Object> input = new HashMap<String,Object>();
     final Map<String,Object> expected = new HashMap<String,Object>();
 
-    input.put("three", 3L);
-    input.put("hello", "world");
-    input.put("empty", new HashMap<Object,Object>());
-    expected.putAll(input);
-    assertTrue(expected.equals(input));
+    expected.put("three", 3);
+    expected.put("hello", "world");
+    expected.put("empty", new HashMap<Object,Object>());
+
+    final Map<String,Object> input = new HashMap<String,Object>(expected);
+    assertEquals(expected, input);
 
     final JsonWritable w1 = new JsonWritable();
     w1.set(input);
@@ -66,7 +69,9 @@ public class JsonWritableTest {
     w1.write(new DataOutputStream(out));
 
     final JsonWritable w2 = new JsonWritable();
-    w2.readFields(new DataInputStream(new ByteArrayInputStream(out.toByteArray())));
-    assertTrue(expected.equals(w2.get()));
+    w2.readFields(
+      new DataInputStream(new ByteArrayInputStream(out.toByteArray())));
+
+    assertEquals(expected, w2.get());
   }
 }
