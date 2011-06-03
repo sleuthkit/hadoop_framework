@@ -103,8 +103,17 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
         rlen = Math.min(Buffer.length - bufOffset,
                  (int) Math.min(endAddr - curAddr, Integer.MAX_VALUE));
 
+
         // read the next chunk to the buffer
-        rlen = file.read(curAddr, Buffer, bufOffset, rlen);
+
+        // FIXME: Temporary workaround to prevent IndexOutOfBoundsExceptions from killing the ingest process.
+        try {
+          rlen = file.read(curAddr, Buffer, bufOffset, rlen);
+        }
+        catch (IndexOutOfBoundsException e) {
+          throw new IllegalStateException("Balls!\ncurAddr == " + curAddr + ", Buffer.length == " + Buffer.length + ", bufOffset == " + bufOffset + ", rlen == " + rlen, e);
+        }
+
         curAddr += rlen;
         bufOffset += rlen;
 
@@ -171,12 +180,12 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
     OutputStream dout = null;
     try {
       dout = new DigestOutputStream(new DigestOutputStream(out, MD5Hash), SHA1Hash);
-// FIXME: Temporary workaround to prevent IndexOutOfBoundsExceptions from killing the ingest process.
+      // FIXME: Temporary workaround to prevent IndexOutOfBoundsExceptions from killing the ingest process.
       try {
         extract(file, dout, map, context);
       }
-      catch (IndexOutOfBoundsException e) {
-        LOG.warn("Balls!\n" + e);
+      catch (IllegalStateException e) {
+        LOG.warn(e);
         context.getCounter(FileTypes.PROBLEMS).increment(1);
       }
     }
