@@ -47,8 +47,6 @@ import java.util.Set;
 import java.util.List;
 import java.io.IOException;
 
-import org.json.simple.JSONAware;
-
 import com.lightboxtechnologies.io.IOUtils;
 
 public class FsEntryHBaseInputFormat extends InputFormat implements Configurable {
