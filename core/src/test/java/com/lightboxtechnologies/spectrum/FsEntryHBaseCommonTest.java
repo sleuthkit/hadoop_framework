@@ -22,6 +22,7 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,15 +30,18 @@ import java.util.Map;
 import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import org.json.simple.JSONObject;
-
 import com.lightboxtechnologies.spectrum.FsEntryHBaseCommon.*;
 import static com.lightboxtechnologies.spectrum.FsEntryHBaseCommon.*;
 
 public class FsEntryHBaseCommonTest {
   @Test
-  public void testLong() {
-    assertEquals(LONG, typeVal(7L));
+  public void testLongAsLong() {
+    assertEquals(LONG, typeVal(Long.valueOf(7L)));
+  }
+
+  @Test
+  public void testLongAsInteger() {
+    assertEquals(LONG, typeVal(Integer.valueOf(7)));
   }
 
   @Test
@@ -51,8 +55,13 @@ public class FsEntryHBaseCommonTest {
   }
 
   @Test
-  public void testJson() {
-    assertEquals(JSON, typeVal(new JSONObject()));
+  public void testJsonMap() {
+    assertEquals(JSON, typeVal(new HashMap<String,Object>()));
+  }
+
+  @Test
+  public void testJsonList() {
+    assertEquals(JSON, typeVal(new ArrayList<Object>()));
   }
 
   @Test
@@ -125,8 +134,8 @@ public class FsEntryHBaseCommonTest {
     colSpec.write(JSON);
     colSpec.write('{');
     colSpec.write('}');
-    byte[] c = colSpec.toByteArray();
-    Map<String,Object> m = new HashMap<String,Object>();
+    final byte[] c = colSpec.toByteArray();
+    final Map<String,Object> m = new HashMap<String,Object>();
     assertEquals(m, unmarshall(c, Bytes.toBytes("{}")));
   }
 
