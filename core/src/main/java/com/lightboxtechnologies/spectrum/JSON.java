@@ -16,7 +16,7 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
-import org.json.simple.JSONObject;
+import java.util.Map;
 
 /**
  * A JSON utility class.
@@ -35,7 +35,7 @@ public class JSON {
     }
   }
 
-  public static <T> T getAs(JSONObject json, String key, Class<T> type)
+  public static <T> T getAs(Map<String,Object> json, String key, Class<T> type)
                                                          throws DataException {
     final Object o = getNonNull(json, key);
 
@@ -48,7 +48,7 @@ public class JSON {
     return type.cast(o);
   }
 
-  public static Object getNonNull(JSONObject json, String key)
+  public static Object getNonNull(Map<String,Object> json, String key)
                                                          throws DataException {
     if (key == null) {
       throw new DataException("key is null");
