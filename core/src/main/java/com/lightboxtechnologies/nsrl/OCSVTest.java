@@ -28,8 +28,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.binary.Hex;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.lightboxtechnologies.io.IOUtils;
 
@@ -100,28 +99,32 @@ public class OCSVTest {
         }
 */
 
+        final ObjectMapper mapper = new ObjectMapper();
+
         final String sha1 = Hex.encodeHexString(hd.sha1);
         final String md5 = Hex.encodeHexString(hd.md5);
         final String crc32 = Hex.encodeHexString(hd.crc32);
 
-        final JSONObject hd_json = new JSONObject();
-        hd_json.put("sha1", sha1);
-        hd_json.put("md5", md5);
-        hd_json.put("crc32", crc32);
-        hd_json.put("name", hd.name);
-        hd_json.put("size", hd.size);
-        hd_json.put("special_code", hd.special_code);
+        final Map<String,Object> hd_m = new HashMap<String,Object>();
+
+        hd_m.put("sha1", sha1);
+        hd_m.put("md5", md5);
+        hd_m.put("crc32", crc32);
+        hd_m.put("name", hd.name);
+        hd_m.put("size", hd.size);
+        hd_m.put("special_code", hd.special_code);
 
         final OSData osd = os.get(hd.os_code);
         final MfgData osmfgd = mfg.get(osd.mfg_code);
 
-        final JSONObject os_json = new JSONObject();
-        os_json.put("name", osd.name);
-        os_json.put("version", osd.version);
-        os_json.put("manufacturer", osmfgd.name);
-        hd_json.put("os", os_json);
+        final Map<String,Object> os_m = new HashMap<String,Object>();
+        os_m.put("name", osd.name);
+        os_m.put("version", osd.version);
+        os_m.put("manufacturer", osmfgd.name);
+        hd_m.put("os", os_m);
 
-        final JSONArray pl_json = new JSONArray();
+        final List<Map<String,Object>> pl_l =
+          new ArrayList<Map<String,Object>>();
         for (ProdData pd : prod.get(hd.prod_code)) {
 
           if (!osd.code.equals(pd.os_code)) {
@@ -134,27 +137,33 @@ public class OCSVTest {
             continue;
           }
 
-          final JSONObject prod_json = new JSONObject();
+          final Map<String,Object> prod_m = new HashMap<String,Object>();
 
-          prod_json.put("name", pd.name);
-          prod_json.put("version", pd.version);
-          prod_json.put("language", pd.language);
-          prod_json.put("app_type", pd.app_type);
-          prod_json.put("os_code", pd.os_code);
+          prod_m.put("name", pd.name);
+          prod_m.put("version", pd.version);
+          prod_m.put("language", pd.language);
+          prod_m.put("app_type", pd.app_type);
+          prod_m.put("os_code", pd.os_code);
 
           final MfgData md = mfg.get(pd.mfg_code);
-          prod_json.put("manufacturer", md.name);
+          prod_m.put("manufacturer", md.name);
 
-          pl_json.add(prod_json);
+          pl_l.add(prod_m);
         }
 
-if (pl_json.size() > 1) {
-  System.err.println(hd.prod_code);
-}
+        if (pl_l.size() > 1) {
+          System.err.println(hd.prod_code);
+        }
 
-        hd_json.put("products", pl_json);
+        hd_m.put("products", pl_l);
 
-        System.out.println(hd_json.toString());
+        try {
+          mapper.writeValue(System.out, hd_m);
+        }
+        catch (IOException e) {
+          // should be impossible
+          throw new IllegalStateException(e);
+        }
       }
     };
 
@@ -164,14 +173,16 @@ if (pl_json.size() > 1) {
 
     InputStream zin = null;
     try {
-      zin = new GZIPInputStream(new FileInputStream(hash_filename));
-//      zin = new FileInputStream(hash_filename);
+//      zin = new GZIPInputStream(new FileInputStream(hash_filename));
+      zin = new FileInputStream(hash_filename);
       loader.load(zin, hlh);
       zin.close();
     }
     finally {
       IOUtils.closeQuietly(zin);
     }
+
+    System.out.println();
 
 /*
     for (Map.Entry<String,String> e : mfg.entrySet()) {
