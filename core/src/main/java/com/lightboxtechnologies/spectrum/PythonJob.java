@@ -238,7 +238,7 @@ public class PythonJob {
   public static class PyEngine<IK,IV,OK extends Writable,OV extends Writable> {
     private Log ScriptLog;
     private boolean FirstTime = true;
-    private ScriptEngine Engine;
+    private final ScriptEngine Engine;
     Invocable Invoker;
     private BoxerUnboxer<?,OK> OutKey;
     private BoxerUnboxer<?,OV> OutValue;
@@ -253,11 +253,11 @@ public class PythonJob {
       //new ScriptEngineManager().getEngineByName("python");
       if (Engine == null) {
         LOG.error("Could not create Python engine!");
+        throw new RuntimeException("Could not create Python engine!");
       }
-      else {
-        LOG.info("Created Python engine");
-        Invoker = (Invocable)Engine;
-      }
+
+      LOG.info("Created Python engine");
+      Invoker = (Invocable)Engine;
     }
 
     // These functions mirror the Python logging functions,
