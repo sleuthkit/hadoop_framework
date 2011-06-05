@@ -34,6 +34,8 @@ import org.apache.hadoop.hbase.io.hfile.Compression;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.List;
@@ -89,6 +91,8 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
       ColFam = colFam;
     }
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     public static void addToPut(Put p, Map<String,?> map, byte[] colFam) {
       // should this be in the -Common class?
       byte[] col = null,
@@ -115,7 +119,12 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
             binVal = Bytes.toBytes(((Date)val).getTime());
             break;
           case FsEntryHBaseCommon.JSON:
-            binVal = Bytes.toBytes(val.toString());
+            try {
+              binVal = mapper.writeValueAsBytes(val);
+            }
+            catch (IOException e) {
+              throw new RuntimeException("Failed to serialize to JSON: " + val);
+            }
             break;
           case FsEntryHBaseCommon.BYTE_ARRAY:
             binVal = (byte[])val;
