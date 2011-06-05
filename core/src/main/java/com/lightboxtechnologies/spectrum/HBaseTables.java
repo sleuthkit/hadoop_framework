@@ -22,7 +22,8 @@ import org.apache.hadoop.hbase.util.*;
 
 public class HBaseTables {
 
-  public static final String ENTRIES_TBL_VAR = "com.lbt.htable"; // name for Conf objects
+  // name for Conf objects
+  public static final String ENTRIES_TBL_VAR = "com.lbt.htable";
 
   static public final String ENTRIES_TBL = "entries";
   static public final byte[] ENTRIES_TBL_B = Bytes.toBytes(ENTRIES_TBL);
@@ -32,4 +33,7 @@ public class HBaseTables {
 
   static public final String HASH_TBL = "hash";
   static public final byte[] HASH_TBL_B = Bytes.toBytes(HASH_TBL);
+
+  static public final String HASH_COLFAM = "0";
+  static public final byte[] HASH_COLFAM_B = Bytes.toBytes(HASH_COLFAM);
 }
