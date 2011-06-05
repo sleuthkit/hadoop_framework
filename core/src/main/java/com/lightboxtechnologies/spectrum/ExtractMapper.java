@@ -22,12 +22,13 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
@@ -49,9 +50,11 @@ import java.util.UUID;
 
 import com.lightboxtechnologies.io.IOUtils;
 
-public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
+public class ExtractMapper
+       extends Mapper<NullWritable,FileSplit,ImmutableBytesWritable,KeyValue> {
 
-  public static final Log LOG = LogFactory.getLog(ExtractMapper.class.getName());
+  private static final Log LOG =
+    LogFactory.getLog(ExtractMapper.class.getName());
 
   static enum FileTypes {
     SMALL,
@@ -64,8 +67,8 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
 
   private static final int SIZE_THRESHOLD = 10 * 1024 * 1024;
 
-  private Text OutKey = new Text();
-  private Text OutValue = new Text();
+  private final ImmutableBytesWritable OutKey = new ImmutableBytesWritable();
+
   private final byte[] Buffer = new byte[SIZE_THRESHOLD];
   private MessageDigest MD5Hash,
                         SHA1Hash;
@@ -257,8 +260,10 @@ public class ExtractMapper extends Mapper<NullWritable,FileSplit,Text,Text> {
       )
     );
 
-    OutKey.set(id);
-    OutValue.set(new String(Hex.encodeHex((byte[])rec.get("md5"))));
+    // write the key
+    OutKey.set(Bytes.toBytes(id));
+    final long timestamp =  System.currentTimeMillis();
+    final KeyValue OutValue = new KeyValue(Bytes.toBytes(id), timestamp);
     context.write(OutKey, OutValue);
   }
 

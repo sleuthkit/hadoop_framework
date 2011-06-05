@@ -19,9 +19,10 @@ limitations under the License.
 package com.lightboxtechnologies.spectrum;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat;
+import org.apache.hadoop.hbase.mapreduce.KeyValueSortReducer;
 import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.filecache.DistributedCache;
@@ -51,20 +52,20 @@ public class ExtractData {
     final Job job = new Job(conf, "ExtractData");
     job.setJarByClass(ExtractData.class);
     job.setMapperClass(ExtractMapper.class);
+    job.setReducerClass(KeyValueSortReducer.class);
     job.setNumReduceTasks(1);
-//    job.setReducer
 
     job.setInputFormatClass(RawFileInputFormat.class);
     RawFileInputFormat.addInputPath(job, new Path(otherArgs[2]));
 
-    job.setOutputFormatClass(TextOutputFormat.class);
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(Text.class);
+    job.setOutputFormatClass(HFileOutputFormat.class);
+    job.setOutputKeyClass(ImmutableBytesWritable.class);
+    job.setOutputValueClass(KeyValue.class);
 
     conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
     conf.set(HBaseTables.ENTRIES_TBL_VAR, otherArgs[0]);
     conf.set("com.lbt.storepath", otherArgs[3]);
-    FileOutputFormat.setOutputPath(job, new Path(otherArgs[3]));
+    HFileOutputFormat.setOutputPath(job, new Path(otherArgs[3]));
 
     final URI extents = new Path(otherArgs[1]).toUri();
     LOG.info("extents file is " + extents);
