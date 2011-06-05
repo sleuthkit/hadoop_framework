@@ -36,6 +36,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import org.apache.commons.codec.binary.Hex;
 
+import com.lightboxtechnologies.spectrum.HBaseTables;
+
 import static com.lightboxtechnologies.nsrl.HashLoader.HashLoaderMapper;
 
 /**
@@ -129,7 +131,7 @@ public class HashLoaderHelperTest {
     final byte[] size_col = "filesize".getBytes();
     final byte[] nsrl_col = "NSRL".getBytes();
 
-    final byte[] family = {'0'};
+    final byte[] family = HBaseTables.HASH_COLFAM_B;
 
     final byte[] key = sha1rowkey ? sha1 : md5;
     final byte ktype = (byte) (sha1rowkey ? 1 : 0);

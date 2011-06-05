@@ -8,6 +8,8 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import com.lightboxtechnologies.spectrum.HBaseTables;
+
 import static com.lightboxtechnologies.nsrl.HashLoader.HashLoaderMapper;
 
 /**
@@ -32,8 +34,6 @@ class HashLoaderHelper {
 
   private final byte[] size = new byte[Bytes.SIZEOF_LONG];
   private final ImmutableBytesWritable okey = new ImmutableBytesWritable();
-
-  private static final byte[] family = { '0' };
 
   // common column names
   private static final byte[] sha1_col = "sha1".getBytes();
@@ -67,6 +67,8 @@ class HashLoaderHelper {
   public void writeRow(byte[] key, HashData hd,
                        HashLoaderMapper.Context context)
                                      throws InterruptedException, IOException {
+    final byte[] family = HBaseTables.HASH_COLFAM_B;
+
     // md5 is type 0, sha1 is type 1
     final byte ktype = (byte) (key.length == 16 ? 0 : 1);
 
@@ -96,9 +98,7 @@ class HashLoaderHelper {
     // write the file size
     Bytes.putLong(size, 0, hd.size);
     okey.set(makeOutKey(key, ktype, size_col));
-    context.write(
-      okey, new KeyValue(key, family, size_col, timestamp, size)
-    );
+    context.write(okey, new KeyValue(key, family, size_col, timestamp, size));
 
     // check the NSRL box
     okey.set(makeOutKey(key, ktype, nsrl_col));
