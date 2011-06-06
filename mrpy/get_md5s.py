@@ -1,5 +1,5 @@
 keyType = 'text'
-valueType = 'text'
+valueType = 'bytes'
 
 def mapper(key, entry, context):
   try:
