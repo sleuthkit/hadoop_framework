@@ -25,7 +25,6 @@ import java.util.Arrays;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.BytesWritable;
 
 import com.lightboxtechnologies.spectrum.PythonJob.*;
 
@@ -60,7 +59,7 @@ public class PythonJobTest {
     byte[] actual = b.set(expected).get();
     actual = Arrays.copyOf(actual, b.getWritable().getLength());
     assertArrayEquals(expected, actual);
-    assertEquals(BytesWritable.class, b.getBoxClass());
+    assertEquals(ImmutableHexWritable.class, b.getBoxClass());
   }
 
   @Test
