@@ -74,4 +74,17 @@ public class JsonWritableTest {
 
     assertEquals(expected, w2.get());
   }
+
+  @Test
+  public void testSecondSerialize() throws IOException {
+    final Map<String,Object> m = new HashMap<String,Object>();
+
+    m.put("three", 3);
+    m.put("hello", "world");
+    m.put("empty", new HashMap<Object,Object>());
+
+    final JsonWritable w = new JsonWritable();
+    w.set(m);
+    assertEquals(w.toString(), w.toString());
+  }
 }
