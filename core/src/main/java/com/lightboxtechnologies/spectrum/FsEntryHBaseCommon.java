@@ -89,7 +89,7 @@ public class FsEntryHBaseCommon {
         return new Date(Bytes.toLong(colVal));
       case JSON:
         try {
-          return mapper.readValue(colVal, Object.class);
+          return mapper.readValue(colVal, 0, colVal.length, Object.class);
         }
         catch (IOException e) {
           // does not parse, failover to byte array
