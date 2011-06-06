@@ -60,14 +60,17 @@ public class JsonWritable implements Writable {
   }
 
   private String getJSON() throws IOException {
-    // cache serialized form
-    if (Json == null && Data != null) {
-      Json = mapper.writeValueAsString(Data);
-      return Json;
+    String ret;
+
+    if (Json == null) {
+      // cache serialized form
+      ret = Data != null ? (Json = mapper.writeValueAsString(Data)) : "";
     }
     else {
-      return "";
+      ret = Json;
     }
+
+    return ret;
   }
 
   private Object getData() throws IOException {
