@@ -22,9 +22,15 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.io.hfile.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -72,7 +78,10 @@ public class ExtractMapper
   private final byte[] Buffer = new byte[SIZE_THRESHOLD];
   private MessageDigest MD5Hash,
                         SHA1Hash;
+
   private HTable EntryTbl;
+  private HTable HashTbl;
+
   private final OutputStream NullStream = NullOutputStream.NULL_OUTPUT_STREAM;
 
   @Override
@@ -81,14 +90,33 @@ public class ExtractMapper
     
     MD5Hash  = FsEntryUtils.getHashInstance("MD5");
     SHA1Hash = FsEntryUtils.getHashInstance("SHA1");
-    EntryTbl = FsEntryHBaseOutputFormat.getHTable(context, Bytes.toBytes("core"));
+
+    // ensure that the hash table exists
+    final Configuration conf = context.getConfiguration();
+/*
+    final HBaseAdmin admin = new HBaseAdmin(conf);
+    if (!admin.tableExists(HBaseTables.HASH_TBL_B)) {
+      final HTableDescriptor tableDesc =
+        new HTableDescriptor(HBaseTables.HASH_TBL_B);
+      final HColumnDescriptor colFamDesc =
+        new HColumnDescriptor(HBaseTables.HASH_COLFAM_B);
+      colFamDesc.setCompressionType(Compression.Algorithm.GZ);
+      tableDesc.addFamily(colFamDesc);
+      admin.createTable(tableDesc);
+    }
+*/
+
+    HashTbl = new HTable(conf, HBaseTables.HASH_TBL_B);
+
+    EntryTbl =
+      FsEntryHBaseOutputFormat.getHTable(context, HBaseTables.ENTRIES_TBL_B);
   }
 
   void extract(FSDataInputStream file, OutputStream outStream, Map<String,?> attrs, Context ctx) throws IOException {
     @SuppressWarnings("unchecked")
     final List<Map<String,?>> extents =
       (List<Map<String,?>>)attrs.get("extents");
-    final long size = (Long)attrs.get("size");
+    final long size = ((Number) attrs.get("size")).longValue();
 
     long read = 0;
     int bufOffset = 0,
@@ -96,9 +124,11 @@ public class ExtractMapper
 
     for (Map<String,?> dataRun : extents) {
       ++numExtents;
-      long curAddr = (Long)dataRun.get("addr");
-      final long length = Math.min((Long)dataRun.get("len"), size - read),
-                endAddr = curAddr + length;
+      long curAddr = ((Number) dataRun.get("addr")).longValue();
+      final long length =
+        Math.min(((Number) dataRun.get("len")).longValue(), size - read);
+      final long endAddr = curAddr + length;
+
       int rlen;
       while (curAddr < endAddr) {
         // NB: endAddr - curAddr might be larger than 2^31-1, so we must
@@ -228,9 +258,9 @@ public class ExtractMapper
       IOUtils.closeQuietly(fout);
     }
 
-    String hash = new String(Hex.encodeHex((byte[])rec.get("md5")));
+    final String hash = new String(Hex.encodeHex((byte[])rec.get("md5")));
     final Path subDir = new Path("ev", hashFolder(hash)),
-          hashPath = new Path(subDir, hash);
+             hashPath = new Path(subDir, hash);
     fs.mkdirs(subDir);
 
     if (fs.exists(hashPath)) {
@@ -245,25 +275,62 @@ public class ExtractMapper
     return rec;
   }
 
+  // column names
+  private static final byte[] nsrl_col = "nsrl".getBytes();
+  private static final byte[] bad_col = "bad".getBytes();
+
+  protected void hash_lookup_and_mark(Map<String,Object> rec, String type)
+                                                           throws IOException {
+    final byte[] hash = (byte[]) rec.get(type);
+    final Get request =
+      new Get(hash).addColumn(HBaseTables.HASH_COLFAM_B, nsrl_col)
+                   .addColumn(HBaseTables.HASH_COLFAM_B, bad_col);
+    final Result result = HashTbl.get(request);
+    
+    if (!result.isEmpty()) {
+      if (result.getValue(HBaseTables.HASH_COLFAM_B, nsrl_col) != null) {
+        // My hash is in the NSRL.
+        rec.put("nsrl", 1);
+      }
+
+      if (result.getValue(HBaseTables.HASH_COLFAM_B, bad_col) != null) {
+        // I've been a very naughty file.
+        rec.put("bad", 1);
+      }
+    }
+  }
+
+  protected static final byte[] ingest_col = "ingest".getBytes();
+
+  protected static final byte[] one = { 1 };
+
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
-    final String id = (String)map.get("id");
-    final long fileSize = (Long)map.get("size");
-    MD5Hash.reset();
+    final String id = (String) map.get("id");
+    final long fileSize = ((Number) map.get("size")).longValue();
 
     final Map<String,Object> rec = fileSize > SIZE_THRESHOLD ?
       process_extent_large(file, fs, outPath, map, context) :
       process_extent_small(file, fileSize, map, context);
 
+    // check if the md5 is known
+    hash_lookup_and_mark(rec, "md5");
+
+    // check if the sha1 is known
+    hash_lookup_and_mark(rec, "sha1");
+
+    // write the entry to the file table
     EntryTbl.put(
       FsEntryHBaseOutputFormat.FsEntryHBaseWriter.createPut(
         id, rec, Bytes.toBytes("core")
       )
     );
 
-    // write the key
+    // write the key for the hash table
     OutKey.set(Bytes.toBytes(id));
     final long timestamp =  System.currentTimeMillis();
-    final KeyValue OutValue = new KeyValue(Bytes.toBytes(id), timestamp);
+    final KeyValue OutValue = new KeyValue(
+      Bytes.toBytes(id), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+    );
     context.write(OutKey, OutValue);
   }
 
