@@ -9,7 +9,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.Text;
-import org.json.simple.JSONArray;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 
@@ -18,7 +19,9 @@ public class GrepMapper
 extends SKMapper<Text, FsEntry, Text, FsEntry> {
 
     private List<Pattern> patterns = new ArrayList<Pattern>();
-    
+   
+    private static final ObjectMapper mapper = new ObjectMapper();
+ 
     @Override
     public void setup(Context ctx) {
         String[] regexlist = ctx.getConfiguration().get("mapred.mapper.regex").split("\n");
@@ -56,10 +59,9 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
         }
         
         try {
-            JSONArray ar = new JSONArray();
-            ar.addAll(s);
-            
-            value.put(HBaseConstants.GREP_RESULTS, ar);
+            final List<String> jl = new ArrayList(s);
+            final String json = mapper.writeValueAsString(jl);
+            value.put(HBaseConstants.GREP_RESULTS, json);
             
             context.write(key, value);
         } catch (InterruptedException e) {
