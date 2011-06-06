@@ -65,6 +65,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     final HBaseAdmin admin = new HBaseAdmin(hconf);
     if (!admin.tableExists(tblName)) {
     	final HTableDescriptor tableDesc = new HTableDescriptor(tblName);
+// FIXME: how could the family already exist if the table doesn't?
     	if (!tableDesc.hasFamily(colFam)) {
     	  final HColumnDescriptor colFamDesc = new HColumnDescriptor(HBaseTables.ENTRIES_COLFAM);
     	  colFamDesc.setCompressionType(Compression.Algorithm.GZ);
