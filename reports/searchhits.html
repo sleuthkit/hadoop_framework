@@ -1,0 +1,234 @@
+<!doctype html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=9">
+  <title>Reports</title>
+  <meta charset="utf-8">
+  <link type="text/css" href="css/reports.css" rel="stylesheet" />
+  <link type="text/css" href="css/jqueryui/jquery-ui-1.8.12.custom.css" rel="stylesheet" />
+  <link type="text/css" href="css/datatables.jqueryui.css" rel="stylesheet" />
+  <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+  <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
+  <script src="js/jquery.dataTables.min.js" type="text/javascript"></script>
+  <script src="js/FixedHeader.min.js" type="text/javascript"></script>
+  <script src="js/jquery.event.drag-1.5.js" type="text/javascript"></script>
+  <script src="js/jquery.kiketable.colsizable-1.1.js" type="text/javascript"></script>
+  <link type="text/css" href="css/jquery.kiketable.colsizable.css" rel="stylesheet" />
+  <script src="js/modernizr-1.7.min.js" type="text/javascript"></script>
+  <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+  <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+  <script src="js/tipsy.js" type="text/javascript"></script>
+  <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+  <script src="js/jquery.jgrowl.min.js" type="text/javascript"></script>
+  <link href="css/jquery.jgrowl.css" type="text/css" rel="stylesheet"/>
+  <script src="js/util.js" type="text/javascript"></script>
+  <script src="js/menuList.js" type="text/javascript"></script>
+  <script src="data/index.js" type="text/javascript"></script>
+  <script src="data/searchhits.js" type="text/javascript"></script>
+  <script>
+  var Util = new Utility();
+	var menuLen = 0;
+	var dataLen = 0;
+	var deviceName = "";
+  var cTable;
+  var fHead;
+  
+  $(window).resize(function(){
+    var elem = $(this);
+    $("#printReport").position({
+			of: $("#overviewContainer"),
+			my: "right top",
+			at: "right top",
+			offset: "0 0",
+			collision: "none none"
+		});
+    var i = 0;
+    while(i < menuLen) {
+    	if (i == 0) {
+				$("#menu0").position({
+					of: $("#menuContainer"),
+					my: "left top",
+					at: "left top",
+					offset: "5 -8",
+					collision: "none none"
+				});
+			}
+			else {
+				$("#menu" + i).position({
+					of: $("#menu" + (i-1)),
+					my: "left top",
+					at: "right top",
+					offset: "5 0",
+					collision: "none none"
+				});
+			}
+      ++i;
+    }
+		$("#content").height($("#dataTableContent").height() + 5);
+		$("#dataTableContent").width($("#content").width());
+		$("#dataTableContent").position({
+			of: $("#content"),
+			my: "left top",
+			at: "left top",
+			offset: "0 0",
+			collision: "none none"
+		});
+  });
+	
+	function checkChange(e) {
+		cTable.fnDraw(false);
+	}
+	
+	function checkChangeStorage(e) {
+  	var checkBoxes = $('input', cTable.fnGetNodes()).serialize();
+  	localStorage.setItem(deviceName+"_searchHits", checkBoxes);
+  	localStorage.setItem(deviceName+"_searchHitsCount", dataLen);
+		cTable.fnDraw(false);
+	}
+
+	function fillDeviceInfo(devInfo) {
+		$("#deviceName").html(deviceName);
+	}
+
+  function fillTable(data, id, divHeader) {
+    if (divHeader.length > 0) {
+      $('#' + id).append("<div class='entityHeader'><button id='exportSelected'>Export Selected</button><button id='exportAll'>Export All</button>" + Util.htmlSafeString(divHeader) + "</div>");
+    }
+    var items = [];
+    items.push('<colgroup><col /><col /><col /><col /><col /><col /><col /></colgroup>');
+    items.push('<thead><tr><th>Sel</th><th>Key ID</th><th>Keyword</th><th>Preview</th><th>File ID</th><th>File Name</th><th>File Path</th></tr></thead>');
+    var i = 0;
+    while(i < dataLen) {
+      items.push('<tr><td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td><td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
+      	'<td>' + Util.htmlSafeString(data[i].kw) + '</td>' +
+      	'<td>' + Util.htmlSafeString(data[i].p) + '</td>' +
+      	'<td>' + Util.htmlSafeString(data[i].fId) + '</td>' +
+      	'<td>' + Util.htmlSafeString(data[i].fN) + '</td>' +
+      	'<td>' + Util.htmlSafeString(data[i].fP) + '</td>' +
+      	'</tr>');
+      ++i;
+    }
+    items.push('<tfoot><th colspan=7 style="text-align: left;"></th></tfoot>');
+    $('<table>', {
+      'class': 'display',
+      'id' : 'dTable',
+      html: items.join('')
+    }).appendTo('#' + id);
+    $("#exportAll").button()
+	    .css("float", "left")
+	    .click(function() { Util.DownloadJSON2CSV(data); });
+	  $("#exportSelected").button()
+	  	.css("float", "left")
+	  	.click(function() { Util.DownloadJSON2CSV(data, $('input', cTable.fnGetNodes()).serialize()); });
+  }
+
+  function makeTable(destroy, noSort) {
+    var aaSorting;
+    if (noSort) {
+      aaSorting = [];
+    }
+    else {
+      aaSorting = [[1,"asc"]];
+    }
+	  cTable = $('#dTable').dataTable({
+		  "aaSorting": aaSorting,
+		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+		  "iDisplayLength": 10,
+		  "aoColumns": [
+		  	{ "sWidth": "50px", "sSortDataType": "dom-checkbox" },
+		  	{ "sWidth": "75px" },
+		  	{ "sWidth": "200px" },
+		  	{ "sWidth": "305px" },
+		  	{ "sWidth": "85px" },
+		  	{ "sWidth": "220px" },
+		  	{ "sWidth": "265px" }
+		  ],
+		  "bJQueryUI": true,
+		  "bAutoWidth": false,
+		  "bInfo" : true,
+		  "bDestroy": destroy,
+		  "bProcessing": true,
+		  "bStateSave": true,
+		  "sPaginationType": "full_numbers",
+		  "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
+		  	var nCells = nFoot.getElementsByTagName('th');
+				nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
+			}		  
+	  });
+    //fHead = new FixedHeader(cTable); //doesn't work with kiketable
+  }
+
+	$.fn.dataTableExt.afnSortData['dom-checkbox'] = function  ( oSettings, col )
+	{
+		var chkList = [];
+		$('td:eq(' + col + ') input', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
+			chkList.push(this.checked==true ? "1" : "0");
+		});
+		return chkList;
+	}
+
+	function restoreChecks(queryString) {
+		var arr = queryString.split("&");
+		if (arr && (arr.length>0)) {
+		  var aLen = arr.length;
+		  for (var i = 0; i < aLen; i++) {
+		    var chkBox = "#" + arr[i].substr(0, arr[i].search("="));
+			  $(chkBox, cTable.fnGetNodes()).attr("checked","checked");
+		  }
+		}
+	}
+
+  $(document).ready(function () {
+  	deviceName = Util.findObjectByName(deviceInfo, "deviceName").n;
+  	dataLen = searchHits.length;
+  	menuLen = Util.buildMenu(menuList, 'menuContainer');
+  	fillDeviceInfo(deviceInfo);
+    fillTable(searchHits, "dataTableContent", "Search Hits");
+  	$("#dTable").kiketable_colsizable({
+  		dragMove: true,
+  		dragOpacity: 0,
+  		minWidth: 50,
+  		fixWidth: true
+  	});
+  	makeTable(false, false);
+    if (Modernizr.localstorage) {
+    	$("input", cTable.fnGetNodes()).change(checkChangeStorage);
+    	var checkedList = localStorage.getItem(deviceName+"_searchHits");
+    	if (checkedList) {
+    		restoreChecks(checkedList);
+    	}
+    	cTable.fnDraw(false);
+    }
+    else {
+    	$("input", cTable.fnGetNodes()).change(checkChange);
+    	$.jGrowl("Your browser does not support local<br>storage, so checkbox selections will not<br>be saved.", { 
+    		sticky: true, 
+    		position: 'top-left' 
+    	});
+    }
+    $(window).resize();
+  });
+	</script>
+</head>
+<body style="height:100%;">
+<center>
+<div id="allContainer" style="margin: 0px auto; width: 1200px; border: 1px solid #434a4f;">
+	<div id="topContainer" style="margin: 0px auto; width: 100%;">
+		<div id="overviewContainer" style="margin: 0px auto;">
+			<h2 id="deviceName" class="ui-widget" style="font-size: 1.5em; text-align: center;">[device.name]</h2>
+			<h3 class="ui-widget" style="text-align: center;">Processing Report</h3>
+			<div id="printReport" style="position: absolute; width: 100px;">
+				<img alt="Print Summary Report" src="images/icon-summaryReport.png" />
+				<img alt="Print Summary Report" src="images/icon-detailReport.png" />
+			</div>
+		</div>
+	</div>
+	<div class="ui-widget-menu-shadow" style="height: 10px;"></div>
+	<div id="menuContainer" style="height: 45px; "></div>
+	<div id="content">
+		<div id="dataTableContent" style="position:absolute;"></div>
+	</div>
+</div>
+</center>
+</body>
+</html>

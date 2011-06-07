@@ -1,7 +1,0 @@
-var clusters = [
-  {name: "Terrorism, Jihad, RPG, IED, explosive", x: 29, y: 70, z: 30, confidence: 75},
-  {name: "United Nations, Afghanistan, Iran, Nuclear", x: 17, y: 77, z: 60, confidence: 75},
-  {name: "System Files", x: 45, y: 52, z: 100, confidence: 100},
-  {name: "Innocuous", x: 38, y: 60, z: 45, confidence: 50},
-  {name: "Outliers", x: 92, y: 89, z: 42, confidence: 25}
-];

@@ -1,0 +1,533 @@
+<!doctype html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=9">
+  <title>Reports</title>
+  <meta charset="utf-8">
+  <link type="text/css" href="css/reports.css" rel="stylesheet" />
+  <link type="text/css" href="css/jqueryui/jquery-ui-1.8.12.custom.css" rel="stylesheet" />
+  <link type="text/css" href="css/datatables.jqueryui.css" rel="stylesheet" />
+  <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+  <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
+  <script src="js/jquery.dataTables.min.js" type="text/javascript"></script>
+  <script src="js/modernizr-1.7.min.js" type="text/javascript"></script>
+  <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+  <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+  <script src="js/tipsy.js" type="text/javascript"></script>
+  <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+  <script src="js/jquery.jgrowl.min.js" type="text/javascript"></script>
+  <link href="css/jquery.jgrowl.css" type="text/css" rel="stylesheet"/>
+  <script src="js/util.js" type="text/javascript"></script>
+  <script src="js/menuList.js" type="text/javascript"></script>
+  <script src="data/documents.js" type="text/javascript"></script>
+  <script src="data/entities.js" type="text/javascript"></script>
+  <script src="data/graphics.js" type="text/javascript"></script>
+  <script src="data/index.js" type="text/javascript"></script>
+  <script src="data/knownbad.js" type="text/javascript"></script>
+  <script src="data/linkanalysis.js" type="text/javascript"></script>
+  <script src="data/searchhits.js" type="text/javascript"></script>
+  <script>
+  $(window).resize(function(){
+    var elem = $(this);
+    $("#printReport").position({
+			of: $("#overviewContainer"),
+			my: "right top",
+			at: "right top",
+			offset: "0 0",
+			collision: "none none"
+		});
+    var i = 0;
+    while(i < menuLen) {
+    	if (i == 0) {
+				$("#menu0").position({
+					of: $("#menuContainer"),
+					my: "left top",
+					at: "left top",
+					offset: "5 -8",
+					collision: "none none"
+				});
+			}
+			else {
+				$("#menu" + i).position({
+					of: $("#menu" + (i-1)),
+					my: "left top",
+					at: "right top",
+					offset: "5 0",
+					collision: "none none"
+				});
+			}
+      ++i;
+    }
+    i = 0;
+    while(i < hddLen) {
+    	if (i == 0) {
+				$("#hddLayout0").position({
+					of: $("#hddContainer"),
+					my: "left top",
+					at: "left top",
+					offset: "0 0",
+					collision: "none none"
+				});
+			}
+			else {
+				$("#hddLayout" + i).position({
+					of: $("#hddLayout" + (i-1)),
+					my: "left top",
+					at: "right top",
+					offset: "0 0",
+					collision: "none none"
+				});
+			}
+      ++i;
+    }
+		//top chart row
+		$("#chart2").position({
+			of: $("#topChartRow"),
+			my: "middle top",
+			at: "middle top",
+			offset: "0 0",
+			collision: "none none"
+		});
+		$("#chart1").position({
+			of: $("#chart2"),
+			my: "right top",
+			at: "left top",
+			offset: "-50 0",
+			collision: "none none"
+		});
+		$("#chart3").position({
+			of: $("#chart2"),
+			my: "left top",
+			at: "right top",
+			offset: "50 0",
+			collision: "none none"
+		});
+		//bottom chart row
+		$("#chart5").position({
+			of: $("#bottomChartRow"),
+			my: "middle top",
+			at: "middle top",
+			offset: "0 0",
+			collision: "none none"
+		});
+		$("#chart4").position({
+			of: $("#chart5"),
+			my: "right top",
+			at: "left top",
+			offset: "-50 0",
+			collision: "none none"
+		});
+		$("#chart6").position({
+			of: $("#chart5"),
+			my: "left top",
+			at: "right top",
+			offset: "50 0",
+			collision: "none none"
+		});
+  });
+
+	function menuClick(e)
+	{
+	  location.href = $(this).attr("link");
+	}
+
+	function menuMouseOver(e)
+	{
+	  $(this)
+	  .css({ background: '#aeb6f4', cursor: 'pointer' });
+	}
+	
+	function menuMouseOut(e)
+	{
+	  $(this)
+	  .css({ background: '' });
+	}
+	
+	var Util = new Utility();
+	
+	var menuLen = 0;
+	var hddLen = 0;
+
+	function getVolWidth(divWidth, hddSize, volSize) {
+		var w = (volSize*divWidth)/hddSize;
+		var ret = w;
+		if (ret < 150) {
+			ret = 150;
+		}
+		return [w, ret];
+	}
+
+	function fillDeviceInfo(devInfo) {
+		$("#deviceName").html(Util.findObjectByName(devInfo, "deviceName").n);
+		$("#loadedBy").html(Util.findObjectByName(devInfo, "loadedBy").n);
+		$("#loadedOn").html(Util.findObjectByName(devInfo, "loadedOn").n);
+		$("#md5").html(Util.findObjectByName(devInfo, "md5").n);
+		$("#sha1").html(Util.findObjectByName(devInfo, "sha1").n);
+		$("#totalFiles").html(Util.stringFormatComma(Util.findObjectByName(devInfo, "totalFiles").n));
+		$("#knownFiles").html(Util.stringFormatComma(Util.findObjectByName(devInfo, "knownFiles").n));
+		$("#extractedFiles").html(Util.stringFormatComma(Util.findObjectByName(devInfo, "extractedFiles").n));
+		var volList = Util.findObjectByName(devInfo, "volumeList");
+		hddLen = volList.n.length;
+		var hddWidth = $("#hddContainer").width();
+		var hddSize = Util.findObjectByName(devInfo, "size").n;
+		var usedSize = Util.getSum(volList.n);
+		var hddItems = [];
+	  var i = 0;
+	  while(i < hddLen) {
+	    var line = '<div id="hddLayout' + i + '" class="ui-widget ';
+	    if ((i % 2) == 0) {
+	    	line += ' ui-widget-hdd-even ';
+	    }
+	    else {
+	    	line += ' ui-widget-hdd-odd ';
+	  	}
+	    if (i == 0) {
+	    	line += ' ui-corner-left ';
+	    }
+	    if ((i == (hddLen-1)) && (usedSize >= hddSize)) {
+	    	line += ' ui-corner-right ';
+	    }
+	    var volWidths = getVolWidth(hddWidth, hddSize, volList.n[i].n);
+	    hddWidth -= volWidths[1] - volWidths[0];
+	    line += '" style="width: ' + volWidths[1] + 'px">' + volList.n[i].a + '<br>' + volList.n[i].fs + '<br>' + 
+	    	Util.stringFormatSize(volList.n[i].n) + '</div>';
+	    hddItems.push(line);
+	    ++i;
+	  }
+	  if (usedSize < hddSize) {
+	  	var line = '<div id="hddLayout' + i + '" class="ui-widget ui-widget-hdd-unused ui-corner-right"';
+	    var volWidths = getVolWidth(hddWidth, hddSize, (hddSize-usedSize));
+	    line += '" style="width: ' + volWidths[0] + 'px">Unused<br><br>' + Util.stringFormatSize((hddSize-usedSize)) + '</div>';
+	    hddItems.push(line);
+	    ++hddLen;
+	  }
+	  $("#hddContainer").html(hddItems.join(''));
+	  $("#spaceFilled").html(Math.round((usedSize*100)/hddSize)); //TODO
+	}
+
+  $(document).ready(function () {
+  	menuLen = Util.buildMenu(menuList, 'menuContainer');
+  	fillDeviceInfo(deviceInfo);
+  	$("#chart1Title").html(Util.stringFormatComma(deviceLinks.links.length));
+  	$("#chart2Title").html(Util.stringFormatComma(docClusterChart.length));
+  	$("#chart3Title").html(Util.stringFormatComma(Util.getSum(entityCounts)));
+  	$("#chart4Title").html(Util.stringFormatComma(Util.getSum(knownBadCounts)));
+  	$("#chart5Title").html(Util.stringFormatComma(Util.getSum(keywordCounts)));
+  	$("#chart6Title").html(Util.stringFormatComma(imgClusterData.length));
+    $("#chart1").attr("link", "linkanalysis.html");
+    $("#chart2").attr("link", "documents.html");
+    $("#chart3").attr("link", "entities.html");
+    $("#chart4").attr("link", "knownbad.html");
+    $("#chart5").attr("link", "searchhits.html");
+    $("#chart6").attr("link", "graphics.html");
+    for (i = 1; i <= 6; i++) {
+  	  $("#chart" + i).bind('mouseover', menuMouseOver);
+  	  $("#chart" + i).bind('mouseout', menuMouseOut);
+  	  $("#chart" + i).bind('click', menuClick);
+  	}
+    $(window).resize();
+  });
+	</script>
+</head>
+<body style="height:100%;">
+<center>
+<div id="allContainer" style="margin: 0px auto; width: 1200px; border: 1px solid #434a4f;">
+	<div id="topContainer" style="margin: 0px auto; width: 100%;">
+		<div id="overviewContainer" style="margin: 0px auto;">
+			<h2 id="deviceName" class="ui-widget" style="font-size: 1.5em; text-align: center;">[device.name]</h2>
+			<h3 class="ui-widget" style="text-align: center;">Processing Report</h3>
+			<div id="printReport" style="position: absolute; width: 100px;">
+				<img alt="Print Summary Report" src="images/icon-summaryReport.png" />
+				<img alt="Print Summary Report" src="images/icon-detailReport.png" />
+			</div>
+		</div>
+	</div>
+	<div class="ui-widget-menu-shadow" style="height: 10px;"></div>
+	<div id="menuContainer" style="height: 45px; "></div>
+	<div id="content">
+		<div id="topContainer" style="margin: 0px auto; width: 100%;">
+			<div id="overviewContainer" style="margin: 0px auto;">
+				<table class="ui-widget" style="padding: 3px; width: 100%;">
+					<tr><td class="ui-col-label">Loaded By:</td><td class="ui-col-value" id="loadedBy">[loadedBy]</td><td id="padCol" style="width: 30px;"/><td class="ui-col-label">Device Hash (MD5):</td><td class="ui-col-value" id="md5"></td></tr>
+					<tr><td class="ui-col-label">Loaded On:</td><td class="ui-col-value" id="loadedOn">[loadedOn]</td><td id="padCol" style="width: 30px;"/><td class="ui-col-label">Device Hash (SHA1):</td><td class="ui-col-value" id="sha1"></td></tr>
+				</table>
+			</div>
+			<div id="hddContainer" style="height: 80px; width: 95%;"></div>
+			<div id="detailContainer" style="margin: 0px auto; width: 100%;">
+				<table class="ui-widget"  style="padding: 3px; width: 100%;">
+					<tr><td class="ui-col-label">Total Files:</td><td class="ui-col-value" id="totalFiles">[totalFiles]</td><td id="padCol" style="width: 75px;"/><td>Partitions fill <span id="spaceFilled">[spaceFilled]</span>% of usable space</td></tr>
+					<tr><td class="ui-col-label">Known Files:</td><td class="ui-col-value" id="knownFiles">[knownFiles]</td><td id="padCol" style="width: 75px;"/><td></td></tr>
+					<tr><td class="ui-col-label">Files Extracted<br>From Containers:</td><td class="ui-col-value" id="extractedFiles">[extractedFiles]</td><td id="padCol" style="width: 75px;"/><td></td></tr>
+				</table>
+			</div>
+		</div>
+		<div id="topChartRow" style="height: 275px; width: 100%;">
+			<div id="chart1" class="ui-widget ui-widget-chart ui-corner-all" style="left: 200px; width: 250px; height: 250px; text-align: center;"><span id="chart1Title" class="ui-widget-chart-num">[chart1Title]</span><br>Links Identified
+				<script type="text/javascript+protovis">
+				if (Modernizr.svg){
+					var forceLayout_w = 225,
+					    forceLayout_h = 185,
+					    forceLayout_colors = pv.Colors.category10();
+					
+					var forceLayout_vis = new pv.Panel()
+					    .width(forceLayout_w)
+					    .height(forceLayout_h)
+					    .event("mousedown", pv.Behavior.pan())
+					    .event("mousewheel", pv.Behavior.zoom());
+					
+					var forceLayout_force = forceLayout_vis.add(pv.Layout.Force)
+					    .nodes(deviceLinks.nodes)
+					    .links(deviceLinks.links)
+					    //.springLength(10)
+		    			.chargeConstant(-1000)
+					    .bound(true);
+					
+					forceLayout_force.link.add(pv.Line);
+					
+					forceLayout_force.node.add(pv.Dot)
+					    .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5))
+					    .fillStyle(function(d) d.fix ? "brown" : forceLayout_colors(d.group))
+					    .strokeStyle(function() this.fillStyle().darker())
+					    .lineWidth(1)
+					    .title(function(d) d.nodeName)
+					    .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))
+					    .event("mouseout", pv.Behavior.tipsy.trigger)
+					    .event("mousedown", pv.Behavior.drag())
+					    .event("drag", forceLayout_force);
+					
+					forceLayout_vis.render();
+				}
+				else {
+					$('#chart1').append('<br><br>No SVG support detected');
+				}
+				</script>
+			</div>
+			<div id="chart2" class="ui-widget ui-widget-chart ui-corner-all" style="left: 525px; width: 250px; height: 250px; text-align: center;"><span id="chart2Title" class="ui-widget-chart-num">[chart2Title]</span><br>Document Clusters
+		    <script type="text/javascript+protovis">
+			  if (Modernizr.svg){
+				  var docPlot_w = 225,
+				      docPlot_h = 185,
+				      docPlot_x = pv.Scale.linear(0, 100).range(0, docPlot_w),
+				      docPlot_y = pv.Scale.linear(0, 100).range(0, docPlot_h),
+				      docPlot_c = pv.Scale.log(1, 100).range("orange", "brown");
+				
+				  var docPlot_vis = new pv.Panel()
+				      .width(docPlot_w)
+				      .height(docPlot_h)
+				      .bottom(1)
+				      .left(1)
+				      .right(1)
+				      .top(1)
+				      .def("i", -1)
+				      .event("click", function(d) self.location = "clusters.html");
+				
+				  docPlot_vis.add(pv.Rule)
+				      .data(docPlot_y.ticks())
+				      .bottom(docPlot_y)
+				      .strokeStyle(function(d) d ? "#ddd" : "#000");
+		
+				  docPlot_vis.add(pv.Rule)
+				      .data(docPlot_x.ticks())
+				      .left(docPlot_x)
+				      .strokeStyle(function(d) d ? "#ddd" : "#000");
+		
+				  var dot = docPlot_vis.add(pv.Dot)
+				      .data(docClusterChart)
+				      .left(function(d) docPlot_x(d.x))
+				      .bottom(function(d) docPlot_y(d.y))
+				      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
+				      .fillStyle(function(d) docPlot_vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.cf*0.01))
+				      .size(function(d) d.z*20)
+				      .title(function(d) d.name + "<br>Confidence: " + d.cf)
+				      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true, html: true}))
+				    .anchor("center").add(pv.Label)
+				      .text(function(d) d.z)
+				      .textStyle("black");
+				
+				  docPlot_vis.render();
+				}
+				else {
+					$('#chart2').append('<br><br>No SVG support detected');
+				}
+		    </script>
+		  </div>
+			<div id="chart3" class="ui-widget ui-widget-chart ui-corner-all" style="left: 850px; width: 250px; height: 250px; text-align: center;"><span id="chart3Title" class="ui-widget-chart-num">[chart3Title]</span><br>Entities Extracted
+		  	<script type="text/javascript+protovis">
+			  if (Modernizr.svg){
+					var entityCounts_w = 225,
+					    entityCounts_h = 185,
+						  entityCounts_y = pv.Scale.ordinal(pv.range(entityCounts.length)).splitBanded(0, entityCounts_h, 4/5),
+					  	entityCounts_x = pv.Scale.linear(0, Util.getMax(entityCounts)).range(0, entityCounts_w);
+					
+					var entityCounts_vis = new pv.Panel()
+					    .width(entityCounts_w)
+					    .height(entityCounts_h)
+					    .bottom(20)
+					    .left(3)
+					    .right(15)
+					    .top(3);
+					
+					var entityCounts_bar = entityCounts_vis.add(pv.Bar)
+					    .data(entityCounts)
+					    .top(function() entityCounts_y(this.index))
+					    .height(entityCounts_y.range().band)
+					    .left(0)
+					    .width(function(d) d.n/(Util.getMax(entityCounts)/entityCounts_w))
+					    .text(function(d) d.n)
+					    .event("mouseover", pv.Behavior.tipsy({gravity: "w", fade: true}));
+					
+					entityCounts_bar.anchor("left").add(pv.Label)
+					    .font("bold 14px sans-serif")
+					    .textStyle("#333333")
+					    .textAlign("left")
+					    .text(function(d) d.a);
+					
+					entityCounts_vis.add(pv.Rule)
+					    .data(entityCounts_x.ticks(5))
+					    .left(entityCounts_x)
+					    .strokeStyle(function(d) d ? "rgba(255,255,255,.3)" : "#000")
+					  .add(pv.Rule)
+					    .bottom(0)
+					    .height(5)
+					    .strokeStyle("#000")
+					  .anchor("bottom").add(pv.Label)
+					    .text(entityCounts_x.tickFormat);
+					
+					entityCounts_vis.render();
+				}
+				else {
+					$('#chart3').append('<br><br>No SVG support detected');
+				}
+			  </script>
+			</div>
+		</div>
+		<div id="bottomChartRow" style="height: 275px; width: 100%;">
+			<div id="chart4" class="ui-widget ui-widget-chart ui-corner-all" style="left: 200px; width: 250px; height: 250px; text-align: center;"><span id="chart4Title" class="ui-widget-chart-num">[chart4Title]</span><br>Known Bad Files
+		  	<script type="text/javascript+protovis">
+			  if (Modernizr.svg){
+				  var pieChart_w = 225,
+				      pieChart_h = 200,
+				      pieChart_r = 0.4375 * pieChart_w,
+				      pieChart_sum = Util.getSum(knownBadCounts);
+				
+				  var pieChart_vis = new pv.Panel()
+				      .width(pieChart_w)
+				      .height(pieChart_h);
+				
+				  pieChart_vis.add(pv.Wedge)
+				      .def("o", -1)
+				      .data(knownBadCounts)
+				      .innerRadius(0)
+				      .outerRadius(pieChart_r)
+				      .angle(function(d) (d.n/pieChart_sum) * 2 * Math.PI)
+				      .left(function() (pieChart_w/2)
+				          + Math.cos(this.startAngle() + this.angle() / 2)
+				          * ((this.o() == this.index) ? 10 : 0))
+				      .bottom(function() (pieChart_h/2)
+				          - Math.sin(this.startAngle() + this.angle() / 2)
+				          * ((this.o() == this.index) ? 10 : 0))
+				      .text(function(d) d.a + " : " + d.n + " files")
+				      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))//this.o(this.index))
+				      .event("mouseout", function() this.o(-1))
+				    .anchor("center").add(pv.Label)
+				      .visible(function(d) (d.n/pieChart_sum) > .05)
+				      .font("bold 12px sans-serif")
+				      .textStyle("black")
+				      .textAngle(0)
+				      .text(function(d) d.a);
+				
+				  pieChart_vis.render();
+				}
+				else {
+					$('#chart4').append('<br><br>No SVG support detected');
+				}
+			  </script>
+		  </div>
+			<div id="chart5" class="ui-widget ui-widget-chart ui-corner-all" style="left: 525px; width: 250px; height: 250px; text-align: center;"><span id="chart5Title" class="ui-widget-chart-num">[chart5Title]</span><br>Keyword Search Hits
+		  	<script type="text/javascript+protovis">
+			  if (Modernizr.svg){
+	
+					var searchHits_dataArray = Util.getDataValueArray(keywordCounts);
+	
+					var searchHits_w = 225,
+					    searchHits_h = 185,
+					    searchHits_x = function(d) pv.Scale.linear(searchHits_dataArray, pv.index).range(0, searchHits_w),
+					    searchHits_y = function(d) pv.Scale.linear(0, pv.max(searchHits_dataArray)).range(0, searchHits_h);
+					
+					var searchHits_vis = new pv.Panel()
+					    .width(searchHits_w)
+					    .height(searchHits_h)
+					    .bottom(0)
+					    .left(3)
+					    .right(3)
+					    .top(3);
+					
+					/* The area. */
+					searchHits_vis.add(pv.Area)
+					    .data(searchHits_dataArray)
+					    .fillStyle("#2ca02c")
+					    .left(function() searchHits_x()(this.index))
+					    .height(function(d) searchHits_y()(d))
+					    .bottom(0);
+	
+					searchHits_vis.render();
+				}
+				else {
+					$('#chart5').append('<br><br>No SVG support detected');
+				}
+			  </script>
+			</div>
+			<div id="chart6" class="ui-widget ui-widget-chart ui-corner-all" style="left: 850px; width: 250px; height: 250px; text-align: center;"><span id="chart6Title" class="ui-widget-chart-num">[chart6Title]</span><br>Image Clusters
+		    <script type="text/javascript+protovis">
+			  if (Modernizr.svg){
+				  var imgPlot_w = 225,
+				      imgPlot_h = 185,
+				      imgPlot_x = pv.Scale.linear(0, 100).range(0, imgPlot_w),
+				      imgPlot_y = pv.Scale.linear(0, 100).range(0, imgPlot_h),
+				      imgPlot_c = pv.Scale.log(1, 100).range("orange", "brown");
+				
+				  var imgPlot_vis = new pv.Panel()
+				      .width(imgPlot_w)
+				      .height(imgPlot_h)
+				      .bottom(1)
+				      .left(1)
+				      .right(1)
+				      .top(1)
+				      .def("i", -1)
+				      .event("click", function(d) self.location = "clusters.html");
+				
+				  imgPlot_vis.add(pv.Rule)
+				      .data(imgPlot_y.ticks())
+				      .bottom(imgPlot_y)
+				      .strokeStyle(function(d) d ? "#ddd" : "#000");
+		
+				  imgPlot_vis.add(pv.Rule)
+				      .data(imgPlot_x.ticks())
+				      .left(imgPlot_x)
+				      .strokeStyle(function(d) d ? "#ddd" : "#000");
+		
+				  var dot = imgPlot_vis.add(pv.Dot)
+				      .data(imgClusterData)
+				      .left(function(d) imgPlot_x(d.x))
+				      .bottom(function(d) imgPlot_y(d.y))
+				      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
+				      .fillStyle(function(d) imgPlot_vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.cf*0.01))
+				      .size(function(d) d.z*20)
+				      .title(function(d) d.name + "<br>Confidence: " + d.cf)
+				      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true, html: true}))
+				    .anchor("center").add(pv.Label)
+				      .text(function(d) d.z)
+				      .textStyle("black");
+				  imgPlot_vis.render();
+				}
+				else {
+					$('#chart6').append('<br><br>No SVG support detected');
+				}
+		    </script>
+			</div>
+		</div>
+	</div>
+</div>
+</center>
+</body>
+</html>

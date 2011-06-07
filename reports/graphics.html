@@ -1,0 +1,168 @@
+<!doctype html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=9">
+  <title>Reports</title>
+  <meta charset="utf-8">
+  <link type="text/css" href="css/reports.css" rel="stylesheet" />
+  <link type="text/css" href="css/jqueryui/jquery-ui-1.8.12.custom.css" rel="stylesheet" />
+  <link type="text/css" href="css/datatables.jqueryui.css" rel="stylesheet" />
+  <script src="js/json2.js" type="text/javascript"></script>
+  <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
+  <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
+  <script src="js/jquery.dataTables.min.js" type="text/javascript"></script>
+  <script src="js/FixedHeader.min.js" type="text/javascript"></script>
+  <script src="js/modernizr-1.7.min.js" type="text/javascript"></script>
+  <script src="js/protovis-r3.2.js" type="text/javascript"></script>
+  <script src="js/jquery.tipsy.js" type="text/javascript"></script>
+  <script src="js/tipsy.js" type="text/javascript"></script>
+  <link href="css/tipsy.css" type="text/css" rel="stylesheet"/>
+  <script src="js/jquery.jgrowl.min.js" type="text/javascript"></script>
+  <link href="css/jquery.jgrowl.css" type="text/css" rel="stylesheet"/>
+  <script src="js/util.js" type="text/javascript"></script>
+  <script src="js/menuList.js" type="text/javascript"></script>
+  <script src="data/graphics.js" type="text/javascript"></script>
+  <script src="data/index.js" type="text/javascript"></script>
+  <script>
+  $(window).resize(function(){
+    var elem = $(this);
+    $("#printReport").position({
+			of: $("#overviewContainer"),
+			my: "right top",
+			at: "right top",
+			offset: "0 0",
+			collision: "none none"
+		});
+    var i = 0;
+    while(i < menuLen) {
+    	if (i == 0) {
+				$("#menu0").position({
+					of: $("#menuContainer"),
+					my: "left top",
+					at: "left top",
+					offset: "5 -8",
+					collision: "none none"
+				});
+			}
+			else {
+				$("#menu" + i).position({
+					of: $("#menu" + (i-1)),
+					my: "left top",
+					at: "right top",
+					offset: "5 0",
+					collision: "none none"
+				});
+			}
+      ++i;
+    }
+		$("#chart6").position({
+			of: $("#content"),
+			my: "left top",
+			at: "left top",
+			offset: "0 0",
+			collision: "none none"
+		});
+  });
+
+	function menuClick(e)
+	{
+	  location.href = $(this).attr("link");
+	}
+
+	function menuMouseOver(e)
+	{
+	  $(this)
+	  .css({ background: '#aeb6f4', cursor: 'pointer' });
+	}
+	
+	function menuMouseOut(e)
+	{
+	  $(this)
+	  .css({ background: '' });
+	}
+	
+	var Util = new Utility();
+	
+	var menuLen = 0;
+
+	function fillDeviceInfo(devInfo) {
+		$("#deviceName").html(Util.findObjectByName(devInfo, "deviceName").n);
+	}
+
+  $(document).ready(function () {
+  	menuLen = Util.buildMenu(menuList, 'menuContainer');
+  	fillDeviceInfo(deviceInfo);
+  	$("#chart6Title").html(Util.stringFormatComma(imgClusterData.length));
+    $(window).resize();
+  });
+	</script>
+</head>
+<body style="height:100%;">
+<center>
+<div id="allContainer" style="margin: 0px auto; width: 1200px; border: 1px solid #434a4f;">
+	<div id="topContainer" style="margin: 0px auto; width: 100%;">
+		<div id="overviewContainer" style="margin: 0px auto;">
+			<h2 id="deviceName" class="ui-widget" style="font-size: 1.5em; text-align: center;">[device.name]</h2>
+			<h3 class="ui-widget" style="text-align: center;">Processing Report</h3>
+			<div id="printReport" style="position: absolute; width: 100px;">
+				<img alt="Print Summary Report" src="images/icon-summaryReport.png" />
+				<img alt="Print Summary Report" src="images/icon-detailReport.png" />
+			</div>
+		</div>
+	</div>
+	<div class="ui-widget-menu-shadow" style="height: 10px;"></div>
+	<div id="menuContainer" style="height: 45px; "></div>
+	<div id="content">
+	<!--	<div id="dataTableContent" style="position:absolute;"></div> -->
+		<div id="chart6" class="ui-widget ui-widget-chart ui-corner-all" style="left: 850px; width: 250px; height: 250px; text-align: center;"><span id="chart6Title" class="ui-widget-chart-num">[chart6Title]</span><br>Image Clusters
+	    <script type="text/javascript+protovis">
+		  if (Modernizr.svg){
+			  var imgPlot_w = 225,
+			      imgPlot_h = 185,
+			      imgPlot_x = pv.Scale.linear(0, 100).range(0, imgPlot_w),
+			      imgPlot_y = pv.Scale.linear(0, 100).range(0, imgPlot_h),
+			      imgPlot_c = pv.Scale.log(1, 100).range("orange", "brown");
+			
+			  var imgPlot_vis = new pv.Panel()
+			      .width(imgPlot_w)
+			      .height(imgPlot_h)
+			      .bottom(1)
+			      .left(1)
+			      .right(1)
+			      .top(1)
+			      .def("i", -1)
+			      .event("click", function(d) self.location = "clusters.html");
+			
+			  imgPlot_vis.add(pv.Rule)
+			      .data(imgPlot_y.ticks())
+			      .bottom(imgPlot_y)
+			      .strokeStyle(function(d) d ? "#ddd" : "#000");
+	
+			  imgPlot_vis.add(pv.Rule)
+			      .data(imgPlot_x.ticks())
+			      .left(imgPlot_x)
+			      .strokeStyle(function(d) d ? "#ddd" : "#000");
+	
+			  var dot = imgPlot_vis.add(pv.Dot)
+			      .data(imgClusterData)
+			      .left(function(d) imgPlot_x(d.x))
+			      .bottom(function(d) imgPlot_y(d.y))
+			      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
+			      .fillStyle(function(d) imgPlot_vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.cf*0.01))
+			      .size(function(d) d.z*20)
+			      .title(function(d) d.name + "<br>Confidence: " + d.cf)
+			      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true, html: true}))
+			    .anchor("center").add(pv.Label)
+			      .text(function(d) d.z)
+			      .textStyle("black");
+			  imgPlot_vis.render();
+			}
+			else {
+				$('#chart6').append('<br><br>No SVG support detected');
+			}
+	    </script>
+		</div>
+	</div>
+</div>
+</center>
+</body>
+</html>
