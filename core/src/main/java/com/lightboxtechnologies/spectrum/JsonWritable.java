@@ -50,6 +50,7 @@ public class JsonWritable implements Writable {
   }
 
   public void readFields(DataInput in) throws IOException {
+    Data = null;
     Json = in.readUTF();
   }
 

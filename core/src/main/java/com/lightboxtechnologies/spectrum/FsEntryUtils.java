@@ -86,24 +86,9 @@ public class FsEntryUtils {
       );
     }
 
-    // find the last path separator
-    int lastsep = -1;
-    for (int i = path.length-1; i >= 0; --i) {
-      if (path[i] == '/') {
-        lastsep = i;
-        break;
-      }
-    }
-  
-    if (lastsep == -1) {
-      throw new RuntimeException(
-        "Path \"" + (new String(path)) + "\" contains no path separator!"
-      );
-    }
- 
     // hash the base file path
     hasher.reset();
-    hasher.update(path, 0, lastsep);
+    hasher.update(path, 0, path.length);
     final byte[] path_md5 = hasher.digest();
 
     // build the key

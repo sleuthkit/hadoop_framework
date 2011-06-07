@@ -28,7 +28,7 @@ public class FsEntryUtilsTest {
 
   @Test
   public void makeFsEntryKeyTest() {
-    final byte[] path = "goats/goats/goats/goat.jpg".getBytes();
+    final byte[] path = "goats/goats/goats".getBytes();
 
     final int dir_index = 123456;
 

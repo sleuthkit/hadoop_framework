@@ -36,4 +36,4 @@ def mapper(key, entry, context):
     context.warning("nrd problem on %s: %s" % (key, str(ex)))
   else:
     if (good):
-      context.emit(offset, {'id':key, 'extents':runs, 'size':size})
+      context.emit(offset, {'id':key, 'fp':entry.fullPath(), 'extents':runs, 'size':size})

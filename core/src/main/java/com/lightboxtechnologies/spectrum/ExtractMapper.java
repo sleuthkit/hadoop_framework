@@ -94,7 +94,7 @@ public class ExtractMapper
 
     // ensure that the hash table exists
     final Configuration conf = context.getConfiguration();
-/*
+
     final HBaseAdmin admin = new HBaseAdmin(conf);
     if (!admin.tableExists(HBaseTables.HASH_TBL_B)) {
       final HTableDescriptor tableDesc =
@@ -105,8 +105,9 @@ public class ExtractMapper
       tableDesc.addFamily(colFamDesc);
       admin.createTable(tableDesc);
     }
-*/
-
+    else if (!admin.isTableEnabled(HBaseTables.HASH_TBL_B)) {
+    	admin.enableTable(HBaseTables.HASH_TBL_B);
+    }
     HashTbl = new HTable(conf, HBaseTables.HASH_TBL_B);
 
     EntryTbl =
@@ -240,6 +241,7 @@ public class ExtractMapper
     // Put a portion of Buffer; can probably do this with
     // java.nio.Buffer.
     final StreamProxy content = new BufferProxy(Arrays.copyOf(Buffer, (int)fileSize));
+    LOG.info("Extracted small file of " + fileSize);
 
     rec.put("Content", content);
     return rec;
@@ -306,14 +308,22 @@ public class ExtractMapper
   protected static final byte[] one = { 1 };
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
-    byte[] id = null;
+    String id = (String)map.get("id");
     try {
-      id = Hex.decodeHex(((String)map.get("id")).toCharArray());
+      OutKey.set(Hex.decodeHex(id.toCharArray()));
     }
     catch (DecoderException e) {
       throw new RuntimeException(e);
     }
     final long fileSize = ((Number) map.get("size")).longValue();
+    StringBuilder sb = new StringBuilder("Extracting ");
+    sb.append(id);
+    sb.append(":");
+    sb.append((String)map.get("fp"));
+    sb.append(" (");
+    sb.append(fileSize);
+    sb.append(" bytes)");
+    LOG.info(sb.toString());
     MD5Hash.reset();
 
     final Map<String,Object> rec = fileSize > SIZE_THRESHOLD ?
@@ -329,15 +339,14 @@ public class ExtractMapper
     // write the entry to the file table
     EntryTbl.put(
       FsEntryHBaseOutputFormat.FsEntryHBaseWriter.createPut(
-        id, rec, Bytes.toBytes("core")
+        OutKey.get(), rec, Bytes.toBytes("core")
       )
     );
 
     // write the key for the hash table
-    OutKey.set(id);
     final long timestamp =  System.currentTimeMillis();
     final KeyValue OutValue = new KeyValue(
-      id, HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
     );
     context.write(OutKey, OutValue);
   }
@@ -364,10 +373,18 @@ public class ExtractMapper
 
       } while (extents.next(offset, attrs) && (cur = offset.get()) < endOffset);
     }
+    catch (IOException io) {
+      throw io;
+    }
+    catch (InterruptedException interrupt) {
+      throw interrupt;
+    }
+    catch (Exception e) {
+      LOG.error("Extraction exception " + e);
+    }
     finally {
       IOUtils.closeQuietly(file);
     }
-
     return numFiles;
   }
 

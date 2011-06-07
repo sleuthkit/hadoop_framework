@@ -19,6 +19,7 @@ limitations under the License.
 package com.lightboxtechnologies.spectrum;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat;
@@ -66,6 +67,7 @@ public class ExtractData {
     conf.set(HBaseTables.ENTRIES_TBL_VAR, otherArgs[0]);
     conf.set("com.lbt.storepath", otherArgs[3]);
     HFileOutputFormat.setOutputPath(job, new Path(otherArgs[3]));
+    HBaseConfiguration.addHbaseResources(job.getConfiguration());
 
     final URI extents = new Path(otherArgs[1]).toUri();
     LOG.info("extents file is " + extents);

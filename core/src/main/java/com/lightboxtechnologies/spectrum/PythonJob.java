@@ -62,6 +62,8 @@ import java.util.List;
 
 import javax.script.*;
 
+import org.sleuthkit.hadoop.SKMapper;
+
 
 public class PythonJob {
 
@@ -143,8 +145,8 @@ public class PythonJob {
       if (o instanceof LongWritable) {
         return (LongWritable)o;
       }
-      else if (o instanceof BigInteger) {
-        Box.set(((BigInteger)o).longValue());
+      else if (o instanceof Number) {
+        Box.set(((Number)o).longValue());
       }
       else {
         Box.set((Long)o);
@@ -400,18 +402,27 @@ public class PythonJob {
   }
 
   public static class PythonMapper
-                     extends Mapper<BytesWritable,FsEntry,WritableComparable,Writable> {
+                     extends SKMapper<ImmutableHexWritable, FsEntry, WritableComparable,Writable> {
 
-    private PyEngine<BytesWritable,FsEntry,WritableComparable,Writable> Python;
+    private PyEngine<ImmutableHexWritable,FsEntry,WritableComparable,Writable> Python;
+    private long NumRecords = 0;
 
-    protected void setup(Context context) {
+    @Override
+    public void setup(Mapper.Context context) {
       Python = PyEngine.setup(context, "map");
+      super.setup(context);
     }
 
-    public void map(Text key, FsEntry value, Context context) throws IOException, InterruptedException {
-      context.getCounter(Counters.INPUT_RECORDS).increment(1);
+    @Override
+    public void map(ImmutableHexWritable key, FsEntry value, Context context) throws IOException, InterruptedException {
+      ++NumRecords;
       context.progress();
       Python.call("mapper", key.toString(), value, context);
+    }
+
+    @Override
+    protected void cleanup(Mapper.Context context) {
+      context.getCounter(Counters.INPUT_RECORDS).increment(NumRecords);
     }
   }
 
@@ -430,20 +441,6 @@ public class PythonJob {
     public void reduce(WritableComparable key, Iterable<Writable> values, Context context) throws IOException, InterruptedException {
       context.progress();
       Python.call("reducer", Python.getOutKey().unbox(key), values, context);
-    }
-  }
-
-  static String convertScanToString(Scan scan) throws IOException {
-    final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataOutputStream dos = null;
-    try {
-      dos = new DataOutputStream(out);
-      scan.write(dos);
-      dos.close();
-      return Base64.encodeBytes(out.toByteArray());
-    }
-    finally {
-      IOUtils.closeQuietly(dos);
     }
   }
 
@@ -511,11 +508,7 @@ public class PythonJob {
       FsEntryJsonInputFormat.addInputPath(job, new Path(input));
     }
     else {
-      Scan scan = new Scan();
-      scan.addFamily(Bytes.toBytes("core"));
-      FsEntryHBaseInputFormat.setupConf(conf);
-      job.getConfiguration().set(TableInputFormat.INPUT_TABLE, otherArgs[0]);
-      job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
+      FsEntryHBaseInputFormat.setupJob(job, input);
       job.setInputFormatClass(FsEntryHBaseInputFormat.class);
     }
 

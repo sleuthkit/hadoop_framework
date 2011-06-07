@@ -26,6 +26,8 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
  * @author Joel Uckelman
  */
 public class ImmutableHexWritable extends ImmutableBytesWritable {
+  final Hex MyHex = new Hex();
+
   /** @inheritDoc */
   public ImmutableHexWritable() {
     super();
@@ -48,8 +50,7 @@ public class ImmutableHexWritable extends ImmutableBytesWritable {
 
   @Override
   public String toString() {
-    final Hex hex = new Hex();
     final byte[] bytes = copyBytes();
-    return new String(hex.encode(bytes));
+    return new String(MyHex.encode(bytes));
   }
 }
