@@ -79,10 +79,10 @@ Utility.prototype.sortNumberDesc = function(a, b) {
 	return b - a;
 }
 
-Utility.prototype.DownloadJSON2CSV = function(objArray, queryString)
+Utility.prototype.DownloadJSON2CSV = function(objArray, selArray)
 {
 	//this.deserialize(queryString, 1);
-	//TODO: use queryString to only output selected items
+	//TODO: use selArray to only output selected items
   var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
   var str = '';
   arrLen = array.length;
