@@ -182,14 +182,16 @@ public class ClusterUtil {
         }
 
         StringBuilder sb = new StringBuilder(100);
-
+        sb.append("kw:\"");
         for (Pair<String, Double> item : topTerms) {
-          String term = item.getFirst();
-          sb.append("\n\t\t");
-          sb.append(StringUtils.rightPad(term, 40));
-          sb.append("=>");
-          sb.append(StringUtils.leftPad(item.getSecond().toString(), 20));
+          sb.append(item.getFirst() + ", ");
+          //String term = item.getFirst();
+          //sb.append("\n\t\t");
+          //sb.append(item.getFirst());
+          //sb.append("=>");
+          //sb.append(StringUtils.leftPad(item.getSecond().toString(), 20));
         }
+        sb.append("\"");
         return sb.toString();
     }
 

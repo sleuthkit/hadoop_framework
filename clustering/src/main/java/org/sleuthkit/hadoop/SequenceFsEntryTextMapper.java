@@ -1,18 +1,16 @@
 package org.sleuthkit.hadoop;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.hadoop.io.Text;
 
-import org.codehaus.jackson.map.ObjectMapper;
-
 import com.lightboxtechnologies.spectrum.FsEntry;
 
-// Maps regex matches to an output file.
+// Write out files from the HBase table to a sequence file IFF
+// they have a regex match from the previous step.
 public class SequenceFsEntryTextMapper
 extends SKMapper<Text, FsEntry, Text, Text> {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public void map(Text key, FsEntry value, Context context)
@@ -20,17 +18,21 @@ extends SKMapper<Text, FsEntry, Text, Text> {
         try {
             String output = (String)value.get(HBaseConstants.EXTRACTED_TEXT);
             if (output != null) {
-                String fsResults = context.getConfiguration().get(SequenceFsEntryText.GREP_MATCHES_TO_SEARCH);
-                if (fsResults == null || fsResults.equals("")) { return; }
                 
-                final String grepResults = (String) value.get(fsResults);
-                if ((grepResults != null) && (grepResults.length() > 0)) {
+                ArrayList<Object> grepResults;
+                try {
+                    grepResults = (ArrayList)value.get(HBaseConstants.GREP_RESULTS);
+                } catch (NullPointerException ex) {
+                    // This is common. There were no grep results. Just bail.
+                    return;
+                }
+                if ((grepResults != null) && (grepResults.size() > 0)) {
                     context.write(key, new Text(output));
                 }
                 
             }
             else {
-                System.out.println("Warning: No text for key: " + key.toString());
+                //System.out.println("Warning: No text for key: " + key.toString());
             }
 
             

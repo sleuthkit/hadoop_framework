@@ -1,27 +1,41 @@
+/*
+   Copyright 2011 Basis Technology Corp.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+
 package org.sleuthkit.hadoop;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.Text;
-
-import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jettison.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 
 // Maps regex matches to an output file.
 public class GrepMapper
 extends SKMapper<Text, FsEntry, Text, FsEntry> {
-
+    Logger LOG = LoggerFactory.getLogger(GrepMapper.class);
     private List<Pattern> patterns = new ArrayList<Pattern>();
-   
-    private static final ObjectMapper mapper = new ObjectMapper();
- 
+    
     @Override
     public void setup(Context ctx) {
         String[] regexlist = ctx.getConfiguration().get("mapred.mapper.regex").split("\n");
@@ -32,7 +46,13 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
             try {
                 patterns.add(Pattern.compile(item));
             } catch (Exception ex) {
-                // not much to do...
+                // TODO: Replace this with something better.
+                // Why do this? Pattern indices matter this this implementation.
+                // If a pattern is not added properly, that will throw off our
+                // indexing later on in the map step. These will also be logged.
+                patterns.add(Pattern.compile("xxxINVALID_PATTERNxxx"));
+                LOG.error("Bad regular expression: " + item, ex);   
+                
             }
         }
         super.setup(ctx);
@@ -49,20 +69,29 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
             System.err.println("No FsEntry for File: " + key.toString());
             return;
         }
-        Set<String> s = new HashSet<String>();
-        for (Pattern item : patterns) {
+        // The list of actual matches.
+        List<String> s = new ArrayList<String>();
+        // The list of regexes matched.
+        List<Integer> g = new ArrayList<Integer>();
+        // TODO: We could have a context variable here as well, storing info
+        // about the text surrounding the grep match.
+        int i = 0;
+        for (i = 0; i < patterns.size(); i++) {
+            Pattern item = patterns.get(i);
             Matcher matcher = item.matcher(text);
             
             while (matcher.find()) {
                 s.add(matcher.group());
+                g.add(i);
             }
         }
         
         try {
-            final List<String> jl = new ArrayList(s);
-            final String json = mapper.writeValueAsString(jl);
-            value.put(HBaseConstants.GREP_RESULTS, json);
+            JSONArray ar = new JSONArray(s);
+            JSONArray grepMatches = new JSONArray(g);
             
+            value.put(HBaseConstants.GREP_RESULTS, ar.toString());
+            value.put(HBaseConstants.GREP_SEARCHES, grepMatches.toString());
             context.write(key, value);
         } catch (InterruptedException e) {
             e.printStackTrace();

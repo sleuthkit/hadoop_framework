@@ -19,10 +19,9 @@ package org.sleuthkit.hadoop.pipeline;
 
 import org.sleuthkit.hadoop.ClusterDocuments;
 import org.sleuthkit.hadoop.FSEntryTikaTextExtractor;
+import org.sleuthkit.hadoop.GrepReportGenerator;
 import org.sleuthkit.hadoop.GrepSearchJob;
-import org.sleuthkit.hadoop.HBaseFileImporter;
 import org.sleuthkit.hadoop.SequenceFsEntryText;
-import org.sleuthkit.hadoop.TikaTextExtractor;
 import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
 
 public class Pipeline {
@@ -75,6 +74,7 @@ public class Pipeline {
         SequenceFsEntryText.runTask("entries", seqDumpDirectory, imageID, "FriendlyName");
 
         TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
+        GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, "FriendlyName");
 
         ClusterDocuments.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, "FriendlyName");
     }
