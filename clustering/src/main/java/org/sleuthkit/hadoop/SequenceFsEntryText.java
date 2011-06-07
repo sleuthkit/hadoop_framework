@@ -27,7 +27,7 @@ public class SequenceFsEntryText {
     public static void runTask(String table, String outDir, String id, String friendlyName) throws Exception {
         //final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-        Job job = SKJobFactory.createJob(id, friendlyName, "GrepMatchesToSequenceFiles");
+        Job job = SKJobFactory.createJob(id, friendlyName, JobNames.GREP_MATCHED_FILES_OUT);
         job.setJarByClass(SequenceFsEntryText.class);
         job.setMapperClass(SequenceFsEntryTextMapper.class);
 

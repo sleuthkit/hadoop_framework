@@ -98,7 +98,7 @@ public class ClusterDocuments {
             ////////////////////////////////
             // Output top cluster matches //
             ////////////////////////////////
-            Job job = SKJobFactory.createJob(imageID, friendlyName, "TopClusterMatchPrinting");
+            Job job = SKJobFactory.createJob(imageID, friendlyName, JobNames.OUTPUT_CLUSTER_MATCH);
             job.setJarByClass(ClusterDocuments.class);
 
 

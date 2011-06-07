@@ -62,7 +62,7 @@ public class GrepSearchJob {
     public static int runPipeline(String table, String deviceID, String regexFile, String friendlyName) {
         
         try {
-            Job job = SKJobFactory.createJob(deviceID, friendlyName, "GrepSearch");
+            Job job = SKJobFactory.createJob(deviceID, friendlyName, JobNames.GREP_SEARCH);
             job.setJarByClass(GrepSearchJob.class);
 
             FileSystem fs = FileSystem.get(job.getConfiguration());

@@ -46,7 +46,7 @@ public class FSEntryTikaTextExtractor {
 
     public static void runTask(String table, String imageID, String friendlyName) throws Exception {
         
-        Job job = SKJobFactory.createJob(imageID, friendlyName, "TikaTextExtraction");
+        Job job = SKJobFactory.createJob(imageID, friendlyName, JobNames.TIKA_TEXT_EXTRACTION);
 
         
         job.setJarByClass(FSEntryTikaTextExtractor.class);

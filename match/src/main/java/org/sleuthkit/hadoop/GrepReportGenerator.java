@@ -89,7 +89,7 @@ public class GrepReportGenerator {
             out.close();
             */
             
-            Job job = SKJobFactory.createJob(deviceID, friendlyName, "GrepCountMapReduce");
+            Job job = SKJobFactory.createJob(deviceID, friendlyName, JobNames.GREP_COUNT_MATCHED_EXPRS_JSON);
             job.setJarByClass(GrepCountMapper.class);
             job.setMapperClass(GrepCountMapper.class);
             job.setMapOutputKeyClass(LongWritable.class);
@@ -117,7 +117,7 @@ public class GrepReportGenerator {
             ///////////////////////////////////////////////////////////////////
             
             
-            job = SKJobFactory.createJob(deviceID, friendlyName, "GrepMatchMapReduce");
+            job = SKJobFactory.createJob(deviceID, friendlyName, JobNames.GREP_MATCHED_EXPRS_JSON);
             job.setJarByClass(GrepMatchMapper.class);
             job.setMapperClass(GrepMatchMapper.class);
             job.setMapOutputKeyClass(NullWritable.class);

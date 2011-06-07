@@ -17,7 +17,7 @@ import com.lightboxtechnologies.spectrum.HBaseTables;
 public class CrossImageScorerJob {
 
     public static void runPipeline(String imgID) throws IOException {
-        Job j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", "CrossImageSimilarityScoring");
+        Job j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", JobNames.CROSS_IMG_SIM_SCORING);
         j.setInputFormatClass(TableInputFormat.class);
         j.setMapperClass(CrossImageScoreMapper.class);
         
@@ -31,7 +31,7 @@ public class CrossImageScorerJob {
         
         // Reduce!
         
-        j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", "CrossImageScoreCalculation");
+        j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", JobNames.CROSS_IMG_SIM_SCORING_CALC);
         j.setInputFormatClass(SequenceFileInputFormat.class);
         j.setOutputFormatClass(SequenceFileOutputFormat.class);
        

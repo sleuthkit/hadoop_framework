@@ -22,7 +22,7 @@ extends SKMapper<Text, FsEntry, LongWritable, LongWritable>{
 	    try {
 	        ArrayList<Object> grepKeywordList = (ArrayList)value.get(HBaseConstants.GREP_SEARCHES);
 	        for (int i = 0; i < grepKeywordList.size(); i++) {
-	            context.write(new LongWritable((Integer)grepKeywordList.get(i)), new LongWritable(1));
+	            context.write(new LongWritable((int)(Integer)grepKeywordList.get(i)), new LongWritable(1));
 	        }
 	    } catch (Exception ex) {
 	        // This is normal. If there are no grep matches, the array will be null.
