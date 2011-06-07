@@ -39,6 +39,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -305,8 +306,15 @@ public class ExtractMapper
   protected static final byte[] one = { 1 };
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
-    final String id = (String) map.get("id");
+    byte[] id = null;
+    try {
+      id = Hex.decodeHex(((String)map.get("id")).toCharArray());
+    }
+    catch (DecoderException e) {
+      throw new RuntimeException(e);
+    }
     final long fileSize = ((Number) map.get("size")).longValue();
+    MD5Hash.reset();
 
     final Map<String,Object> rec = fileSize > SIZE_THRESHOLD ?
       process_extent_large(file, fs, outPath, map, context) :
@@ -326,10 +334,10 @@ public class ExtractMapper
     );
 
     // write the key for the hash table
-    OutKey.set(Bytes.toBytes(id));
+    OutKey.set(id);
     final long timestamp =  System.currentTimeMillis();
     final KeyValue OutValue = new KeyValue(
-      Bytes.toBytes(id), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+      id, HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
     );
     context.write(OutKey, OutValue);
   }

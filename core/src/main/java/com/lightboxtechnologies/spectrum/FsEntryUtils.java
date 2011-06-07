@@ -26,6 +26,8 @@ import org.apache.hadoop.hbase.util.Bytes;
  * @author Joel Uckelman
  */
 public class FsEntryUtils {
+  
+  public static final int ID_LENGTH = 36;
 
   MessageDigest Hasher;
 
@@ -49,7 +51,7 @@ public class FsEntryUtils {
   }
 
   public static byte[] makeFsEntryKey(byte[] imgID, byte[] path, int dirIndex) {
-    byte[] ret = new byte[36];
+    byte[] ret = new byte[ID_LENGTH];
     MessageDigest hasher = getHashInstance("MD5");
     makeFsEntryKey(ret, imgID, path, dirIndex, hasher);
     return ret;
@@ -70,7 +72,7 @@ public class FsEntryUtils {
       path over the keyspace.
     */
 
-    if (result.length < 36) {
+    if (result.length < ID_LENGTH) {
       throw new IllegalArgumentException("result byte array needs to be at least 36 bytes in length.");
     }
 

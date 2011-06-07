@@ -17,24 +17,35 @@
 package org.sleuthkit.hadoop;
 
 import org.apache.hadoop.mapreduce.Mapper;
-
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.DecoderException;
 
 public abstract class SKMapper<keyin, valin, keyout, valout>
 extends Mapper<keyin, valin, keyout, valout> {
 
     private String id;
+    private byte[] ImageIDBytes;
+
     public static final String ID_KEY = "org.sleuthkit.hadoop.realimageid";
     public static final String USER_ID_KEY = "org.sleuthkit.hadoop.userimageid";
     
     @Override
     public void setup(Context ctx) {
         id = ctx.getConfiguration().get(ID_KEY, "DEFAULT_IMAGE_ID");
+        try {
+          ImageIDBytes = Hex.decodeHex(id.toCharArray());
+        }
+        catch (DecoderException e) {
+          throw new RuntimeException(e);
+        }
         System.out.println(id);
     }
-    
 
     String getId() {
         return id;
     }
-    
+
+    public byte[] getImageID() {
+      return ImageIDBytes;
+    }
 }
