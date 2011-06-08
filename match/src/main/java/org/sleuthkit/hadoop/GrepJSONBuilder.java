@@ -14,7 +14,6 @@ public class GrepJSONBuilder {
     public static void buildReport(Path countReport, Path matchReport, Path outFile)
     throws IOException {
         
-        
         FSDataOutputStream out = FileSystem.get(new Configuration()).create(outFile, true);
         out.write("var keywordCounts = ".getBytes());
         writeFileToStream(countReport, out);
@@ -25,11 +24,12 @@ public class GrepJSONBuilder {
 
     }
     
-    public static void writeFileToStream(Path path, FSDataOutputStream stream) throws IOException {
-        FileSystem fs = FileSystem.get(new Configuration());
+    public static void writeFileToStream(Path path, FSDataOutputStream stream)
+    throws IOException {
         
+        FileSystem fs = FileSystem.get(new Configuration());
         FSDataInputStream in = fs.open(path);
-
+        
         byte[] bytes = new byte[1024];
         int i = in.read(bytes);
         while ( i != -1) {

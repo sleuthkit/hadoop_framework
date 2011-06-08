@@ -1,31 +1,29 @@
 package org.sleuthkit.hadoop;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.codec.DecoderException;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
-import org.apache.hadoop.hbase.util.Base64;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
-import com.lightboxtechnologies.spectrum.HBaseTables;
 
 public class SequenceFsEntryText {
 
     public static final String GREP_MATCHES_TO_SEARCH = "org.sleuthkit.grepsearchfield";
     
     public static void main(String[] argv) throws Exception {
-        runTask(argv[0], argv[1], argv[2], argv[3]);
+        runTask(argv[0], argv[1], argv[2]);
     }
     
-    public static void runTask(String table, String outDir, String id, String friendlyName) throws Exception {
-        //final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+    /** Runs a mapreduce task which will iterate over the HBase entries table
+     * using FSEntry. It will output files on the hdd with the identifier
+     * id that have grep matches to one or more sequence files in outDir.
+     */
+    public static void runTask(String outDir, String id, String friendlyName)
+    throws IOException, DecoderException, InterruptedException, ClassNotFoundException {
 
         Job job = SKJobFactory.createJob(id, friendlyName, JobNames.GREP_MATCHED_FILES_OUT);
         job.setJarByClass(SequenceFsEntryText.class);
@@ -36,6 +34,7 @@ public class SequenceFsEntryText {
         job.setNumReduceTasks(0);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
+        
         job.setInputFormatClass(FsEntryHBaseInputFormat.class);
         FsEntryHBaseInputFormat.setupJob(job, id);
 

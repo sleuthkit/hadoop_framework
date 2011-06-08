@@ -16,17 +16,9 @@
 
 package org.sleuthkit.hadoop;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
-import org.apache.hadoop.hbase.util.Base64;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.ToolRunner;
@@ -34,7 +26,6 @@ import org.apache.hadoop.util.ToolRunner;
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
-import com.lightboxtechnologies.spectrum.HBaseTables;
 
 /* Extracts matching regexes from input files and counts them. */
 public class GrepSearchJob {

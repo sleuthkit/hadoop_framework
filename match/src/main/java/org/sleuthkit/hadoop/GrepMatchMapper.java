@@ -2,11 +2,9 @@ package org.sleuthkit.hadoop;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -21,14 +19,15 @@ extends SKMapper<ImmutableHexWritable, FsEntry, NullWritable, Text>{
         super.setup(ctx);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void map(ImmutableHexWritable key, FsEntry value, Context context)
     throws InterruptedException, IOException {
         ArrayList<Object> grepKeywordList;
         ArrayList<String> grepSearchResults;
 
-        grepKeywordList = (ArrayList)value.get(HBaseConstants.GREP_SEARCHES);
-        grepSearchResults = (ArrayList)value.get(HBaseConstants.GREP_RESULTS);
+        grepKeywordList = (ArrayList<Object>)value.get(HBaseConstants.GREP_SEARCHES);
+        grepSearchResults = (ArrayList<String>)value.get(HBaseConstants.GREP_RESULTS);
         
         if (grepKeywordList == null || grepSearchResults == null) { return; }
         // No grep results for this keyword...

@@ -22,7 +22,8 @@ extends SKMapper<ImmutableHexWritable, FsEntry, LongWritable, LongWritable>{
 	@Override
 	public void map(ImmutableHexWritable key, FsEntry value, Context context)
 	throws InterruptedException, IOException {
-	    final List<Integer> grepKeywordList =
+	    @SuppressWarnings("unchecked")
+        final List<Integer> grepKeywordList =
 	        (List<Integer>) value.get(HBaseConstants.GREP_SEARCHES);
 
 	    if (grepKeywordList != null) {

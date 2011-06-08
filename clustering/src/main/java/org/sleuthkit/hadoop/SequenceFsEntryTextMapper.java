@@ -1,7 +1,7 @@
 package org.sleuthkit.hadoop;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.io.Text;
 
@@ -19,24 +19,13 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, Text> {
         try {
             String output = (String)value.get(HBaseConstants.EXTRACTED_TEXT);
             if (output != null) {
-                
-                ArrayList<Object> grepResults;
-                try {
-                    grepResults = (ArrayList)value.get(HBaseConstants.GREP_RESULTS);
-                } catch (NullPointerException ex) {
-                    // This is common. There were no grep results. Just bail.
-                    return;
-                }
+                @SuppressWarnings("unchecked")
+                List<Object> grepResults = (List<Object>)value.get(HBaseConstants.GREP_RESULTS);
                 if ((grepResults != null) && (grepResults.size() > 0)) {
+                    // There were grep results, so we are interested in this file.
                     context.write(key, new Text(output));
                 }
-                
             }
-            else {
-                //System.out.println("Warning: No text for key: " + key.toString());
-            }
-
-            
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

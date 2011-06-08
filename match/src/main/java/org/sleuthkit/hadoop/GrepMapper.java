@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.hadoop.io.Text;
 import org.codehaus.jettison.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +51,7 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
                 // If a pattern is not added properly, that will throw off our
                 // indexing later on in the map step. These will also be logged.
                 patterns.add(Pattern.compile("xxxINVALID_PATTERNxxx"));
-                LOG.error("Bad regular expression: " + item, ex);   
-                
+                LOG.error("Bad regular expression: " + item, ex);
             }
         }
         super.setup(ctx);
