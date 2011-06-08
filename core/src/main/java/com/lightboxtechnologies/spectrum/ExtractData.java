@@ -64,7 +64,7 @@ public class ExtractData {
     job.getConfiguration().setInt("mapred.job.reuse.jvm.num.tasks", -1);
     
     FileSystem fs = FileSystem.get(job.getConfiguration());
-    Path hfileDir = new Path("/ev/tmp", UUID.randomUUID().toString());
+    Path hfileDir = new Path("/texaspete/ev/tmp", UUID.randomUUID().toString());
     hfileDir = hfileDir.makeQualified(fs);
     LOG.info("Hashes will be written temporarily to " + hfileDir);
     
