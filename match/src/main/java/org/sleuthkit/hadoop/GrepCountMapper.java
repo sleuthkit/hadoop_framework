@@ -1,10 +1,9 @@
 package org.sleuthkit.hadoop;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
@@ -14,19 +13,23 @@ extends SKMapper<ImmutableHexWritable, FsEntry, LongWritable, LongWritable>{
 
 	@Override
 	public void setup(Context ctx) {
-	    super.setup(ctx);
+	  super.setup(ctx);
 	}
+
+  protected final LongWritable okey = new LongWritable();
+  protected final LongWritable oval = new LongWritable(1);
 
 	@Override
 	public void map(ImmutableHexWritable key, FsEntry value, Context context)
-	throws InterruptedException, IOException {
-	    try {
-	        ArrayList<Object> grepKeywordList = (ArrayList)value.get(HBaseConstants.GREP_SEARCHES);
-	        for (int i = 0; i < grepKeywordList.size(); i++) {
-	            context.write(new LongWritable((int)(Integer)grepKeywordList.get(i)), new LongWritable(1));
-	        }
-	    } catch (Exception ex) {
-	        // This is normal. If there are no grep matches, the array will be null.
+	                                   throws InterruptedException, IOException {
+	  final List<Integer> grepKeywordList =
+        (List<Integer>) value.get(HBaseConstants.GREP_SEARCHES);
+
+    if (grepKeywordList != null) {
+      for (Integer i : grepKeywordList) {
+        okey.set(i);
+	      context.write(okey, oval);
 	    }
+	  }
 	}
 }
