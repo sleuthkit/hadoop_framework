@@ -67,28 +67,6 @@ public class GrepReportGenerator {
             // Stringified version of the regex file.
             String regexes = b.toString();
             
-            /* String[] regexList = regexes.split("\n");
-            
-            JSONArray ar = new JSONArray();
-            int a = 0;
-
-            for (String regex : regexList) {
-                JSONObject obj = new JSONObject();
-                obj.put("a", a);
-                obj.put("kw", regex);
-                ar.add(obj);
-            }
-            
-            // Dump JSON to file
-            
-            Path outFile = new Path(regexJSONDest);
-            
-            FSDataOutputStream out = fs.create(outFile, true);
-            out.writeUTF(ar.toJSONString());
-            out.flush();
-            out.close();
-            */
-            
             Job job = SKJobFactory.createJob(deviceID, friendlyName, JobNames.GREP_COUNT_MATCHED_EXPRS_JSON);
             job.setJarByClass(GrepCountMapper.class);
             job.setMapperClass(GrepCountMapper.class);
@@ -137,9 +115,12 @@ public class GrepReportGenerator {
 
             job.waitForCompletion(true);
             
+            ///////////////////////////////////////////////////////////////////
+            // Finally, write the output.
+            
             GrepJSONBuilder.buildReport(new Path("/texaspete/data/" + deviceID + "/grep/count/part-r-00000"),
                     new Path("/texaspete/data/" + deviceID + "/grep/matchinfo/part-r-00000"),
-                    new Path("/texaspete/data/" + deviceID + "/grep/json"));
+                    new Path("/texaspete/data/" + deviceID + "/reports/data/searchhits.js"));
             
         } catch (Exception ex) {
             LOG.error("Exception while attempting to output grep.", ex);

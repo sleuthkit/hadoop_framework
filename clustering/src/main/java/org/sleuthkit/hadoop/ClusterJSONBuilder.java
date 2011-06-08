@@ -18,9 +18,8 @@ public class ClusterJSONBuilder {
         FSDataOutputStream out = FileSystem.get(new Configuration()).create(outFile, true);
         out.write("var docClusterCounts = ".getBytes());
         writeFileToStream(countReport, out);
-        out.write(";\n\nvar docClusters = ".getBytes());
+        out.write("\n\nvar docClusters = ".getBytes());
         writeFileToStream(clusterReport, out);
-        out.write(";".getBytes());
         out.flush();
         out.close();
 

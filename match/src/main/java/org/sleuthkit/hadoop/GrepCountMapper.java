@@ -21,15 +21,15 @@ extends SKMapper<ImmutableHexWritable, FsEntry, LongWritable, LongWritable>{
 
 	@Override
 	public void map(ImmutableHexWritable key, FsEntry value, Context context)
-	                                   throws InterruptedException, IOException {
-	  final List<Integer> grepKeywordList =
-        (List<Integer>) value.get(HBaseConstants.GREP_SEARCHES);
+	throws InterruptedException, IOException {
+	    final List<Integer> grepKeywordList =
+	        (List<Integer>) value.get(HBaseConstants.GREP_SEARCHES);
 
-    if (grepKeywordList != null) {
-      for (Integer i : grepKeywordList) {
-        okey.set(i);
-	      context.write(okey, oval);
+	    if (grepKeywordList != null) {
+	        for (Integer i : grepKeywordList) {
+	            okey.set(i);
+	            context.write(okey, oval);
+	        }
 	    }
-	  }
 	}
 }

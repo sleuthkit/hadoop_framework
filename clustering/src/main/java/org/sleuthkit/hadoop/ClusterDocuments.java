@@ -150,7 +150,8 @@ public class ClusterDocuments {
             job.setMapperClass(ClusterDocuments.JSONClusterMapper.class);
             job.setMapOutputKeyClass(NullWritable.class);
             job.setMapOutputValueClass(Text.class);
-
+            // again, we need to reduce serially. We are crafting a single json object and so we must
+            // have exactly one output file.
             job.setNumReduceTasks(1);
             job.setReducerClass(JSONArrayReducer.class);
             job.setOutputKeyClass(NullWritable.class);
@@ -165,7 +166,7 @@ public class ClusterDocuments {
             ClusterJSONBuilder.buildReport(
                     new Path(output + "/kmeans/topClusters/part-r-00000"), 
                     new Path(output + "/kmeans/jsonClusteredPoints/part-r-00000"),
-                    new Path(output + "/kmeans/json"));
+                    new Path("/texaspete/" + imageID +  "/reports/data/documents.js"));
             return 0;
         }
         catch(Exception ex) {

@@ -18,9 +18,8 @@ public class GrepJSONBuilder {
         FSDataOutputStream out = FileSystem.get(new Configuration()).create(outFile, true);
         out.write("var keywordCounts = ".getBytes());
         writeFileToStream(countReport, out);
-        out.write(";\n\nvar searchHits = ".getBytes());
+        out.write("\n\nvar searchHits = ".getBytes());
         writeFileToStream(matchReport, out);
-        out.write(";".getBytes());
         out.flush();
         out.close();
 
