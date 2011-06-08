@@ -48,7 +48,7 @@ public class ExtractData {
     final Configuration conf = new Configuration();
     final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    if (otherArgs.length != 3) {
+    if (otherArgs.length != 2) {
       System.err.println("Usage: ExtractData <extents_file> <evidence file>");
       System.exit(2);
     }

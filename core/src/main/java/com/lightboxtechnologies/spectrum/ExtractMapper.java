@@ -75,6 +75,9 @@ public class ExtractMapper
   private static final int SIZE_THRESHOLD = 10 * 1024 * 1024;
 
   private final ImmutableBytesWritable OutKey = new ImmutableBytesWritable();
+  private SequenceFile.Reader Extents = null;
+  private FSDataInputStream ImgFile = null;
+  private Path ImgPath = null;
 
   private final byte[] Buffer = new byte[SIZE_THRESHOLD];
   private MessageDigest MD5Hash,
@@ -112,6 +115,15 @@ public class ExtractMapper
 
     EntryTbl =
       FsEntryHBaseOutputFormat.getHTable(context, HBaseTables.ENTRIES_TBL_B);
+  }
+
+  void openImgFile(Path p, FileSystem fs) throws IOException {
+    if (ImgFile != null && p.equals(ImgPath)) {
+      return;
+    }
+    IOUtils.closeQuietly(ImgFile);
+    ImgPath = p;
+    ImgFile = fs.open(p, 64 * 1024 * 1024);
   }
 
   void extract(FSDataInputStream file, OutputStream outStream, Map<String,?> attrs, Context ctx) throws IOException {
@@ -359,9 +371,8 @@ public class ExtractMapper
     final JsonWritable attrs = new JsonWritable();
     final Path outPath = new Path("/ev/tmp", UUID.randomUUID().toString());
 
-    FSDataInputStream file = null;
     try {
-      file = fs.open(path, 2 * Buffer.length);
+      openImgFile(path, fs);
       extents.getCurrentValue(attrs);
 
       do {
@@ -369,7 +380,7 @@ public class ExtractMapper
 
         @SuppressWarnings("unchecked")
         final Map<String,?> map = (Map<String,?>)attrs.get();
-        process_extent(file, fs, outPath, map, context);
+        process_extent(ImgFile, fs, outPath, map, context);
 
       } while (extents.next(offset, attrs) && (cur = offset.get()) < endOffset);
     }
@@ -381,9 +392,6 @@ public class ExtractMapper
     }
     catch (Exception e) {
       LOG.error("Extraction exception " + e);
-    }
-    finally {
-      IOUtils.closeQuietly(file);
     }
     return numFiles;
   }
@@ -400,24 +408,25 @@ public class ExtractMapper
     final FileSystem fs = FileSystem.get(conf);
 
     int numFiles = 0;
-
-    SequenceFile.Reader extents = null;
     try {
-      extents = openExtentsFile(fs, conf);
-      final LongWritable offset = seekToMapBlock(extents, startOffset);
+      Extents = openExtentsFile(fs, conf);
+      final LongWritable offset = seekToMapBlock(Extents, startOffset);
 
       if (offset != null && offset.get() < endOffset) {
         numFiles = process_extents(
-          fs, split.getPath(), extents, offset, endOffset, context
+          fs, split.getPath(), Extents, offset, endOffset, context
         );
       }
-
       LOG.info("This split had " + numFiles + " files in it");
-      extents.close();
     }
     finally {
-      IOUtils.closeQuietly(extents);
+      IOUtils.closeQuietly(Extents);
     }
+  }
+
+  @Override
+  protected void cleanup(Mapper.Context context) {
+    IOUtils.closeQuietly(ImgFile);
   }
 
   public static String hashFolder(String hash) {
