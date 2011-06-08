@@ -9,6 +9,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import com.lightboxtechnologies.spectrum.HBaseTables;
+import com.lightboxtechnologies.spectrum.KeyUtils;
 
 import static com.lightboxtechnologies.nsrl.HashLoader.HashLoaderMapper;
 
@@ -44,26 +45,6 @@ class HashLoaderHelper {
 
   private static final byte[] one = { 1 };
 
-  public static byte[] makeOutKey(byte[] hash, byte type, byte[] colname) {
-    /*
-      Key format is:
-
-        hash right-padded with zeros to 20 bytes
-        byte 0 for md5, 1 for sha1
-        column name as bytes
-
-      The reason for padding the hash and including the type byte is to
-      ensure that MD5s which are prefixes of SHA1s can be distinguished
-      from them, yet still sort correctly.
-    */
-
-    final byte[] okbytes = new byte[20+1+colname.length];
-    Bytes.putBytes(okbytes, 0, hash, 0, hash.length);
-    okbytes[20] = type;
-    Bytes.putBytes(okbytes, 21, colname, 0, colname.length);
-    return okbytes;
-  }
-
   public void writeRow(byte[] key, HashData hd,
                        HashLoaderMapper.Context context)
                                      throws InterruptedException, IOException {
@@ -73,7 +54,7 @@ class HashLoaderHelper {
     final byte ktype = (byte) (key.length == 16 ? 0 : 1);
 
     // write the crc32 column
-    okey.set(makeOutKey(key, ktype, crc32_col));
+    okey.set(KeyUtils.makeEntryKey(key, ktype, crc32_col));
     context.write(
       okey, new KeyValue(key, family, crc32_col, timestamp, hd.crc32)
     );
@@ -81,14 +62,14 @@ class HashLoaderHelper {
     switch (ktype) {
     case 0:
       // write the sha1 column if the key is not the sha1
-      okey.set(makeOutKey(key, ktype, sha1_col));
+      okey.set(KeyUtils.makeEntryKey(key, ktype, sha1_col));
       context.write(
         okey, new KeyValue(key, family, sha1_col, timestamp, hd.sha1)
       );
       break;
     case 1:
       // write the md5 column if the key is not the md5
-      okey.set(makeOutKey(key, ktype, md5_col));
+      okey.set(KeyUtils.makeEntryKey(key, ktype, md5_col));
       context.write(
         okey, new KeyValue(key, family, md5_col, timestamp, hd.md5)
       );
@@ -97,11 +78,11 @@ class HashLoaderHelper {
 
     // write the file size
     Bytes.putLong(size, 0, hd.size);
-    okey.set(makeOutKey(key, ktype, size_col));
+    okey.set(KeyUtils.makeEntryKey(key, ktype, size_col));
     context.write(okey, new KeyValue(key, family, size_col, timestamp, size));
 
     // check the NSRL box
-    okey.set(makeOutKey(key, ktype, nsrl_col));
+    okey.set(KeyUtils.makeEntryKey(key, ktype, nsrl_col));
     context.write(okey, new KeyValue(key, family, nsrl_col, timestamp, one));
 
     // look up the product data
@@ -114,7 +95,7 @@ class HashLoaderHelper {
       final byte[] set_col =
         (pmd.name + '/' + pd.name + ' ' + pd.version).getBytes();
 
-      okey.set(makeOutKey(key, ktype, set_col));
+      okey.set(KeyUtils.makeEntryKey(key, ktype, set_col));
       context.write(okey, new KeyValue(key, family, set_col, timestamp, one));
     }
   }

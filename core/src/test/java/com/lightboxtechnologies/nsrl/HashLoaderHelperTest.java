@@ -37,6 +37,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.commons.codec.binary.Hex;
 
 import com.lightboxtechnologies.spectrum.HBaseTables;
+import com.lightboxtechnologies.spectrum.KeyUtils;
 
 import static com.lightboxtechnologies.nsrl.HashLoader.HashLoaderMapper;
 
@@ -50,58 +51,6 @@ public class HashLoaderHelperTest {
       setImposteriser(ClassImposteriser.INSTANCE);
     }
   }; 
-
-  @Test
-  public void makeOutKeyMD5() throws Exception {
-    final Hex hex = new Hex(); 
-    final byte[] hash =
-      hex.decode("8a9111fe05f9815fc55c728137c5b389".getBytes());
-    final byte type = 0;
-    final byte[] col = "vassalengine.org/VASSAL 3.1.15".getBytes();
-
-    // It's neat that I have to cast one-byte numeric literals to bytes.
-    // Thanks, Java!
-    final byte[] expected = {
-      (byte) 0x8a, (byte) 0x91, (byte) 0x11, (byte) 0xfe, // MD5
-      (byte) 0x05, (byte) 0xf9, (byte) 0x81, (byte) 0x5f,
-      (byte) 0xc5, (byte) 0x5c, (byte) 0x72, (byte) 0x81,
-      (byte) 0x37, (byte) 0xc5, (byte) 0xb3, (byte) 0x89,
-      (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, // padding
-      (byte) 0x00,                                        // type
-      'v', 'a', 's', 's', 'a', 'l', 'e', 'n', 'g',        // column
-      'i', 'n', 'e', '.', 'o', 'r', 'g', '/', 'V',
-      'A', 'S', 'S', 'A', 'L', ' ', '3', '.', '1',
-      '.', '1', '5'
-    };
-
-    assertArrayEquals(expected, HashLoaderHelper.makeOutKey(hash, type, col));
-  }
-
-  @Test
-  public void makeOutKeySHA1() throws Exception {
-    final Hex hex = new Hex(); 
-    final byte[] hash =
-      hex.decode("64fa477898e268fd30c2bfe272e5a016f5ec31c4".getBytes());
-    final byte type = 1;
-    final byte[] col = "vassalengine.org/VASSAL 3.1.15".getBytes();
-
-    // It's neat that I have to cast one-byte numeric literals to bytes.
-    // Thanks, Java!
-    final byte[] expected = {
-      (byte) 0x64, (byte) 0xfa, (byte) 0x47, (byte) 0x78, // SHA1
-      (byte) 0x98, (byte) 0xe2, (byte) 0x68, (byte) 0xfd,
-      (byte) 0x30, (byte) 0xc2, (byte) 0xbf, (byte) 0xe2,
-      (byte) 0x72, (byte) 0xe5, (byte) 0xa0, (byte) 0x16,
-      (byte) 0xf5, (byte) 0xec, (byte) 0x31, (byte) 0xc4,
-      (byte) 0x01,                                        // type
-      'v', 'a', 's', 's', 'a', 'l', 'e', 'n', 'g',        // column
-      'i', 'n', 'e', '.', 'o', 'r', 'g', '/', 'V',
-      'A', 'S', 'S', 'A', 'L', ' ', '3', '.', '1',
-      '.', '1', '5'
-    };
-
-    assertArrayEquals(expected, HashLoaderHelper.makeOutKey(hash, type, col));
-  }
 
   protected void writeRowTester(final boolean sha1rowkey) throws Exception {
     final long timestamp = 1234567890;
@@ -141,30 +90,30 @@ public class HashLoaderHelperTest {
     );
 
     final ImmutableBytesWritable okey_crc32 = new ImmutableBytesWritable(
-      HashLoaderHelper.makeOutKey(key, ktype, crc32_col)
+      KeyUtils.makeEntryKey(key, ktype, crc32_col)
     );
     final KeyValue kv_crc32 =
       new KeyValue(key, family, crc32_col, timestamp, crc32);    
 
     final ImmutableBytesWritable okey_sha1 = new ImmutableBytesWritable(
-      HashLoaderHelper.makeOutKey(key, ktype, sha1_col)
+      KeyUtils.makeEntryKey(key, ktype, sha1_col)
     );
     final KeyValue kv_sha1 =
       new KeyValue(key, family, sha1_col, timestamp, sha1);    
 
     final ImmutableBytesWritable okey_md5 = new ImmutableBytesWritable(
-      HashLoaderHelper.makeOutKey(key, ktype, md5_col)
+      KeyUtils.makeEntryKey(key, ktype, md5_col)
     );
     final KeyValue kv_md5 =
       new KeyValue(key, family, md5_col, timestamp, md5);
 
     final ImmutableBytesWritable okey_size = new ImmutableBytesWritable(
-      HashLoaderHelper.makeOutKey(key, ktype, size_col)
+      KeyUtils.makeEntryKey(key, ktype, size_col)
     );
     final KeyValue kv_size =
       new KeyValue(key, family, size_col, timestamp, Bytes.toBytes(hd.size));    
     final ImmutableBytesWritable okey_nsrl = new ImmutableBytesWritable(
-      HashLoaderHelper.makeOutKey(key, ktype, nsrl_col)
+      KeyUtils.makeEntryKey(key, ktype, nsrl_col)
     );
     final KeyValue kv_nsrl =
       new KeyValue(key, family, nsrl_col, timestamp, nsrl_col);
@@ -172,7 +121,7 @@ public class HashLoaderHelperTest {
     final byte[] prod_col = 
       (md.name + '/' + pd.name + ' ' + pd.version).getBytes();
     final ImmutableBytesWritable okey_prod = new ImmutableBytesWritable(
-      HashLoaderHelper.makeOutKey(key, ktype, prod_col)
+      KeyUtils.makeEntryKey(key, ktype, prod_col)
     );
     final KeyValue kv_prod =
       new KeyValue(key, family, prod_col, timestamp, prod_col);

@@ -31,7 +31,6 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.hfile.Compression;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -294,7 +293,7 @@ public class ExtractMapper
   private static final byte[] nsrl_col = "nsrl".getBytes();
   private static final byte[] bad_col = "bad".getBytes();
 
-  protected void hash_lookup_and_mark(Map<String,Object> rec, String type)
+  protected byte[] hash_lookup_and_mark(Map<String,Object> rec, String type)
                                                            throws IOException {
     final byte[] hash = (byte[]) rec.get(type);
     final Get request =
@@ -313,6 +312,8 @@ public class ExtractMapper
         rec.put("bad", 1);
       }
     }
+
+    return hash;
   }
 
   protected static final byte[] ingest_col = "ingest".getBytes();
@@ -320,13 +321,14 @@ public class ExtractMapper
   protected static final byte[] one = { 1 };
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
-    String id = (String)map.get("id");
+    final String id = (String)map.get("id");
     try {
       OutKey.set(Hex.decodeHex(id.toCharArray()));
     }
     catch (DecoderException e) {
       throw new RuntimeException(e);
     }
+
     final long fileSize = ((Number) map.get("size")).longValue();
     StringBuilder sb = new StringBuilder("Extracting ");
     sb.append(id);
@@ -343,10 +345,10 @@ public class ExtractMapper
       process_extent_small(file, fileSize, map, context);
 
     // check if the md5 is known
-    hash_lookup_and_mark(rec, "md5");
+    final byte[] md5 = hash_lookup_and_mark(rec, "md5");
 
     // check if the sha1 is known
-    hash_lookup_and_mark(rec, "sha1");
+    final byte[] sha1 = hash_lookup_and_mark(rec, "sha1");
 
     // write the entry to the file table
     EntryTbl.put(
@@ -355,12 +357,21 @@ public class ExtractMapper
       )
     );
 
-    // write the key for the hash table
     final long timestamp =  System.currentTimeMillis();
-    final KeyValue OutValue = new KeyValue(
-      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+
+    // write the md5 version of the key for the hash table
+    final KeyValue ovMD5 = new KeyValue(
+      KeyUtils.makeEntryKey(md5, (byte) 0, OutKey.get()),
+      HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
     );
-    context.write(OutKey, OutValue);
+    context.write(OutKey, ovMD5);
+
+    // write the sha1 version of the key for the hash table
+    final KeyValue ovSHA1 = new KeyValue(
+      KeyUtils.makeEntryKey(sha1, (byte) 1, OutKey.get()),
+      HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+    );
+    context.write(OutKey, ovSHA1);
   }
 
   protected int process_extents(FileSystem fs, Path path, SequenceFile.Reader extents, LongWritable offset, long endOffset, Context context) throws IOException, InterruptedException {
