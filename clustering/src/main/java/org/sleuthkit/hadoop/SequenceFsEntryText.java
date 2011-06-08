@@ -37,37 +37,15 @@ public class SequenceFsEntryText {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(FsEntryHBaseInputFormat.class);
-        job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        FsEntryHBaseInputFormat.setupJob(job, id);
 
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         SequenceFileOutputFormat.setOutputPath(job, new Path(outDir));
 
-
-        final Scan scan = new Scan();
-        scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
-        job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
-        job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
-        job.getConfiguration().set(SKMapper.ID_KEY, id);
         // we want to search the default grep results. If there are any, then
         // dump the text to a file.
         job.getConfiguration().set(GREP_MATCHES_TO_SEARCH, HBaseConstants.GREP_RESULTS);
         
         job.waitForCompletion(true);
     }
-    
-    static String convertScanToString(Scan scan) throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataOutputStream dos = null;
-        try {
-          dos = new DataOutputStream(out);
-          scan.write(dos);
-          dos.close();
-        }
-        finally {
-          IOUtils.closeQuietly(dos);
-        }
-
-        return Base64.encodeBytes(out.toByteArray());
-      }
-
 }

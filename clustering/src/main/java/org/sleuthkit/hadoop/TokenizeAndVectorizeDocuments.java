@@ -30,9 +30,9 @@ public class TokenizeAndVectorizeDocuments {
 
     private static final Logger log = LoggerFactory.getLogger(TokenizeAndVectorizeDocuments.class);
 
-    private static final String DIR_TEXT_DEFAULT = "hdfs://localhost/texaspete/text";
-    private static final String DIR_TOKENIZED_DEFAULT = "hdfs://localhost/texaspete/tokens";
-    private static final String DIR_VECTOR_DEFAULT = "hdfs://localhost/texaspete/vectors";
+    private static final String DIR_TEXT_DEFAULT = "/texaspete/text";
+    private static final String DIR_TOKENIZED_DEFAULT = "/texaspete/tokens";
+    private static final String DIR_VECTOR_DEFAULT = "/texaspete/vectors";
 
     public TokenizeAndVectorizeDocuments() {}
 

@@ -31,45 +31,45 @@ public class Pipeline {
     // The storage place of raw files containing:
 
     // content: raw file content bytes
-    public static final String TIKA_IN  = "hdfs://localhost/texaspete/raw/";
+    public static final String TIKA_IN  = "/texaspete/raw/";
 
     // The storage place of sequencefiles containing:
     // key:   file name
     // value: file content (plain text)
-    public static final String TIKA_OUT_DIR = "hdfs://localhost/texaspete/text/";
+    public static final String TIKA_OUT_DIR = "/texaspete/text/";
 
     // The storage place of sequencefiles containing:
     // key:   file name
     // value: keyword vector (should be a set)
-    public static final String GREP_OUT_DIR = "hdfs://localhost/texaspete/grepped/";
+    public static final String GREP_OUT_DIR = "/texaspete/grepped/";
 
     // A file containing lines of text, each of which represents a regex.
-    public static final String GREP_KEYWORDS = "hdfs://localhost/texaspete/regexes";
+    public static final String GREP_KEYWORDS = "/texaspete/regexes";
 
     // The storage place of sequencefiles containing:
     // key:   file name
     // value: tokenized file content (vector of words)
-    public static final String TOKEN_OUT_DIR = "hdfs://localhost/texaspete/tokens";
+    public static final String TOKEN_OUT_DIR = "/texaspete/tokens";
 
     // The storage place of sequencefiles containing:
     // key:   file name
     // value: term frequency vectors.
     // This directory will likely also contain a dictionary vector mapping
     // the indices in the sparse TF vectors to words.
-    public static final String VECTOR_DIR = "hdfs://localhost/texaspete/vectors";
-    public static final String TFIDF_DIR = "hdfs://localhost/texaspete/vectors/tfidf-vectors/";
+    public static final String VECTOR_DIR = "/texaspete/vectors";
+    public static final String TFIDF_DIR = "/texaspete/vectors/tfidf-vectors/";
 
-    public static final String CLUSTERS_DIR = "hdfs://localhost/texaspete/clusters";
+    public static final String CLUSTERS_DIR = "/texaspete/clusters";
 
-    public static final String DICTIONARY_DIR = "hdfs://localhost/texaspete/vectors/dictionary.file-0";
+    public static final String DICTIONARY_DIR = "/texaspete/vectors/dictionary.file-0";
 
     public static void main(String[] argv) throws Exception {
         String imageID = argv[0];
-        String seqDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/text";
-        String tokenDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/tokens";
-        String vectorDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/vectors";
-        String clusterDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/clusters";
-        String dictionaryDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/vectors/dictionary.file-0";
+        String seqDumpDirectory = "/texaspete/data/" + imageID + "/text";
+        String tokenDumpDirectory = "/texaspete/data/" + imageID + "/tokens";
+        String vectorDumpDirectory = "/texaspete/data/" + imageID + "/vectors";
+        String clusterDumpDirectory = "/texaspete/data/" + imageID + "/clusters";
+        String dictionaryDumpDirectory = "/texaspete/data/" + imageID + "/vectors/dictionary.file-0";
 
         FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, "FriendlyName");
         GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, "FriendlyName");

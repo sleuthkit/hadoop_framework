@@ -41,8 +41,8 @@ public class GrepSearchJob {
     public GrepSearchJob() {}
 
 
-    public static final String DEFAULT_INPUT_DIR =  "hdfs://localhost/texaspete/text/";
-    public static final String DEFAULT_OUTPUT_DIR = "hdfs://localhost/texaspete/grepped/";
+    public static final String DEFAULT_INPUT_DIR =  "/texaspete/text/";    // leave off hdfs://localhost so it can
+    public static final String DEFAULT_OUTPUT_DIR = "/texaspete/grepped/"; // be set by configuration files -- JLS
 
 
     public int run(String[] args) throws Exception {
@@ -98,14 +98,9 @@ public class GrepSearchJob {
             job.setOutputValueClass(FsEntry.class);
 
             job.setInputFormatClass(FsEntryHBaseInputFormat.class);
+            FsEntryHBaseInputFormat.setupJob(job, deviceID);
             job.setOutputFormatClass(FsEntryHBaseOutputFormat.class);
             
-            final Scan scan = new Scan();
-            scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
-            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
-            job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
-
-
             System.out.println("About to run the job...");
             
             return job.waitForCompletion(true) ? 0 : 1;
@@ -115,28 +110,9 @@ public class GrepSearchJob {
         }
     }
 
-    
-    static String convertScanToString(Scan scan) throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataOutputStream dos = null;
-        try {
-          dos = new DataOutputStream(out);
-          scan.write(dos);
-          dos.close();
-        }
-        finally {
-          IOUtils.closeQuietly(dos);
-        }
-
-        return Base64.encodeBytes(out.toByteArray());
-      }
-
-    
     public static void main(String[] args) throws Exception {
         new GrepSearchJob().run(args);
         //int res = ToolRunner.run(new Configuration(), new GrepSearchJob(), args);
         System.exit(0);
     }
-
 }

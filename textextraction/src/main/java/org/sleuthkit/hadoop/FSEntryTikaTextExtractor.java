@@ -15,15 +15,17 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.tika.Tika;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
+import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
 import com.lightboxtechnologies.spectrum.HBaseTables;
+
 public class FSEntryTikaTextExtractor {
 
-    static class TikaTextExtractorMapper extends SKMapper<Text, FsEntry, Text, FsEntry> {
+    static class TikaTextExtractorMapper extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
 
         @Override
-        public void map(Text key, FsEntry value, Context context) throws IOException {
+        public void map(ImmutableHexWritable key, FsEntry value, Context context) throws IOException {
             InputStream proxy = value.getInputStream();
             System.out.println("Extracting Text from file:" + key.toString());
             try {
@@ -33,7 +35,7 @@ public class FSEntryTikaTextExtractor {
             }
             catch (Exception e) {
                 //keep on going
-                System.err.println("Failed to extract text from a file: " + new String(key.getBytes()));
+                System.err.println("Failed to extract text from a file: " + key);
                 e.printStackTrace();
             }
         }
@@ -55,35 +57,16 @@ public class FSEntryTikaTextExtractor {
         // We don't need a combiner or a reducer for this job. We aren't
         // writing anything out either.
         job.setNumReduceTasks(0);
-        job.setOutputKeyClass(Text.class);
+        job.setOutputKeyClass(ImmutableHexWritable.class);
         job.setOutputValueClass(FsEntry.class);
         job.setInputFormatClass(FsEntryHBaseInputFormat.class);
         job.setOutputFormatClass(FsEntryHBaseOutputFormat.class);
 
-        final Scan scan = new Scan();
-        scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
-        job.getConfiguration().set(TableInputFormat.INPUT_TABLE, table);
-        job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
-        job.getConfiguration().set(SKMapper.ID_KEY, imageID);
-        System.out.println("Spinning of MR Job...");
+        FsEntryHBaseInputFormat.setupJob(job, imageID);
+
+        System.out.println("Spinning off TextExtraction Job...");
         job.waitForCompletion(true);
     }
-    
-    static String convertScanToString(Scan scan) throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataOutputStream dos = null;
-        try {
-          dos = new DataOutputStream(out);
-          scan.write(dos);
-          dos.close();
-        }
-        finally {
-          IOUtils.closeQuietly(dos);
-        }
-
-        return Base64.encodeBytes(out.toByteArray());
-      }
 
     public static void main (String[] argv) throws Exception { 
         runPipeline(argv[0], argv[1], argv[2]);

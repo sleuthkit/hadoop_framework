@@ -7,9 +7,10 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
+import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
 public class GrepCountMapper 
-extends SKMapper<Text, FsEntry, LongWritable, LongWritable>{
+extends SKMapper<ImmutableHexWritable, FsEntry, LongWritable, LongWritable>{
 
 	@Override
 	public void setup(Context ctx) {
@@ -17,7 +18,7 @@ extends SKMapper<Text, FsEntry, LongWritable, LongWritable>{
 	}
 
 	@Override
-	public void map(Text key, FsEntry value, Context context)
+	public void map(ImmutableHexWritable key, FsEntry value, Context context)
 	throws InterruptedException, IOException {
 	    try {
 	        ArrayList<Object> grepKeywordList = (ArrayList)value.get(HBaseConstants.GREP_SEARCHES);

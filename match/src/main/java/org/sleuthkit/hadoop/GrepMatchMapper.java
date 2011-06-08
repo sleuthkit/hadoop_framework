@@ -11,9 +11,10 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
+import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
 public class GrepMatchMapper 
-extends SKMapper<Text, FsEntry, NullWritable, Text>{
+extends SKMapper<ImmutableHexWritable, FsEntry, NullWritable, Text>{
 
     @Override
     public void setup(Context ctx) {
@@ -21,7 +22,7 @@ extends SKMapper<Text, FsEntry, NullWritable, Text>{
     }
 
     @Override
-    public void map(Text key, FsEntry value, Context context)
+    public void map(ImmutableHexWritable key, FsEntry value, Context context)
     throws InterruptedException, IOException {
         ArrayList<Object> grepKeywordList;
         ArrayList<String> grepSearchResults;

@@ -105,13 +105,9 @@ public class GrepReportGenerator {
             job.setOutputValueClass(Text.class);
 
             job.setInputFormatClass(FsEntryHBaseInputFormat.class);
+            FsEntryHBaseInputFormat.setupJob(job, deviceID);
             job.setOutputFormatClass(TextOutputFormat.class);
             TextOutputFormat.setOutputPath(job, new Path("/texaspete/data/" + deviceID + "/grep/count"));
-            
-            final Scan scan = new Scan();
-            scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
-            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, HBaseTables.ENTRIES_TBL);
-            job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
 
             job.waitForCompletion(true);
             ///////////////////////////////////////////////////////////////////
@@ -133,10 +129,9 @@ public class GrepReportGenerator {
             job.setOutputValueClass(Text.class);
 
             job.setInputFormatClass(FsEntryHBaseInputFormat.class);
+            FsEntryHBaseInputFormat.setupJob(job, deviceID);
             job.setOutputFormatClass(TextOutputFormat.class);
             
-            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, HBaseTables.ENTRIES_TBL);
-            job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
             
             TextOutputFormat.setOutputPath(job, new Path("/texaspete/data/" + deviceID + "/grep/matchinfo"));
 
@@ -149,28 +144,5 @@ public class GrepReportGenerator {
         } catch (Exception ex) {
             LOG.error("Exception while attempting to output grep.", ex);
         }
-        
-        
-        
     }
-    
-    
-    static String convertScanToString(Scan scan) throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataOutputStream dos = null;
-        try {
-          dos = new DataOutputStream(out);
-          scan.write(dos);
-          dos.close();
-        }
-        finally {
-          IOUtils.closeQuietly(dos);
-        }
-
-        return Base64.encodeBytes(out.toByteArray());
-      }
-
-
-    
 }

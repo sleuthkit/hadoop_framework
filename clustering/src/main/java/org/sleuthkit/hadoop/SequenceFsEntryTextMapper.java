@@ -6,14 +6,15 @@ import java.util.ArrayList;
 import org.apache.hadoop.io.Text;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
+import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
 // Write out files from the HBase table to a sequence file IFF
 // they have a regex match from the previous step.
 public class SequenceFsEntryTextMapper
-extends SKMapper<Text, FsEntry, Text, Text> {
+extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, Text> {
 
     @Override
-    public void map(Text key, FsEntry value, Context context)
+    public void map(ImmutableHexWritable key, FsEntry value, Context context)
     throws IOException {
         try {
             String output = (String)value.get(HBaseConstants.EXTRACTED_TEXT);

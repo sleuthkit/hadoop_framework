@@ -29,10 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
+import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
 // Maps regex matches to an output file.
 public class GrepMapper
-extends SKMapper<Text, FsEntry, Text, FsEntry> {
+extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
     Logger LOG = LoggerFactory.getLogger(GrepMapper.class);
     private List<Pattern> patterns = new ArrayList<Pattern>();
     
@@ -59,7 +60,7 @@ extends SKMapper<Text, FsEntry, Text, FsEntry> {
     }
 
     @Override
-    public void map(Text key, FsEntry value, Context context)
+    public void map(ImmutableHexWritable key, FsEntry value, Context context)
     throws IOException {
         String text;
         try {
