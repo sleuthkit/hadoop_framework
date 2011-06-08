@@ -29,6 +29,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class JsonWritable implements Writable {
   private Object Data;
   private String Json;
+  private byte[] TempBuf;
 
   public void set(List l) {
     Data = l;
@@ -51,13 +52,20 @@ public class JsonWritable implements Writable {
 
   public void readFields(DataInput in) throws IOException {
     Data = null;
-    Json = in.readUTF();
+    int len = in.readInt();
+    if (TempBuf == null || TempBuf.length < len) {
+      TempBuf = new byte[(3 * len) >> 1];
+    }
+    in.readFully(TempBuf, 0, len);
+    Json = new String(TempBuf, 0, len, "utf-8");
   }
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
   public void write(DataOutput out) throws IOException {
-    out.writeUTF(getJSON());
+    byte[] b = getJSON().getBytes("utf-8");
+    out.writeInt(b.length);
+    out.write(b, 0, b.length);
   }
 
   private String getJSON() throws IOException {
