@@ -24,11 +24,13 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat;
 import org.apache.hadoop.hbase.mapreduce.KeyValueSortReducer;
+import org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles;
+import org.apache.hadoop.hbase.client.HTable;
+
 import org.apache.hadoop.mapreduce.Job;
-
-import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.net.URI;
@@ -45,8 +47,8 @@ public class ExtractData {
     final Configuration conf = new Configuration();
     final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    if (otherArgs.length != 4) {
-      System.err.println("Usage: ExtractData <table> <extents_file> <evidence file> <store_path>");
+    if (otherArgs.length != 3) {
+      System.err.println("Usage: ExtractData <extents_file> <evidence file>");
       System.exit(2);
     }
 
@@ -57,23 +59,38 @@ public class ExtractData {
     job.setNumReduceTasks(1);
 
     job.setInputFormatClass(RawFileInputFormat.class);
-    RawFileInputFormat.addInputPath(job, new Path(otherArgs[2]));
+    RawFileInputFormat.addInputPath(job, new Path(otherArgs[1]));
 
     job.setOutputFormatClass(HFileOutputFormat.class);
     job.setOutputKeyClass(ImmutableBytesWritable.class);
     job.setOutputValueClass(KeyValue.class);
 
-    conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
-    conf.set(HBaseTables.ENTRIES_TBL_VAR, otherArgs[0]);
-    conf.set("com.lbt.storepath", otherArgs[3]);
-    HFileOutputFormat.setOutputPath(job, new Path(otherArgs[3]));
+    job.getConfiguration().setInt("mapred.job.reuse.jvm.num.tasks", -1);
+    
+    FileSystem fs = FileSystem.get(job.getConfiguration());
+    Path hfileDir = new Path("/ev", "hashes");
+    hfileDir = hfileDir.makeQualified(fs);
+    LOG.info("Hashes will be written temporarily to " + hfileDir);
+    
+    HFileOutputFormat.setOutputPath(job, hfileDir);
     HBaseConfiguration.addHbaseResources(job.getConfiguration());
 
-    final URI extents = new Path(otherArgs[1]).toUri();
+    final URI extents = new Path(otherArgs[0]).toUri();
     LOG.info("extents file is " + extents);
 
     DistributedCache.addCacheFile(extents, job.getConfiguration());
-    conf.set("com.lbt.extentspath", extents.toString());
-    System.exit(job.waitForCompletion(true) ? 0 : 1);
+    job.getConfiguration().set("com.lbt.extentspath", extents.toString());
+    // job.getConfiguration().setBoolean("mapred.task.profile", true);
+    // job.getConfiguration().setBoolean("mapreduce.task.profile", true);
+    boolean result = job.waitForCompletion(true);
+    if (result) {
+      LoadIncrementalHFiles loader = new LoadIncrementalHFiles();
+      HBaseConfiguration.addHbaseResources(job.getConfiguration());
+      loader.setConf(job.getConfiguration());
+      LOG.info("Loading hashes into hbase");
+      loader.doBulkLoad(hfileDir, new HTable(job.getConfiguration(), HBaseTables.HASH_TBL_B));
+      result = fs.delete(hfileDir, true);
+    }
+    System.exit(result ? 0 : 1);
   }
 }
