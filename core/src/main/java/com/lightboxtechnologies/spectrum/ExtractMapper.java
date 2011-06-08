@@ -274,7 +274,7 @@ public class ExtractMapper
     }
 
     final String hash = new String(Hex.encodeHex((byte[])rec.get("md5")));
-    final Path subDir = new Path("/ev", hashFolder(hash)),
+    final Path subDir = new Path("/texaspete/ev", hashFolder(hash)),
              hashPath = new Path(subDir, hash);
     fs.mkdirs(subDir);
 
@@ -369,7 +369,7 @@ public class ExtractMapper
     long cur = offset.get();
 
     final JsonWritable attrs = new JsonWritable();
-    final Path outPath = new Path("/ev/tmp", UUID.randomUUID().toString());
+    final Path outPath = new Path("/texaspete/ev/tmp", UUID.randomUUID().toString());
 
     try {
       openImgFile(path, fs);

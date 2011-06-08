@@ -30,6 +30,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
+
 import org.sleuthkit.hadoop.SKMapper;
 
 public class JsonImport {
@@ -56,24 +58,31 @@ public class JsonImport {
     }
   }
 
-  public static void main(String[] args) throws Exception {
-    final Configuration conf = new Configuration();
-    final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-
-    if (otherArgs.length != 3) {
-      System.err.println("Usage: JsonImport <in> <table> <image_hash>");
-      System.exit(2);
+  public static int run(String jsonPath, String imageHash, Configuration conf) throws Exception {
+    if (conf == null) {
+      conf = HBaseConfiguration.create();
     }
+    conf.set(HBaseTables.ENTRIES_TBL_VAR, HBaseTables.ENTRIES_TBL);
+    conf.set(SKMapper.ID_KEY, imageHash);
 
-    conf.set(HBaseTables.ENTRIES_TBL_VAR, otherArgs[1]);
-    conf.set(SKMapper.ID_KEY, otherArgs[2]);
     final Job job = new Job(conf, "JsonImport");
     job.setJarByClass(JsonImport.class);
     job.setMapperClass(FsEntryMapLoader.class);
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(FsEntryHBaseOutputFormat.class);
-    FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
+    FileInputFormat.addInputPath(job, new Path(jsonPath));
 
-    System.exit(job.waitForCompletion(true) ? 0 : 1);
+    return job.waitForCompletion(true) ? 0 : 1;
+  }
+
+  public static void main(String[] args) throws Exception {
+    final Configuration conf = new Configuration();
+    final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+
+    if (otherArgs.length != 2) {
+      System.err.println("Usage: JsonImport <in> <image_hash>");
+      System.exit(2);
+    }
+    System.exit(run(args[0], args[1], conf));
   }
 }

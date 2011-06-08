@@ -44,15 +44,10 @@ public class ExtractData {
 
   public static final Log LOG = LogFactory.getLog(ExtractData.class.getName());
 
-  public static void main(String[] args) throws Exception {
-    final Configuration conf = new Configuration();
-    final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-
-    if (otherArgs.length != 2) {
-      System.err.println("Usage: ExtractData <extents_file> <evidence file>");
-      System.exit(2);
+  public static int run(String extentsPath, String image, Configuration conf) throws Exception {
+    if (conf == null) {
+      conf = HBaseConfiguration.create();
     }
-
     final Job job = new Job(conf, "ExtractData");
     job.setJarByClass(ExtractData.class);
     job.setMapperClass(ExtractMapper.class);
@@ -60,7 +55,7 @@ public class ExtractData {
     job.setNumReduceTasks(1);
 
     job.setInputFormatClass(RawFileInputFormat.class);
-    RawFileInputFormat.addInputPath(job, new Path(otherArgs[1]));
+    RawFileInputFormat.addInputPath(job, new Path(image));
 
     job.setOutputFormatClass(HFileOutputFormat.class);
     job.setOutputKeyClass(ImmutableBytesWritable.class);
@@ -74,9 +69,8 @@ public class ExtractData {
     LOG.info("Hashes will be written temporarily to " + hfileDir);
     
     HFileOutputFormat.setOutputPath(job, hfileDir);
-    HBaseConfiguration.addHbaseResources(job.getConfiguration());
 
-    final URI extents = new Path(otherArgs[0]).toUri();
+    final URI extents = new Path(extentsPath).toUri();
     LOG.info("extents file is " + extents);
 
     DistributedCache.addCacheFile(extents, job.getConfiguration());
@@ -92,6 +86,18 @@ public class ExtractData {
       loader.doBulkLoad(hfileDir, new HTable(job.getConfiguration(), HBaseTables.HASH_TBL_B));
       result = fs.delete(hfileDir, true);
     }
-    System.exit(result ? 0 : 1);
+    return result ? 0: 1;
+  }
+
+  public static void main(String[] args) throws Exception {
+    final Configuration conf = HBaseConfiguration.create();
+    final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+
+    if (otherArgs.length != 2) {
+      System.err.println("Usage: ExtractData <extents_file> <evidence file>");
+      System.exit(2);
+    }
+
+    System.exit(run(args[0], args[1], conf));
   }
 }

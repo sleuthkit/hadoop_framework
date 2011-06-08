@@ -461,65 +461,71 @@ public class PythonJob {
     }
   }
 
-  public static void main(String[] args) throws Exception {
-    Configuration conf = HBaseConfiguration.create();
-    String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-    if (otherArgs.length < 4) {
-      System.err.println("Usage: PythonJob <table> <outpath> <python_mapper> <python_reducer> [SequenceFileOutputFormat]");
-      System.exit(2);
+  public static int run(String imageID, String outpath, String pymap, String pyred, String format, Configuration conf) throws Exception {
+    if (conf == null) {
+      conf = HBaseConfiguration.create();
     }
     Job job = new Job(conf, "PythonJob");
     job.setJarByClass(PythonJob.class);
 
-    String mapper = otherArgs[2];
     job.setMapperClass(PythonMapper.class);
     PyEngine py = new PyEngine();
-    configPyTask(job, py, "map", mapper);
+    configPyTask(job, py, "map", pymap);
     job.setMapOutputKeyClass(py.getKeyClass());
     job.setMapOutputValueClass(py.getValueClass());
 
-    String reducer = otherArgs[3];
     int numReduces = 1;
     job.setOutputKeyClass(py.getKeyClass());
     job.setOutputValueClass(py.getValueClass());
-    if (reducer.equals("none")) {
+    if (pyred.equals("none")) {
       numReduces = 0;
     }
-    else if (reducer.equals("identity")) {
+    else if (pyred.equals("identity")) {
       job.setReducerClass(Reducer.class);
       job.setOutputKeyClass(py.getKeyClass());
       job.setOutputValueClass(py.getValueClass());
     }
-    else if (reducer.equals("LongSumReducer")) {
+    else if (pyred.equals("LongSumReducer")) {
       job.setReducerClass(LongSumReducer.class);
       job.setCombinerClass(LongSumReducer.class);
     }
     else {
       job.setReducerClass(PythonReducer.class);
-      configPyTask(job, py, "reduce", reducer);
+      configPyTask(job, py, "reduce", pyred);
       job.setOutputKeyClass(py.getKeyClass());
       job.setOutputValueClass(py.getValueClass());
     }
     job.setNumReduceTasks(numReduces);
 
-    String input = otherArgs[0];
-    if (input.endsWith(".json") == true) {
-      job.setInputFormatClass(FsEntryJsonInputFormat.class);
-      FsEntryJsonInputFormat.addInputPath(job, new Path(input));
-    }
-    else {
-      FsEntryHBaseInputFormat.setupJob(job, input);
-      job.setInputFormatClass(FsEntryHBaseInputFormat.class);
-    }
+    // it is possible to run over a flat json file...
+    // String input = otherArgs[0];
+    // if (input.endsWith(".json") == true) {
+    //   job.setInputFormatClass(FsEntryJsonInputFormat.class);
+    //   FsEntryJsonInputFormat.addInputPath(job, new Path(input));
+    // }
+    // else {
 
-    if (otherArgs.length == 5 && otherArgs[4].equals("SequenceFileOutputFormat")) {
+    FsEntryHBaseInputFormat.setupJob(job, imageID);
+    job.setInputFormatClass(FsEntryHBaseInputFormat.class);
+
+    if (format != null && format.equals("SequenceFileOutputFormat")) {
       job.setOutputFormatClass(SequenceFileOutputFormat.class);
       SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
     }
     else {
       job.setOutputFormatClass(TextOutputFormat.class);
     }
-    FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
-    System.exit(job.waitForCompletion(true) ? 0 : 1);
+    FileOutputFormat.setOutputPath(job, new Path(outpath));
+    return job.waitForCompletion(true) ? 0 : 1;
+  }
+
+  public static void main(String[] args) throws Exception {
+    Configuration conf = HBaseConfiguration.create();
+    String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+    if (otherArgs.length < 4) {
+      System.err.println("Usage: PythonJob <image_id> <outpath> <python_mapper> <python_reducer> [SequenceFileOutputFormat]");
+      System.exit(2);
+    }
+    System.exit(run(args[0], args[1], args[2], args[3], args.length > 4 ? args[4]: "", conf));
   }
 }
