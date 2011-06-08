@@ -34,6 +34,7 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.net.URI;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -68,7 +69,7 @@ public class ExtractData {
     job.getConfiguration().setInt("mapred.job.reuse.jvm.num.tasks", -1);
     
     FileSystem fs = FileSystem.get(job.getConfiguration());
-    Path hfileDir = new Path("/ev", "hashes");
+    Path hfileDir = new Path("/ev/tmp", UUID.randomUUID().toString());
     hfileDir = hfileDir.makeQualified(fs);
     LOG.info("Hashes will be written temporarily to " + hfileDir);
     
