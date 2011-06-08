@@ -24,6 +24,8 @@ import org.sleuthkit.hadoop.GrepSearchJob;
 import org.sleuthkit.hadoop.SequenceFsEntryText;
 import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
 
+import com.lightboxtechnologies.spectrum.HBaseTables;
+
 public class Pipeline {
 
     // The storage place of raw files containing:
@@ -69,9 +71,9 @@ public class Pipeline {
         String clusterDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/clusters";
         String dictionaryDumpDirectory = "hdfs://localhost/texaspete/data/" + imageID + "/vectors/dictionary.file-0";
 
-        FSEntryTikaTextExtractor.runPipeline("entries", imageID, "FriendlyName");
-        GrepSearchJob.runPipeline("entries", imageID, GREP_KEYWORDS, "FriendlyName");
-        SequenceFsEntryText.runTask("entries", seqDumpDirectory, imageID, "FriendlyName");
+        FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, "FriendlyName");
+        GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, "FriendlyName");
+        SequenceFsEntryText.runTask(HBaseTables.ENTRIES_TBL, seqDumpDirectory, imageID, "FriendlyName");
 
         TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
         GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, "FriendlyName");

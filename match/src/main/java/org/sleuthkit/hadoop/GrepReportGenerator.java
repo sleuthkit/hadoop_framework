@@ -110,7 +110,7 @@ public class GrepReportGenerator {
             
             final Scan scan = new Scan();
             scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
-            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, "entries");
+            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, HBaseTables.ENTRIES_TBL);
             job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
 
             job.waitForCompletion(true);
@@ -135,7 +135,7 @@ public class GrepReportGenerator {
             job.setInputFormatClass(FsEntryHBaseInputFormat.class);
             job.setOutputFormatClass(TextOutputFormat.class);
             
-            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, "entries");
+            job.getConfiguration().set(TableInputFormat.INPUT_TABLE, HBaseTables.ENTRIES_TBL);
             job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
             
             TextOutputFormat.setOutputPath(job, new Path("/texaspete/data/" + deviceID + "/grep/matchinfo"));
