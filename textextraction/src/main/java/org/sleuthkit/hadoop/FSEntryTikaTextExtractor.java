@@ -1,24 +1,16 @@
 package org.sleuthkit.hadoop;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
-import org.apache.hadoop.hbase.util.Base64;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
-import com.lightboxtechnologies.spectrum.HBaseTables;
 
 public class FSEntryTikaTextExtractor {
 
@@ -28,15 +20,22 @@ public class FSEntryTikaTextExtractor {
         public void map(ImmutableHexWritable key, FsEntry value, Context context) throws IOException {
             InputStream proxy = value.getInputStream();
             System.out.println("Extracting Text from file:" + key.toString());
+            if (proxy == null) { return; } //No stream for this file. Get out.
             try {
                 String output = new Tika().parseToString(proxy);
                 value.put(HBaseConstants.EXTRACTED_TEXT, output);
                 context.write(key, value);
+                
             }
-            catch (Exception e) {
+            catch (TikaException e) {
                 //keep on going
                 System.err.println("Failed to extract text from a file: " + key);
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                System.err.println("Failed to write out to context: " + key);
+                e.printStackTrace();
+            } finally {
+                proxy.close();
             }
         }
     }
