@@ -54,6 +54,9 @@ public class ExtractData {
     job.setReducerClass(KeyValueSortReducer.class);
     job.setNumReduceTasks(1);
 
+    // job ctor copies the Configuration we pass it, get the real one
+    conf = job.getConfiguration();
+
     conf.setLong("timestamp", System.currentTimeMillis());
 
     job.setInputFormatClass(RawFileInputFormat.class);
