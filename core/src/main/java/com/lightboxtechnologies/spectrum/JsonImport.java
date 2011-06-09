@@ -21,8 +21,8 @@ import java.util.Date;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -40,10 +40,11 @@ public class JsonImport {
  * This is some documentation for FsEntryMapLoader
  */
   public static class FsEntryMapLoader
-       extends SKMapper<Object, Text, BytesWritable, FsEntry>{
+       extends SKMapper<Object, Text, ImmutableBytesWritable, FsEntry>{
 
     private final FsEntry Entry = new FsEntry();
-    private final BytesWritable Id = new BytesWritable(new byte[FsEntryUtils.ID_LENGTH]);
+    private final ImmutableBytesWritable Id =
+      new ImmutableBytesWritable(new byte[FsEntryUtils.ID_LENGTH]);
     private final FsEntryUtils Helper = new FsEntryUtils();
 
     @Override
@@ -51,7 +52,7 @@ public class JsonImport {
                                      throws IOException, InterruptedException {
       if (Entry.parseJson(value.toString())) {
         // set the ID re-using the byte array in Id
-        Helper.calcFsEntryID(Id.getBytes(), getImageID(), (String)Entry.get("path"), (Integer)Entry.get("dirIndex"));
+        Helper.calcFsEntryID(Id.get(), getImageID(), (String)Entry.get("path"), (Integer)Entry.get("dirIndex"));
 
         context.write(Id, Entry);
       }

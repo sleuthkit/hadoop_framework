@@ -17,7 +17,7 @@ limitations under the License.
 package com.lightboxtechnologies.spectrum;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -39,7 +39,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.util.Date;
 import java.util.Map;
 import java.util.List;
-import java.util.Arrays;
 import java.io.IOException;
 
 public class FsEntryHBaseOutputFormat extends OutputFormat {
@@ -80,11 +79,11 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     return new HTable(hconf, tblName);
   }
 
-  public RecordWriter<BytesWritable, FsEntry> getRecordWriter(TaskAttemptContext ctx) throws IOException {
+  public RecordWriter<ImmutableBytesWritable, FsEntry> getRecordWriter(TaskAttemptContext ctx) throws IOException {
     return new FsEntryHBaseWriter(getHTable(ctx, HBaseTables.ENTRIES_COLFAM_B), HBaseTables.ENTRIES_COLFAM_B);
   }
 
-  public static class FsEntryHBaseWriter extends RecordWriter<BytesWritable, FsEntry> {
+  public static class FsEntryHBaseWriter extends RecordWriter<ImmutableBytesWritable, FsEntry> {
     private HTable Table;
     final private byte[] ColFam;
 
@@ -144,12 +143,8 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
       }
     }
 
-    public static byte[] getBytes(BytesWritable bw) {
-      byte[] k = bw.getBytes();
-      if (k.length != bw.getLength()) {
-        Arrays.copyOf(bw.getBytes(), bw.getLength());
-      }
-      return k;
+    public static byte[] getBytes(ImmutableBytesWritable bw) {
+      return bw.get();
     }
 
     public static Put createPut(byte[] key, Map<String,Object> map, byte[] colFam) {
@@ -158,7 +153,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
       return p;
     }
 
-    public static Put createPut(BytesWritable key, Map<String,Object> map, byte[] colFam) {
+    public static Put createPut(ImmutableBytesWritable key, Map<String,Object> map, byte[] colFam) {
       return createPut(getBytes(key), map, colFam);
     }
 
@@ -202,7 +197,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
       return p;
     }
 
-    public void write(BytesWritable key, FsEntry entry) throws IOException {
+    public void write(ImmutableBytesWritable key, FsEntry entry) throws IOException {
       final Put p = createPut(getBytes(key), entry, ColFam);
       if (!p.isEmpty()) {
         Table.put(p);
