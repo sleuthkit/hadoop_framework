@@ -37,14 +37,8 @@ public class GrepCountReducer extends Reducer<LongWritable, LongWritable, NullWr
     }
 
     @Override
-    protected void cleanup(Context context) {
-        try {
-            context.write(NullWritable.get(), new Text(outArray.toJSONString()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    protected void cleanup(Context context)
+                                     throws IOException, InterruptedException {
+        context.write(NullWritable.get(), new Text(outArray.toJSONString()));
     }
-
 }
