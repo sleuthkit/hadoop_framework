@@ -54,6 +54,8 @@ public class ExtractData {
     job.setReducerClass(KeyValueSortReducer.class);
     job.setNumReduceTasks(1);
 
+    conf.setLong("timestamp", System.currentTimeMillis());
+
     job.setInputFormatClass(RawFileInputFormat.class);
     RawFileInputFormat.addInputPath(job, new Path(image));
 
@@ -61,9 +63,9 @@ public class ExtractData {
     job.setOutputKeyClass(ImmutableBytesWritable.class);
     job.setOutputValueClass(KeyValue.class);
 
-    job.getConfiguration().setInt("mapred.job.reuse.jvm.num.tasks", -1);
+    conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
     
-    FileSystem fs = FileSystem.get(job.getConfiguration());
+    FileSystem fs = FileSystem.get(conf);
     Path hfileDir = new Path("/texaspete/ev/tmp", UUID.randomUUID().toString());
     hfileDir = hfileDir.makeQualified(fs);
     LOG.info("Hashes will be written temporarily to " + hfileDir);
@@ -73,17 +75,17 @@ public class ExtractData {
     final URI extents = new Path(extentsPath).toUri();
     LOG.info("extents file is " + extents);
 
-    DistributedCache.addCacheFile(extents, job.getConfiguration());
-    job.getConfiguration().set("com.lbt.extentspath", extents.toString());
+    DistributedCache.addCacheFile(extents, conf);
+    conf.set("com.lbt.extentspath", extents.toString());
     // job.getConfiguration().setBoolean("mapred.task.profile", true);
     // job.getConfiguration().setBoolean("mapreduce.task.profile", true);
     boolean result = job.waitForCompletion(true);
     if (result) {
       LoadIncrementalHFiles loader = new LoadIncrementalHFiles();
-      HBaseConfiguration.addHbaseResources(job.getConfiguration());
-      loader.setConf(job.getConfiguration());
+      HBaseConfiguration.addHbaseResources(conf);
+      loader.setConf(conf);
       LOG.info("Loading hashes into hbase");
-      loader.doBulkLoad(hfileDir, new HTable(job.getConfiguration(), HBaseTables.HASH_TBL_B));
+      loader.doBulkLoad(hfileDir, new HTable(conf, HBaseTables.HASH_TBL_B));
       result = fs.delete(hfileDir, true);
     }
     return result ? 0: 1;

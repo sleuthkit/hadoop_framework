@@ -85,6 +85,8 @@ public class ExtractMapper
   private HTable EntryTbl;
   private HTable HashTbl;
 
+  private long timestamp;
+
   private final OutputStream NullStream = NullOutputStream.NULL_OUTPUT_STREAM;
 
   @Override
@@ -94,9 +96,17 @@ public class ExtractMapper
     MD5Hash  = FsEntryUtils.getHashInstance("MD5");
     SHA1Hash = FsEntryUtils.getHashInstance("SHA1");
 
-    // ensure that the hash table exists
     final Configuration conf = context.getConfiguration();
 
+    // ensure that all mappers have the same timestamp
+    try {
+      timestamp = Long.parseLong(conf.get("timestamp"));
+    }
+    catch (NumberFormatException e) {
+      throw new RuntimeException(e);
+    }
+
+    // ensure that the hash table exists
     final HBaseAdmin admin = new HBaseAdmin(conf);
     if (!admin.tableExists(HBaseTables.HASH_TBL_B)) {
       final HTableDescriptor tableDesc =
@@ -357,8 +367,6 @@ public class ExtractMapper
         id_b, rec, HBaseTables.ENTRIES_COLFAM_B
       )
     );
-
-    final long timestamp =  System.currentTimeMillis();
 
     // write the md5 version of the key for the hash table
     OutKey.set(KeyUtils.makeEntryKey(md5, (byte) 0, id_b));
