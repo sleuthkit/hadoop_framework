@@ -322,8 +322,9 @@ public class ExtractMapper
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
     final String id = (String)map.get("id");
+    byte[] id_b = null;
     try {
-      OutKey.set(Hex.decodeHex(id.toCharArray()));
+      id_b = Hex.decodeHex(id.toCharArray());
     }
     catch (DecoderException e) {
       throw new RuntimeException(e);
@@ -353,23 +354,23 @@ public class ExtractMapper
     // write the entry to the file table
     EntryTbl.put(
       FsEntryHBaseOutputFormat.FsEntryHBaseWriter.createPut(
-        OutKey.get(), rec, HBaseTables.ENTRIES_COLFAM_B
+        id_b, rec, HBaseTables.ENTRIES_COLFAM_B
       )
     );
 
     final long timestamp =  System.currentTimeMillis();
 
     // write the md5 version of the key for the hash table
+    OutKey.set(KeyUtils.makeEntryKey(md5, (byte) 0, id_b));
     final KeyValue ovMD5 = new KeyValue(
-      KeyUtils.makeEntryKey(md5, (byte) 0, OutKey.get()),
-      HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
     );
     context.write(OutKey, ovMD5);
 
     // write the sha1 version of the key for the hash table
+    OutKey.set(KeyUtils.makeEntryKey(sha1, (byte) 1, id_b));
     final KeyValue ovSHA1 = new KeyValue(
-      KeyUtils.makeEntryKey(sha1, (byte) 1, OutKey.get()),
-      HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
     );
     context.write(OutKey, ovSHA1);
   }
