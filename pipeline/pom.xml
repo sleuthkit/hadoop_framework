@@ -29,6 +29,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
+	      <finalName>sleuthkit-pipeline-r${buildNumber}</finalName>
               <descriptors>
                 <descriptor>src/main/assembly/job.xml</descriptor>
               </descriptors>
@@ -66,4 +67,33 @@
     </dependency> 
     <!-- other dependencies -->
   </dependencies>
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+	<plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>job</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+	      <finalName>${project.build.finalName}</finalName>
+              <descriptors>
+                <descriptor>src/main/assembly/job.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+	</plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
