@@ -40,7 +40,7 @@ public class Pipeline {
 
         FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, "FriendlyName");
         GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, "FriendlyName");
-        SequenceFsEntryText.runTask(HBaseTables.ENTRIES_TBL, seqDumpDirectory, imageID, "FriendlyName");
+        SequenceFsEntryText.runTask(seqDumpDirectory, imageID, "FriendlyName");
 
         TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
         GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, "FriendlyName");
