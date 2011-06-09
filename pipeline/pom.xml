@@ -29,7 +29,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
-	      <finalName>sleuthkit-pipeline-r${buildNumber}</finalName>
+       	      <finalName>sleuthkit-pipeline-r${timestamp}</finalName>
               <descriptors>
                 <descriptor>src/main/assembly/job.xml</descriptor>
               </descriptors>
