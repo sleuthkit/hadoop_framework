@@ -193,14 +193,21 @@
 	    var volWidths = getVolWidth(hddWidth, hddSize, volList.n[i].n);
 	    hddWidth -= volWidths[1] - volWidths[0];
 	    line += '" style="width: ' + volWidths[1] + 'px">' + volList.n[i].a + '<br>' + volList.n[i].fs + '<br>' + 
-	    	Util.stringFormatSize(volList.n[i].n) + '</div>';
+	    	'Total ' + Util.stringFormatSize(volList.n[i].n) + '<br>Alloc. ' + Util.stringFormatSize(volList.n[i].alloc) + '</div>';
 	    hddItems.push(line);
 	    ++i;
 	  }
 	  if (usedSize < hddSize) {
 	  	var line = '<div id="hddLayout' + i + '" class="ui-widget ui-widget-hdd-unused ui-corner-right"';
 	    var volWidths = getVolWidth(hddWidth, hddSize, (hddSize-usedSize));
-	    line += '" style="width: ' + volWidths[0] + 'px">Unused<br><br>' + Util.stringFormatSize((hddSize-usedSize)) + '</div>';
+	    line += '" style="width: ' + volWidths[0] + 'px" ';
+	    if (volWidths[0] < 150) {
+	    	line += 'title="Unused Space<br>' + Util.stringFormatSize((hddSize-usedSize)) + '">';
+	    }
+	    else {
+		    line += '>Unused<br><br>' + Util.stringFormatSize((hddSize-usedSize));
+		  }
+	    line += '</div>';
 	    hddItems.push(line);
 	    ++hddLen;
 	  }
@@ -211,6 +218,11 @@
   $(document).ready(function () {
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
+	  $(".ui-widget-hdd-unused").tipsy({
+			gravity: "ne", 
+			fade: true,
+			html: true
+		});
   	$("#chart1Title").html(Util.stringFormatComma(deviceLinks.links.length));
   	$("#chart2Title").html(Util.stringFormatComma(docClusterCounts.length));
   	$("#chart3Title").html(Util.stringFormatComma(Util.getSum(entityCounts)));
