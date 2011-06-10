@@ -9,12 +9,11 @@
 #include <endian.h>
 #include <signal.h>
 #include <unistd.h>
-#include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/wait.h>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/scoped_array.hpp>
 
 #include "io.h"
@@ -343,21 +342,14 @@ int main(int argc, char** argv) {
       THROW("incorrect number of arguments");
     }
 
-    // get the port
-    const in_port_t port = htobe16(boost::lexical_cast<in_port_t>(argv[1]));
-
     // create the socket
-    CHECK((s_sock = socket(AF_INET, SOCK_STREAM, 0)));
+    CHECK((s_sock = socket(AF_UNIX, SOCK_STREAM, 0)));
 
-    // bind to all interfaces 
-    in_addr ipaddr;
-    ipaddr.s_addr = INADDR_ANY;
-
-    sockaddr_in s_addr;
+    // bind to the socket
+    sockaddr_un s_addr;
     memset(&s_addr, 0, sizeof(s_addr));
-    s_addr.sin_family = AF_INET;
-    s_addr.sin_port   = port;
-    s_addr.sin_addr   = ipaddr;
+    s_addr.sun_family = AF_UNIX;
+    strncpy(s_addr.sun_path, argv[1], sizeof(s_addr.sun_path));
 
     CHECK(bind(s_sock, (sockaddr*) &s_addr, sizeof(s_addr)));
 
@@ -373,9 +365,9 @@ int main(int argc, char** argv) {
     // start the server loop 
     for (;;) {
       // accept connection from client
-      sockaddr_in c_addr;
+      sockaddr_un c_addr;
       memset(&c_addr, 0, sizeof(c_addr));
-      socklen_t c_addr_len = sizeof(c_addr);
+      socklen_t c_addr_len;
 
       int c_sock;
       CHECK((c_sock = accept(s_sock, (sockaddr*) &c_addr, &c_addr_len)));
