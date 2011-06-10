@@ -24,8 +24,11 @@ public class JSONArrayReducer extends Reducer<NullWritable, Text, NullWritable, 
             JSONObject obj;
             try {
                 obj = new JSONObject(value.toString());
-                outArray.put(obj);
+                outArray.put((Integer)obj.get("a"), obj);
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (ClassCastException e) {
+                // we should never get here, but there's no reason to bail if we do.
                 e.printStackTrace();
             }
         }
