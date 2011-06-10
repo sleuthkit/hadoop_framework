@@ -116,7 +116,13 @@ Utility.prototype.findObjectByName = function(data, str) {
 	  return [];
 };
 
-Utility.prototype.getFileName = function() {
+Utility.prototype.getFileNameFromPath = function(str, delim) {
+	var filename = str;
+	filename = filename.substring(filename.lastIndexOf(delim) + 1, filename.length);
+	return filename;
+}
+
+Utility.prototype.getFileNameFromUrl = function() {
 	var filename = document.location.href;
 	filename = filename.substring(0, (filename.indexOf("#") == -1) ? filename.length : filename.indexOf("#"));
 	filename = filename.substring(0, (filename.indexOf("?") == -1) ? filename.length : filename.indexOf("?"));
@@ -140,7 +146,7 @@ Utility.prototype.menuMouseOut = function(e) {
 
 Utility.prototype.buildMenu = function(list, id) {
 	mlen = list.length;
-	var fileName = Util.getFileName();
+	var fileName = Util.getFileNameFromUrl();
   var items = [];
   var i = 0;
   while(i < mlen) {

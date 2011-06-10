@@ -32,6 +32,8 @@
 	var deviceName = "";
   var cTable;
   var fHead;
+  var docClusterCoords = [];
+//  docClusterCoords = docClusterChart;
   
   $(window).resize(function(){
     var elem = $(this);
@@ -108,7 +110,7 @@
       	'<td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td>' +
 		'<td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].fId) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].fN) + '</td>' +
+      	'<td>' + Util.htmlSafeString(Util.getFileNameFromPath(data[i].fP, "\/")) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].fP) + '</td>' +
       	'</tr>');
       ++i;
@@ -185,7 +187,7 @@
   	dataLen = docClusters.length;
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
-  	$("#chart2Title").html(Util.stringFormatComma(docClusterChart.length));
+  	$("#chart2Title").html(Util.stringFormatComma(docClusterCoords.length));
     fillTable(docClusters, "dataTableContent", "Document Clusters");
   	makeTable(false, false);
 		$(cTable.fnGetNodes()).tipsy({
@@ -258,7 +260,7 @@
 			      .strokeStyle(function(d) d ? "#ddd" : "#000");
 	
 			  var dot = docPlot_vis.add(pv.Dot)
-			      .data(docClusterChart)
+			      .data(docClusterCoords)
 			      .left(function(d) docPlot_x(d.x))
 			      .bottom(function(d) docPlot_y(d.y))
 			      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
