@@ -27,6 +27,9 @@
   <script src="data/linkanalysis.js" type="text/javascript"></script>
   <script src="data/searchhits.js" type="text/javascript"></script>
   <script>
+  var docClusterCoords = [];
+//  docClusterCoords = docClusterChart;
+  	
   $(window).resize(function(){
     var elem = $(this);
     $("#printReport").position({
@@ -209,7 +212,7 @@
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
   	$("#chart1Title").html(Util.stringFormatComma(deviceLinks.links.length));
-  	$("#chart2Title").html(Util.stringFormatComma(docClusterChart.length));
+  	$("#chart2Title").html(Util.stringFormatComma(docClusterCoords.length));
   	$("#chart3Title").html(Util.stringFormatComma(Util.getSum(entityCounts)));
   	$("#chart4Title").html(Util.stringFormatComma(Util.getSum(knownBadCounts)));
   	$("#chart5Title").html(Util.stringFormatComma(Util.getSum(keywordCounts)));
@@ -332,7 +335,7 @@
 				      .strokeStyle(function(d) d ? "#ddd" : "#000");
 		
 				  var dot = docPlot_vis.add(pv.Dot)
-				      .data(docClusterChart)
+				      .data(docClusterCoords)
 				      .left(function(d) docPlot_x(d.x))
 				      .bottom(function(d) docPlot_y(d.y))
 				      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
