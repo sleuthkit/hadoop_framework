@@ -187,7 +187,7 @@
   	dataLen = docClusters.length;
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
-  	$("#chart2Title").html(Util.stringFormatComma(docClusterCoords.length));
+  	$("#chart2Title").html(Util.stringFormatComma(docClusterCounts.length));
     fillTable(docClusters, "dataTableContent", "Document Clusters");
   	makeTable(false, false);
 		$(cTable.fnGetNodes()).tipsy({
