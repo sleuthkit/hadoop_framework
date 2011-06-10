@@ -131,6 +131,7 @@ public class HashLoaderHelperTest {
     final Map<String,MfgData> mfg = Collections.singletonMap(md.code, md);
     final Map<String,OSData> os = null;
 
+    @SuppressWarnings("unchecked")
     final HashLoaderMapper.Context ctx =
       context.mock(HashLoaderMapper.Context.class);
     
