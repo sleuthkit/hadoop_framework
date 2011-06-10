@@ -3,9 +3,12 @@ package com.lightboxtechnologies.spectrum;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.Socket;
+
+import org.newsclub.net.unix.AFUNIXSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import com.lightboxtechnologies.io.IOUtils;
 
@@ -13,19 +16,16 @@ public class VMClient {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 2) {
+    if (args.length != 1) {
       throw new IllegalArgumentException("incorrect number of arguments");
     }
 
-    // set up the socket
-    final InetAddress addr = InetAddress.getByName(args[0]);
-
-    // get the port
-    final short port = Short.parseShort(args[1]);
+    final File socketFile = new File(args[0]);
 
     Socket sock = null;
     try {
-      sock = new Socket(addr, port); 
+      sock = AFUNIXSocket.newInstance();
+      sock.connect(new AFUNIXSocketAddress(socketFile));
 
       DataInputStream in = null;
       try {
