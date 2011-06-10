@@ -254,7 +254,7 @@ public class FsEntry extends HashMap<String,Object> {
     // slurp the JSON into a temporary map
     Map<String,Object> json = null;
     try {
-      json = mapper.readValue(jsonstr, Map.class);
+      json = (Map<String,Object>) mapper.readValue(jsonstr, Map.class);
     }
     catch (IOException e) {
       return false;

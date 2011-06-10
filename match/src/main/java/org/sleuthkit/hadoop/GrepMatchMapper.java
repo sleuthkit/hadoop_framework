@@ -36,7 +36,7 @@ extends SKMapper<ImmutableHexWritable, FsEntry, NullWritable, Text>{
             try {
                
                 int a = (Integer)grepKeywordList.get(i);
-                String ctx = (String)grepSearchResults.get(i);
+                String ctx = grepSearchResults.get(i);
                 String fid = value.getPath();
 
                 JSONObject obj = new JSONObject();

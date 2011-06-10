@@ -195,6 +195,7 @@ public class PythonJob {
       return Box;
     }
 
+    @SuppressWarnings("unchecked")
     public JsonWritable set(Object o) {
       if (o instanceof Map) {
         Box.set((Map)o);
@@ -408,7 +409,7 @@ public class PythonJob {
     private long NumRecords = 0;
 
     @Override
-    public void setup(Mapper.Context context) {
+    public void setup(Context context) {
       Python = PyEngine.setup(context, "map");
       super.setup(context);
     }
@@ -421,7 +422,7 @@ public class PythonJob {
     }
 
     @Override
-    protected void cleanup(Mapper.Context context) {
+    protected void cleanup(Context context) {
       context.getCounter(Counters.INPUT_RECORDS).increment(NumRecords);
     }
   }
