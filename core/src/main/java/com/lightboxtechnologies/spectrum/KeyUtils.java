@@ -65,4 +65,14 @@ public class KeyUtils {
   public static int getFsEntryID(byte[] id, byte[] key) {
     return Bytes.putBytes(id, 0, key, 21, key.length - 21);
   }
+
+  public static byte[] getImageID(byte[] key) {
+    byte[] id = new byte[MD5_LEN];
+    getImageID(id, key);
+    return id;
+  }
+
+  public static int getImageID(byte[] imgID, byte[] key) {
+    return FsEntryUtils.getImageID(imgID, key, 21);
+  }
 }

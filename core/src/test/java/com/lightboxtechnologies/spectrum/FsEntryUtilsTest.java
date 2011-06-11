@@ -16,6 +16,8 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
+import org.apache.commons.codec.binary.Hex;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -53,5 +55,15 @@ public class FsEntryUtilsTest {
     };
 
     assertArrayEquals(expected, makeFsEntryKey(img_md5, path, dir_index));
+  }
+
+  @Test
+  public void retrieveImageID() throws Exception {
+    final Hex hex = new Hex(); 
+    final byte[] hash =
+      hex.decode("8a9111fe05f9815fc55c728137c5b389".getBytes());
+    final byte[] key = makeFsEntryKey(hash, "/howdy/doody.jpg".getBytes(), 34);
+    
+    assertArrayEquals(hash, getImageID(key));
   }
 }

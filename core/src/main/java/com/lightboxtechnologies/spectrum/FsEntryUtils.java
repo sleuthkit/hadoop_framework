@@ -98,4 +98,18 @@ public class FsEntryUtils {
     off = Bytes.putBytes(result, off, path_md5, 1, path_md5.length-1);
     Bytes.putInt(result, off, dir_index);
   }
+
+  public static byte[] getImageID(byte[] entryID) {
+    byte[] imgID = new byte[16];
+    getImageID(imgID, entryID);
+    return imgID;
+  }
+
+  public static int getImageID(byte[] imgID, byte[] entryID) {
+    return getImageID(imgID, entryID, 0);
+  }
+
+  public static int getImageID(byte[] imgID, byte[] entryID, int offset) {
+    return Bytes.putBytes(imgID, 0, entryID, offset + 1, 16);
+  }
 }

@@ -126,4 +126,15 @@ public class KeyUtilsTest {
 
     assertArrayEquals(entryID, KeyUtils.getFsEntryID(rowKey));
   }
+
+  @Test
+  public void retrieveImageID() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] imgID = hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(imgID, "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.MD5, entryID);
+    
+    assertArrayEquals(imgID, KeyUtils.getImageID(rowKey));
+  }
 }
