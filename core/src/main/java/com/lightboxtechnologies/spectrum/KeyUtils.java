@@ -75,4 +75,8 @@ public class KeyUtils {
   public static int getImageID(byte[] imgID, byte[] key) {
     return FsEntryUtils.getImageID(imgID, key, 21);
   }
+
+  public static boolean isType2(byte[] key) {
+    return key.length > 20;
+  }
 }

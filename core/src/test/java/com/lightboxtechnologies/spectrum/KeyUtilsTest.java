@@ -137,4 +137,16 @@ public class KeyUtilsTest {
     
     assertArrayEquals(imgID, KeyUtils.getImageID(rowKey));
   }
+
+  @Test
+  public void isType2() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] imgID = hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(imgID, "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.MD5, entryID);
+
+    assertEquals(true, KeyUtils.isType2(rowKey));
+    assertEquals(false, KeyUtils.isType2(hash));
+  }
 }
