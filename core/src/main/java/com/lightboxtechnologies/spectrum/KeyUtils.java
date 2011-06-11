@@ -8,6 +8,12 @@ import org.apache.hadoop.hbase.util.Bytes;
  */
 public class KeyUtils {
 
+  public static final byte MD5 = 0;
+  public static final byte SHA1 = 1;
+
+  public static final int MD5_LEN = 16;
+  public static final int SHA1_LEN = 20;
+
   public static byte[] makeEntryKey(byte[] hash, byte type, byte[] data) {
     /*
       Key format is:
@@ -28,4 +34,35 @@ public class KeyUtils {
     return okbytes;
   }
 
+  public static int getHashLength(byte[] key) {
+    byte type = key[20];
+    switch (type) {
+      case MD5:
+        return MD5_LEN;
+      case SHA1:
+        return SHA1_LEN;
+      default:
+        return 0;
+    }
+  }
+
+  public static byte[] getHash(byte[] key) {
+    byte[] hash = new byte[getHashLength(key)];
+    getHash(hash, key);
+    return hash;
+  }
+
+  public static int getHash(byte[] hash, byte[] key) {
+    return Bytes.putBytes(hash, 0, key, 0, getHashLength(key));
+  }
+
+  public static byte[] getFsEntryID(byte[] key) {
+    byte[] id = new byte[key.length - 21];
+    getFsEntryID(id, key);
+    return id;
+  }
+
+  public static int getFsEntryID(byte[] id, byte[] key) {
+    return Bytes.putBytes(id, 0, key, 21, key.length - 21);
+  }
 }

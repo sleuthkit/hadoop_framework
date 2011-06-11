@@ -76,4 +76,54 @@ public class KeyUtilsTest {
 
     assertArrayEquals(expected, KeyUtils.makeEntryKey(hash, type, col));
   }
+
+  @Test
+  public void retrieveMD5() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes()), "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.MD5, entryID);
+    
+    assertArrayEquals(hash, KeyUtils.getHash(rowKey));
+  }
+
+  @Test
+  public void getHashLengthMD5() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes()), "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.MD5, entryID);
+
+    assertEquals(KeyUtils.MD5_LEN, KeyUtils.getHashLength(rowKey));
+  }
+
+  @Test
+  public void retrieveSHA1() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes()), "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.SHA1, entryID);
+
+    assertArrayEquals(hash, KeyUtils.getHash(rowKey));
+  }
+
+  @Test
+  public void getHashLengthSHA1() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes()), "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.SHA1, entryID);
+
+    assertEquals(KeyUtils.SHA1_LEN, KeyUtils.getHashLength(rowKey));
+  }
+
+  @Test
+  public void retrieveFsEntryID() throws Exception {
+    final Hex hex = new Hex();
+    final byte[] hash = hex.decode("deadbeefdeadbeefdeadbeefdeadbeefdeadbeef".getBytes());
+    final byte[] entryID = FsEntryUtils.makeFsEntryKey(hex.decode("baadf00dbaadf00dbaadf00dbaadf00d".getBytes()), "/etc/passwd".getBytes(), 17);
+    final byte[] rowKey = KeyUtils.makeEntryKey(hash, KeyUtils.SHA1, entryID);
+
+    assertArrayEquals(entryID, KeyUtils.getFsEntryID(rowKey));
+  }
 }
