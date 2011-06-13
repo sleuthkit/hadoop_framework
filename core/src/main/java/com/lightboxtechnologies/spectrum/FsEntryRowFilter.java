@@ -31,18 +31,18 @@ import java.io.IOException;
  * A bit comparator which performs the specified bitwise operation on each of the bytes
  * with the specified byte array. Then returns whether the result is non-zero.
  */
-public class FsEntryFilter extends WritableByteArrayComparable {
-  private final Log LOG = LogFactory.getLog(FsEntryFilter.class);
+public class FsEntryRowFilter extends WritableByteArrayComparable {
+  private final Log LOG = LogFactory.getLog(FsEntryRowFilter.class);
 
   /** Nullary constructor for Writable, do not use */
-  public FsEntryFilter() {}
+  public FsEntryRowFilter() {}
 
   /**
    * Constructor
    * @param value value
    * @param BitwiseOp bitOperator - the operator to use on the bit comparison
    */
-  public FsEntryFilter(byte[] value) {
+  public FsEntryRowFilter(byte[] value) {
     super(value);
   }
 

@@ -72,7 +72,7 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
     scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
 /*    if (deviceID != null && deviceID.length() > 0) {
       byte[] imgID = Hex.decodeHex(deviceID.toCharArray());
-      FsEntryFilter keyFilt = new FsEntryFilter(imgID);
+      FsEntryRowFilter keyFilt = new FsEntryRowFilter(imgID);
       RowFilter filt = new RowFilter(CompareFilter.CompareOp.EQUAL, keyFilt);
       scan.setFilter(filt);
     }*/
@@ -146,14 +146,14 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
     private Result Cur;
     private final ImmutableHexWritable Key;
     private final FsEntry Value;
-    private FsEntryFilter Filter;
+    private FsEntryRowFilter Filter;
 
     public FsEntryRecordReader(RecordReader<ImmutableBytesWritable, Result> rr, byte[] imgID) {
       TblReader = rr;
       Key = new ImmutableHexWritable();
       Value = new FsEntry();
       if (imgID != null && imgID.length > 0) {
-        Filter = new FsEntryFilter(imgID);
+        Filter = new FsEntryRowFilter(imgID);
       }
     }
 
