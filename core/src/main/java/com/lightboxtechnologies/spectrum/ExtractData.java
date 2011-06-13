@@ -33,6 +33,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.util.GenericOptionsParser;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
@@ -44,7 +45,8 @@ public class ExtractData {
 
   public static final Log LOG = LogFactory.getLog(ExtractData.class.getName());
 
-  public static int run(String extentsPath, String image, Configuration conf) throws Exception {
+  public static int run(String extentsPath, String image, Configuration conf)
+             throws ClassNotFoundException, IOException, InterruptedException {
     if (conf == null) {
       conf = HBaseConfiguration.create();
     }
@@ -91,10 +93,11 @@ public class ExtractData {
       loader.doBulkLoad(hfileDir, new HTable(conf, HBaseTables.HASH_TBL_B));
       result = fs.delete(hfileDir, true);
     }
-    return result ? 0: 1;
+    return result ? 0 : 1;
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args)
+              throws ClassNotFoundException, IOException, InterruptedException {
     final Configuration conf = HBaseConfiguration.create();
     final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
