@@ -60,21 +60,21 @@ public class FsEntry extends HashMap<String,Object> {
     return Changed;
   }
 
-  public boolean	containsKey(Object key) {
+  public boolean containsKey(Object key) {
     return Changed.containsKey(key) || super.containsKey(key);
   }
 
-  public boolean	containsValue(Object value) {
+  public boolean containsValue(Object value) {
     return Changed.containsValue(value) || super.containsValue(value);
   }
 
   @Deprecated
-  public Set<Map.Entry<String,Object>>	entrySet() {
+  public Set<Map.Entry<String,Object>> entrySet() {
     return null; // needs to be the union, disabling for now
   }
 
   @Deprecated
-  public boolean	equals(Object o) {
+  public boolean equals(Object o) {
     return false;
   }
 
@@ -86,34 +86,34 @@ public class FsEntry extends HashMap<String,Object> {
     return val;
   }
 
-  public boolean	isEmpty() {
+  public boolean isEmpty() {
     return Changed.isEmpty() && super.isEmpty();
   }
 
   @Deprecated
-  public Set<String>	keySet() {
+  public Set<String> keySet() {
     return null;
   }
 
-  public Object	put(String key, Object value) {
+  public Object put(String key, Object value) {
     return Changed.put(key, value);
   }
 
-  public void	putAll(Map<? extends String,? extends Object> m) {
+  public void putAll(Map<? extends String,? extends Object> m) {
     Changed.putAll(m);
   }
 
   @Deprecated
-  public Object	remove(Object key) {
+  public Object remove(Object key) {
     return null;
   }
 
-  public int	size() {
+  public int size() {
     return Changed.size() + super.size(); // could count things twice if same key
   }
 
   @Deprecated
-  public Collection<Object>	values() {
+  public Collection<Object> values() {
     return null;
   }
 
