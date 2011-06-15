@@ -130,7 +130,7 @@ public class FsEntry extends HashMap<String,Object> {
   }
 
   public Object getStream(String key) {
-    StreamProxy val = Streams.get(key);
+    final StreamProxy val = Streams.get(key);
     if (val != null) {
       try {
         return new PyFile(val.open(FS));
@@ -145,7 +145,7 @@ public class FsEntry extends HashMap<String,Object> {
   }
 
   public InputStream getInputStream(String key) throws IOException {
-    StreamProxy p = Streams.get(key);
+    final StreamProxy p = Streams.get(key);
     if (p != null) {
       return p.open(FS);
     }
