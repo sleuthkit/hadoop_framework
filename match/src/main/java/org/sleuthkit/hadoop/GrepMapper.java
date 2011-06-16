@@ -60,7 +60,7 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
 
     @Override
     public void map(ImmutableHexWritable key, FsEntry value, Context context)
-    throws IOException {
+    throws IOException, InterruptedException {
         String text;
         try {
              text = (String)value.get(HBaseConstants.EXTRACTED_TEXT);
@@ -86,15 +86,11 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
             }
         }
         
-        try {
-            JSONArray ar = new JSONArray(s);
-            JSONArray grepMatches = new JSONArray(g);
+        JSONArray ar = new JSONArray(s);
+        JSONArray grepMatches = new JSONArray(g);
             
-            value.put(HBaseConstants.GREP_RESULTS, ar.toString());
-            value.put(HBaseConstants.GREP_SEARCHES, grepMatches.toString());
-            context.write(key, value);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        value.put(HBaseConstants.GREP_RESULTS, ar.toString());
+        value.put(HBaseConstants.GREP_SEARCHES, grepMatches.toString());
+        context.write(key, value);
     }
 }
