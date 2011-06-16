@@ -43,6 +43,9 @@ int exec_cmd(char** argv, int* in_pipe, int* out_pipe, int* err_pipe) {
     CHECK(dup2(in_pipe[0], STDIN_FILENO));
     CHECK(close(in_pipe[0]));
   }
+  else {
+    CHECK(close(STDIN_FILENO));
+  }
 
   // send child's stdout to parent
   CHECK(dup2(out_pipe[1], STDOUT_FILENO));
