@@ -43,7 +43,7 @@ class HashLoaderHelper {
   private static final byte[] size_col = "filesize".getBytes();
   private static final byte[] nsrl_col = "NSRL".getBytes();
 
-  private static final byte[] one = { 1 };
+  private static final byte[] empty = new byte[0];
 
   public void writeRow(byte[] key, HashData hd,
                        HashLoaderMapper.Context context)
@@ -83,7 +83,7 @@ class HashLoaderHelper {
 
     // check the NSRL box
     okey.set(KeyUtils.makeEntryKey(key, ktype, nsrl_col));
-    context.write(okey, new KeyValue(key, family, nsrl_col, timestamp, one));
+    context.write(okey, new KeyValue(key, family, nsrl_col, timestamp, empty));
 
     // look up the product data
     final List<ProdData> pl = prod.get(hd.prod_code);
@@ -96,7 +96,7 @@ class HashLoaderHelper {
         (pmd.name + '/' + pd.name + ' ' + pd.version).getBytes();
 
       okey.set(KeyUtils.makeEntryKey(key, ktype, set_col));
-      context.write(okey, new KeyValue(key, family, set_col, timestamp, one));
+      context.write(okey, new KeyValue(key, family, set_col, timestamp, empty));
     }
   }
 }

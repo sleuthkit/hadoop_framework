@@ -328,7 +328,7 @@ public class ExtractMapper
 
   protected static final byte[] ingest_col = "ingest".getBytes();
 
-  protected static final byte[] one = { 1 };
+  protected static final byte[] empty = new byte[0];
 
   protected void process_extent(FSDataInputStream file, FileSystem fs, Path outPath, Map<String,?> map, Context context) throws IOException, InterruptedException {
     final String id = (String)map.get("id");
@@ -371,14 +371,14 @@ public class ExtractMapper
     // write the md5 version of the key for the hash table
     OutKey.set(KeyUtils.makeEntryKey(md5, (byte) 0, id_b));
     final KeyValue ovMD5 = new KeyValue(
-      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, empty
     );
     context.write(OutKey, ovMD5);
 
     // write the sha1 version of the key for the hash table
     OutKey.set(KeyUtils.makeEntryKey(sha1, (byte) 1, id_b));
     final KeyValue ovSHA1 = new KeyValue(
-      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, one
+      OutKey.get(), HBaseTables.HASH_COLFAM_B, ingest_col, timestamp, empty
     );
     context.write(OutKey, ovSHA1);
   }
