@@ -115,6 +115,21 @@ public class IOUtilsTest {
     }
   }
 
+  @Test(expected=IOException.class)
+  public void testCopyExactTooLittle() throws IOException {
+    final byte[] buf = new byte[1024];
+
+    final byte[] expected = new byte[9999];
+    final long seed = System.currentTimeMillis();
+    final Random rng = new Random(seed);
+    rng.nextBytes(expected);
+
+    final ByteArrayInputStream in = new ByteArrayInputStream(expected);
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    IOUtils.copy(in, out, buf, 10000);
+  }
+
   @Test
   public void testCloseQuietlyCloseableOk() throws IOException {
     final Closeable c = context.mock(Closeable.class);
