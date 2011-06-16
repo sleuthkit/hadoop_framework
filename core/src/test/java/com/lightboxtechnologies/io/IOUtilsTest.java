@@ -78,6 +78,44 @@ public class IOUtilsTest {
   }
 
   @Test
+  public void testCopyExactFull() throws IOException {
+    final byte[] buf = new byte[1024];
+
+    final byte[] expected = new byte[10000];
+    final long seed = System.currentTimeMillis();
+    final Random rng = new Random(seed);
+    rng.nextBytes(expected);
+
+    final ByteArrayInputStream in = new ByteArrayInputStream(expected);
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    IOUtils.copy(in, out, buf, 10000);
+
+    assertArrayEquals("seed == " + seed, expected, out.toByteArray());
+  }
+
+  @Test
+  public void testCopyExactNotFull() throws IOException {
+    final byte[] buf = new byte[1024];
+
+    final byte[] expected = new byte[10000];
+    final long seed = System.currentTimeMillis();
+    final Random rng = new Random(seed);
+    rng.nextBytes(expected);
+
+    final ByteArrayInputStream in = new ByteArrayInputStream(expected);
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    IOUtils.copy(in, out, buf, 9999);
+
+    final byte[] actual = out.toByteArray();
+    assertEquals("seed == " + seed, 9999, actual.length);
+    for (int i = 0; i < actual.length; ++i) {
+      assertEquals("seed == " + seed, expected[i], actual[i]);
+    }
+  }
+
+  @Test
   public void testCloseQuietlyCloseableOk() throws IOException {
     final Closeable c = context.mock(Closeable.class);
 

@@ -72,6 +72,34 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
   }
 
   /**
+   * Copies a fixed number of bytes from an <code>InputStream</code> to
+   * an <code>OutputStream</code> via a <code>byte</code> buffer. This
+   * method buffers internally, so the input stream should not
+   * be a <code>BufferedInputStream</code>.
+   *
+   * @param in the source
+   * @param out the destination
+   * @param buffer the buffer
+   * @param length the number of bytes to be copied
+   * @throws IOException if one occurs while reading or writing
+   */
+  public static void copy(InputStream in, OutputStream out,
+                          byte[] buffer, long length) throws IOException {
+    int rlen;
+    while (length > 0) {
+      rlen = in.read(buffer, 0, (int) Math.min(length, buffer.length));
+      if (rlen == -1) {
+        throw new IOException(
+          "Unexpected EOF with " + length + " bytes remaining"
+        );
+      }
+
+      out.write(buffer, 0, rlen);
+      length -= rlen;
+    }
+  }
+
+  /**
    * Close a {@link Closeable} unconditionally. Equivalent to
    * calling <code>c.close()</code> when <code>c</code> is nonnull.
    * {@link IOException}s are swallowed, as there is generally
