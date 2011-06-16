@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
             if ("".equals(item)) continue; // don't add empty regexes
             try {
                 patterns.add(Pattern.compile(item));
-            } catch (Exception ex) {
+            } catch (PatternSyntaxException ex) {
                 // TODO: Replace this with something better.
                 // Why do this? Pattern indices matter this this implementation.
                 // If a pattern is not added properly, that will throw off our
