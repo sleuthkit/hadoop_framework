@@ -1,11 +1,14 @@
 package org.sleuthkit.hadoop;
 
+import java.io.IOException;
+
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+
 public class GrepMatchReducer extends Reducer<NullWritable, Text, NullWritable, Text> {
 
     JSONArray outArray = new JSONArray();
@@ -36,12 +39,9 @@ public class GrepMatchReducer extends Reducer<NullWritable, Text, NullWritable, 
     }
 
     @Override
-    protected void cleanup(Context context) {
-        try {
-            context.write(NullWritable.get(), new Text(outArray.toString()));
-        } catch (Exception e) {
-            
-        }
+    protected void cleanup(Context context)
+                                     throws IOException, InterruptedException {
+        context.write(NullWritable.get(), new Text(outArray.toString()));
     }
 
 }
