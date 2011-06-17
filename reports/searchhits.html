@@ -112,20 +112,20 @@ limitations under the License.
       $('#' + id).append("<div class='entityHeader'><button id='exportSelected'>Export Selected</button><button id='exportAll'>Export All</button>" + Util.htmlSafeString(divHeader) + "</div>");
     }
     var items = [];
-    items.push('<colgroup><col /><col /><col /><col /><col /><col /><col /></colgroup>');
-    items.push('<thead><tr><th>Sel</th><th>Key ID</th><th>Keyword</th><th>Preview</th><th>File ID</th><th>File Name</th><th>File Path</th></tr></thead>');
+    items.push('<colgroup><col /><col /><col /><col /><col /><col /></colgroup>');
+    items.push('<thead><tr><th>Sel</th><th>Key ID</th><th>Keyword</th><th>Preview</th><th>File ID</th><th>File Path</th></tr></thead>');
     var i = 0;
     while(i < dataLen) {
-      items.push('<tr><td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td><td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
+      items.push('<tr title="FileName: ' + Util.htmlSafeString(data[i].fN) + '<br>Path: ' + Util.htmlSafeString(data[i].fP) + '">' +
+      	'<td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td><td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].kw) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].p) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].fId) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].fN) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].fP) + '</td>' +
       	'</tr>');
       ++i;
     }
-    items.push('<tfoot><th colspan=7 style="text-align: left;"></th></tfoot>');
+    items.push('<tfoot><th colspan=6 style="text-align: left;"></th></tfoot>');
     $('<table>', {
       'class': 'display',
       'id' : 'dTable',
@@ -150,15 +150,14 @@ limitations under the License.
 	  cTable = $('#dTable').dataTable({
 		  "aaSorting": aaSorting,
 		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-		  "iDisplayLength": 10,
+		  "iDisplayLength": 25,
 		  "aoColumns": [
 		  	{ "sWidth": "50px", "sSortDataType": "dom-checkbox" },
 		  	{ "sWidth": "75px" },
-		  	{ "sWidth": "200px" },
-		  	{ "sWidth": "305px" },
-		  	{ "sWidth": "85px" },
-		  	{ "sWidth": "220px" },
-		  	{ "sWidth": "265px" }
+		  	null,
+		  	null,
+		  	{ "sWidth": "185px" },
+		  	null
 		  ],
 		  "bJQueryUI": true,
 		  "bAutoWidth": false,
@@ -172,7 +171,7 @@ limitations under the License.
 				nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
 			}		  
 	  });
-    //fHead = new FixedHeader(cTable); //doesn't work with kiketable
+//    fHead = new FixedHeader(cTable); //doesn't work with kiketable
   }
 
 	$.fn.dataTableExt.afnSortData['dom-checkbox'] = function  ( oSettings, col )
@@ -208,6 +207,16 @@ limitations under the License.
   		fixWidth: true
   	});
   	makeTable(false, false);
+		$(cTable.fnGetNodes()).tipsy({
+			gravity: "s", 
+			fade: true,
+			html: true
+		});
+		$(".printReport").tipsy({
+			gravity: "e", 
+			fade: true,
+			html: true
+		});
     if (Modernizr.localstorage) {
     	$("input", cTable.fnGetNodes()).change(checkChangeStorage);
     	var checkedList = localStorage.getItem(deviceName+"_searchHits");
@@ -235,8 +244,8 @@ limitations under the License.
 			<h2 id="deviceName" class="ui-widget" style="font-size: 1.5em; text-align: center;">[device.name]</h2>
 			<h3 class="ui-widget" style="text-align: center;">Processing Report</h3>
 			<div id="printReport" style="position: absolute; width: 100px;">
-				<img alt="Print Summary Report" src="images/icon-summaryReport.png" />
-				<img alt="Print Summary Report" src="images/icon-detailReport.png" />
+				<img class="printReport" title="Print Summary Report" src="images/icon-summaryReport.png" />
+				<img class="printReport" title="Print Detail Report" src="images/icon-detailReport.png" />
 			</div>
 		</div>
 	</div>

@@ -115,9 +115,10 @@ limitations under the License.
 
   function fillTable(data, id, divHeader) {
     if (divHeader.length > 0) {
-      $('#' + id).append("<div class='entityHeader'><button id='csv'>CSV</button>" + Util.htmlSafeString(divHeader) + "</div>");
+      $('#' + id).append("<div class='entityHeader'><button id='exportSelected'>Export Selected</button><button id='exportAll'>Export All</button>" + Util.htmlSafeString(divHeader) + "</div>");
     }
     var items = [];
+	items.push('<colgroup><col /><col /><col /><col /><col /><col /></colgroup>');
     items.push('<thead><tr><th>Sel</th><th>File ID</th><th>File Name</th><th>Hash Set</th><th>Description</th><th>AV Results</th></tr></thead>');
     var i = 0;
     while(i < dataLen) {
@@ -137,11 +138,12 @@ limitations under the License.
       'id' : 'dTable',
       html: items.join('')
     }).appendTo('#' + id);
-    $("#csv").button()
-    .css("float", "left")
-    .click(function() {
-			Util.DownloadJSON2CSV(data);
-		});
+    $("#exportAll").button()
+	    .css("float", "left")
+	    .click(function() { Util.DownloadJSON2CSV(data); });
+	  $("#exportSelected").button()
+	  	.css("float", "left")
+	  	.click(function() { Util.DownloadJSON2CSV(data, $('input', cTable.fnGetNodes()).serialize()); });
   }
 
   function makeTable(destroy, noSort) {
@@ -152,7 +154,7 @@ limitations under the License.
     else {
       aaSorting = [[1,"asc"]];
     }
-	  cTable = $('.display').dataTable({
+	  cTable = $('#dTable').dataTable({
 		  "aaSorting": aaSorting,
 		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 		  "iDisplayLength": 25,
@@ -176,7 +178,7 @@ limitations under the License.
 				nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
 			}		  
 	  });
-    fHead = new FixedHeader(cTable);
+//    fHead = new FixedHeader(cTable); //doesn't work with kiketable
   }
 
 	$.fn.dataTableExt.afnSortData['dom-checkbox'] = function  ( oSettings, col )
@@ -206,9 +208,20 @@ limitations under the License.
   	fillDeviceInfo(deviceInfo);
   	$("#chart4Title").html(Util.stringFormatComma(Util.getSum(knownBadCounts)));
     fillTable(knownBad, "dataTableContent", "Known Bad Files");
+  	$("#dTable").kiketable_colsizable({
+  		dragMove: true,
+  		dragOpacity: 0,
+  		minWidth: 50,
+  		fixWidth: true
+  	});
   	makeTable(false, false);
 		$(cTable.fnGetNodes()).tipsy({
 			gravity: "s", 
+			fade: true,
+			html: true
+		});
+		$(".printReport").tipsy({
+			gravity: "e", 
 			fade: true,
 			html: true
 		});
@@ -239,8 +252,8 @@ limitations under the License.
 			<h2 id="deviceName" class="ui-widget" style="font-size: 1.5em; text-align: center;">[device.name]</h2>
 			<h3 class="ui-widget" style="text-align: center;">Processing Report</h3>
 			<div id="printReport" style="position: absolute; width: 100px;">
-				<img alt="Print Summary Report" src="images/icon-summaryReport.png" />
-				<img alt="Print Summary Report" src="images/icon-detailReport.png" />
+				<img class="printReport" title="Print Summary Report" src="images/icon-summaryReport.png" />
+				<img class="printReport" title="Print Detail Report" src="images/icon-detailReport.png" />
 			</div>
 		</div>
 	</div>
