@@ -1,3 +1,5 @@
 *.o
 *.d
 .*.swp
+mrcoffee
+mrcoffee_client
