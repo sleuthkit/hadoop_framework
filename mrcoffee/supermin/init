@@ -1,0 +1,11 @@
+#!/bin/bash -
+
+echo Starting /init script...
+
+mount -t proc /proc /proc
+mount -t sysfs /sys /sys
+
+/sbin/start_udev
+
+bash -i
+
