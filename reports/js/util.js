@@ -134,6 +134,20 @@ Utility.prototype.findObjectByName = function(data, str) {
 	  return [];
 };
 
+Utility.prototype.findObjectByIndex = function(data, index) {
+		if (data) {
+			var arr = [];
+		  var len = data.length;
+		  var i = -1;
+		  while(++i < len) {
+		    if (data[i].a == index) {
+		    	return data[i];
+		    }
+		  }
+		}
+	  return [];
+};
+
 Utility.prototype.getFileNameFromPath = function(str, delim) {
 	var filename = str;
 	filename = filename.substring(filename.lastIndexOf(delim) + 1, filename.length);
