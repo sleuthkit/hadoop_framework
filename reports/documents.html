@@ -28,6 +28,7 @@ limitations under the License.
   <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
   <script src="js/jquery.dataTables.min.js" type="text/javascript"></script>
   <script src="js/FixedHeader.min.js" type="text/javascript"></script>
+  <script src="js/dataTables.textInputPagination.js" type="text/javascript"></script>
   <script src="js/jquery.event.drag-1.5.js" type="text/javascript"></script>
   <script src="js/jquery.kiketable.colsizable-1.1.js" type="text/javascript"></script>
   <link type="text/css" href="css/jquery.kiketable.colsizable.css" rel="stylesheet" />
@@ -50,7 +51,7 @@ limitations under the License.
   var cTable;
   var fHead;
   var docClusterCoords = [];
-//  docClusterCoords = docClusterChart;
+  docClusterCoords = docClusterChart;
   
   $(window).resize(function(){
     var elem = $(this);
@@ -121,10 +122,10 @@ limitations under the License.
     }
     var items = [];
 	items.push('<colgroup><col /><col /><col /><col /><col /></colgroup>');
-    items.push('<thead><tr><th>Sel</th><th>Cluster ID</th><th>File ID</th><th>Topics</th><th>File Path</th></tr></thead>');
+    items.push('<thead><tr><th>Sel</th><th>Cluster</th><th>File ID</th><th>Topics</th><th>File Path</th></tr></thead>');
     var i = 0;
     while(i < dataLen) {
-      items.push('<tr title="File Name: ' + Util.htmlSafeString(Util.getFileNameFromPath(data[i].fP, "\\")) + '">' +
+      items.push('<tr title="File Name: ' + Util.htmlSafeString(Util.getFileNameFromPath(data[i].fP, "\/")) + '">' +
       	'<td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td>' +
 		    '<td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
       	'<td>' + Util.htmlSafeString(data[i].fId) + '</td>' +
@@ -161,8 +162,8 @@ limitations under the License.
 		  "iDisplayLength": 25,
 		  "aoColumns": [
 			{ "sWidth": "50px", "sSortDataType": "dom-checkbox" },
-		  	{ "sWidth": "100px" },
-		  	{ "sWidth": "185px" },
+		  	{ "sWidth": "80px" },
+		  	{ "sWidth": "120px" },
         null,
         null
 		  ],
@@ -172,7 +173,7 @@ limitations under the License.
 		  "bDestroy": destroy,
 		  "bProcessing": true,
 		  "bStateSave": true,
-		  "sPaginationType": "full_numbers",
+		  "sPaginationType": "input",
 		  "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
 		  	var nCells = nFoot.getElementsByTagName('th');
 				nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
