@@ -26,7 +26,7 @@ limitations under the License.
   <script src="js/json2.js" type="text/javascript"></script>
   <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
   <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
-  <script src="js/jquery.dataTables.min.js" type="text/javascript"></script>
+  <script src="js/jquery.dataTables.localStorage.min.js" type="text/javascript"></script>
   <script src="js/FixedHeader.min.js" type="text/javascript"></script>
   <script src="js/dataTables.textInputPagination.js" type="text/javascript"></script>
   <script src="js/jquery.event.drag-1.5.js" type="text/javascript"></script>
@@ -147,7 +147,7 @@ limitations under the License.
 	  	.click(function() { Util.DownloadJSON2CSV(data, $('input', cTable.fnGetNodes()).serialize()); });
   }
 
-  function makeTable(destroy, noSort) {
+  function makeTable(destroy, noSort, localstor) {
     var aaSorting;
     if (noSort) {
       aaSorting = [];
@@ -173,6 +173,7 @@ limitations under the License.
 		  "bDestroy": destroy,
 		  "bProcessing": true,
 		  "bStateSave": true,
+		  "bLocalStorage": localstor,
 		  "sPaginationType": "input",
 		  "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
 		  	var nCells = nFoot.getElementsByTagName('th');
@@ -215,7 +216,12 @@ limitations under the License.
   		minWidth: 50,
   		fixWidth: true
   	});
-  	makeTable(false, false);
+  	if (Modernizr.localstorage) {
+  		makeTable(false, false, true);
+  	}
+  	else {
+  		makeTable(false, false, false);
+  	}
 		$(cTable.fnGetNodes()).tipsy({
 			gravity: "s", 
 			fade: true,
