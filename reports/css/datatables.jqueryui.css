@@ -44,6 +44,24 @@
 	* cursor: hand;
 }
 
+.paging_input .ui-button {
+	padding: 2px 6px;
+	margin: 0;
+	cursor: pointer;
+	* cursor: hand;
+}
+
+.paginate_textInput {
+	font-size: 1.0em;
+}
+
+.paginate_page, .paginate_of {
+	padding: 2px 6px;
+	margin: 0;
+	cursor: pointer;
+	* cursor: hand;
+}
+
 .dataTables_paginate .ui-button {
 	margin-right: -0.1em !important;
 }
