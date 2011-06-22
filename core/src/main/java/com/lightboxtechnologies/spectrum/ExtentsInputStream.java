@@ -35,8 +35,6 @@ public class ExtentsInputStream extends InputStream {
 
         cur_pos = ((Number) cur_extent.get("addr")).longValue();
         cur_end = cur_pos + length;
-
-System.err.println("len == " + length + ", cur_pos == " + cur_pos + ", cur_end == " + cur_end);
       }
       else {
         return false;
@@ -73,33 +71,6 @@ System.err.println("len == " + length + ", cur_pos == " + cur_pos + ", cur_end =
     rlen = in.read(cur_pos, buf, off, rlen);
     cur_pos += rlen;
 
-System.err.println("off == " + off + ", len == " + len + ", rlen == " + rlen);
-
     return rlen;
   }
-
-/*
-  @Override
-  public long skip(long n) throws IOException {
-    
-  }
-*/
-
-/*
-  @Override
-  public int available() throws IOException {
-    if (!prepareExtent()) {
-      return 0;
-    }
-
-    return Math.min(in.available(),
-      (int) Math.min(cur_end - cur_pos, Integer.MAX_VALUE));
-  }
-*/
-
-/*
-  @Override
-  public void close() throws IOException {
-  }
-*/
 }
