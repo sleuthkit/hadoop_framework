@@ -1,4 +1,4 @@
-package org.sleuthkit.hadoop;
+package org.sleuthkit.hadoop.scoring;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.sleuthkit.hadoop.SKMapper;
 
 public class CrossImageScoreReducer extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesArrayWritable> {
     byte[] imageID;

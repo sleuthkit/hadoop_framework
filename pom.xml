@@ -23,6 +23,7 @@
         <module>match</module>
         <module>textextraction</module>
         <module>pipeline</module>
+	<module>crossdrive-scoring</module>
     </modules>
     <repositories>
         <repository>

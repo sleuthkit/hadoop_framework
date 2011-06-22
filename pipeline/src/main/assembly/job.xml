@@ -18,6 +18,7 @@
         <exclude>org.sleuthkit:sleuthkit-grep</exclude>
         <exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
         <exclude>org.sleuthkit:sleuthkit-core</exclude>
+	<exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
 	<exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
       </excludes>
     </dependencySet>
@@ -31,6 +32,7 @@
         <include>org.sleuthkit:sleuthkit-grep</include>
         <include>org.sleuthkit:sleuthkit-pipeline</include>
         <include>org.sleuthkit:sleuthkit-core</include>
+	<include>org.sleuthkit:sleuthkit-crossdrive-scoring</include>
       </includes>
       <unpackOptions>
         <excludes>

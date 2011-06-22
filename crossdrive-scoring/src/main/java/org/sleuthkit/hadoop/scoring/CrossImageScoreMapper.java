@@ -1,4 +1,4 @@
-package org.sleuthkit.hadoop;
+package org.sleuthkit.hadoop.scoring;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -9,6 +9,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.io.BytesWritable;
+import org.sleuthkit.hadoop.SKMapper;
 
 import com.lightboxtechnologies.spectrum.KeyUtils;
 

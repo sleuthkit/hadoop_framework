@@ -65,6 +65,12 @@
       <artifactId>sleuthkit-core</artifactId>
       <version>1-SNAPSHOT</version>
     </dependency> 
+     <dependency>
+      <groupId>org.sleuthkit</groupId>
+      <artifactId>sleuthkit-crossdrive-scoring</artifactId>
+      <version>1-SNAPSHOT</version>
+      <classifier>job</classifier>
+    </dependency> 
     <!-- other dependencies -->
   </dependencies>
   <profiles>

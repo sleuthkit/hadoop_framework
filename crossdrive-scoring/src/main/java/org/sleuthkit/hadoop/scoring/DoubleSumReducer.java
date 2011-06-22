@@ -1,4 +1,4 @@
-package org.sleuthkit.hadoop;
+package org.sleuthkit.hadoop.scoring;
 
 import java.io.IOException;
 

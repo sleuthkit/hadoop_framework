@@ -1,4 +1,4 @@
-package org.sleuthkit.hadoop;
+package org.sleuthkit.hadoop.scoring;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -18,6 +18,9 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.sleuthkit.hadoop.JobNames;
+import org.sleuthkit.hadoop.SKJobFactory;
+import org.sleuthkit.hadoop.SKMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

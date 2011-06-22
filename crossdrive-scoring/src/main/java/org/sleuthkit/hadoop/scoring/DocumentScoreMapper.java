@@ -1,10 +1,11 @@
-package org.sleuthkit.hadoop;
+package org.sleuthkit.hadoop.scoring;
 
 import java.io.IOException;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Writable;
+import org.sleuthkit.hadoop.SKMapper;
 
 public class DocumentScoreMapper extends SKMapper<BytesWritable, BytesArrayWritable, Writable, DoubleWritable> {
     
