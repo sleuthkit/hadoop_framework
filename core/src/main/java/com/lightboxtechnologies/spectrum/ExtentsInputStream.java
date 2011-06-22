@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 
-public class ExtentInputStream extends InputStream {
+public class ExtentsInputStream extends InputStream {
 
   protected final FSDataInputStream in;
 
@@ -19,7 +19,7 @@ public class ExtentInputStream extends InputStream {
   protected long cur_pos;
   protected long cur_end;
 
-  public ExtentInputStream(FSDataInputStream in, List<Map<String,?>> extents) {
+  public ExtentsInputStream(FSDataInputStream in, List<Map<String,?>> extents) {
     this.in = in;
     this.ext_iter = extents.iterator();
   }
@@ -45,12 +45,15 @@ public class ExtentInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    if (!prepareExtent()) {
-      return -1;
-    }
-
     final byte[] b = new byte[1];
-    return in.read(cur_pos++, b, 0, 1);
+
+    // keep trying until we read one byte or hit EOF
+    int rlen;
+    do {
+      rlen = read(b, 0, 1);
+    } while (rlen == 0);
+
+    return rlen == -1 ? rlen : b[0];
   }
 
   @Override
@@ -80,7 +83,12 @@ public class ExtentInputStream extends InputStream {
 /*
   @Override
   public int available() throws IOException {
-    return (int) Math.min(remaining, Integer.MAX_VALUE);
+    if (!prepareExtent()) {
+      return 0;
+    }
+
+    return Math.min(in.available(),
+      (int) Math.min(cur_end - cur_pos, Integer.MAX_VALUE));
   }
 */
 
