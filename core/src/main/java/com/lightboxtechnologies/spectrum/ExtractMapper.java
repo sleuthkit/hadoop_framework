@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableExistsException;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
@@ -117,7 +118,12 @@ public class ExtractMapper
         colFamDesc.setCompressionType(Compression.Algorithm.GZ);
         tableDesc.addFamily(colFamDesc);
       }
-      admin.createTable(tableDesc);
+      try {
+        admin.createTable(tableDesc);
+      }
+      catch (TableExistsException e) {
+        LOG.info("Tried to create the hash table, but it already exists. Probably just lost a race condition.");
+      }
     }
     else if (!admin.isTableEnabled(HBaseTables.HASH_TBL_B)) {
     	admin.enableTable(HBaseTables.HASH_TBL_B);
