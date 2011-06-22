@@ -31,21 +31,27 @@ public class Pipeline {
     public static final String GREP_KEYWORDS = "/texaspete/regexes";
 
     public static void main(String[] argv) throws Exception {
-        String imageID = argv[0];
-        String seqDumpDirectory = "/texaspete/data/" + imageID + "/text";
-        String tokenDumpDirectory = "/texaspete/data/" + imageID + "/tokens";
-        String vectorDumpDirectory = "/texaspete/data/" + imageID + "/vectors";
-        String clusterDumpDirectory = "/texaspete/data/" + imageID + "/clusters";
-        String dictionaryDumpDirectory = "/texaspete/data/" + imageID + "/vectors/dictionary.file-0";
+        if (argv.length != 2) {
+          System.err.println("Usage: Pipeline image_id friendly_name");
+          System.exit(1);
+        }
+        final String imageID = argv[0];
+        final String friendlyName = argv[1];
+        final String prefix = "/texaspete/data/" + imageID;
+        final String seqDumpDirectory = prefix + "/text";
+        final String tokenDumpDirectory = prefix + "/tokens";
+        final String vectorDumpDirectory = prefix + "/vectors";
+        final String clusterDumpDirectory = prefix + "/clusters";
+        final String dictionaryDumpDirectory = prefix + "/vectors/dictionary.file-0";
 
-        FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, "FriendlyName");
-        GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, "FriendlyName");
-        SequenceFsEntryText.runTask(seqDumpDirectory, imageID, "FriendlyName");
+        FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, friendlyName);
+        GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, friendlyName);
+        SequenceFsEntryText.runTask(seqDumpDirectory, imageID, friendlyName);
 
         TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
-        GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, "FriendlyName");
+        GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName);
 
-        ClusterDocuments.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, "FriendlyName");
+        ClusterDocuments.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, friendlyName);
     }
 
 }

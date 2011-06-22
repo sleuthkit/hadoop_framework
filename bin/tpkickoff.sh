@@ -1,17 +1,19 @@
 #!/bin/sh
 
-if [ $# -ne 2 ]
+if [ $# -ne 3 ]
   then
-  echo "Usage: tpkickoff.sh image_friendly_name image_path"
+  echo "Usage: tpkickoff.sh image_friendly_name image_path jar_dir"
   exit 1
 fi
 
 pwd
-
-JarFile=`ls pipeline/target/sleuthkit-pipeline-r*-job.jar | sort | tail -n 1`
+date
 
 FriendlyName=$1
 ImagePath=$2
+JarDir=$3
+
+JarFile=`ls $JarDir/sleuthkit-pipeline-r*-job.jar | sort | tail -n 1`
 
 JsonFile=$FriendlyName.json
 HdfsImage=$FriendlyName.dd
@@ -26,3 +28,11 @@ ImageID=`cat $ImagePath | $HADOOP_HOME/bin/hadoop jar $JarFile com.lightboxtechn
 
 # kick off ingest
 $HADOOP_HOME/bin/hadoop jar $JarFile org.sleuthkit.hadoop.pipeline.Ingest $ImageID $HdfsImage $JsonFile
+
+# copy reports template
+$HADOOP_HOME/bin/hadoop fs -cp /texaspete/templates/reports /texaspete/data/$ImageID/
+
+# kick off pipeline
+$HADOOP_HOME/bin/hadoop jar $JarFile org.sleuthkit.hadoop.pipeline.Pipeline $ImageID $FriendlyName
+
+date
