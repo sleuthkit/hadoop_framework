@@ -7,7 +7,7 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
 
 public class DoubleSumReducer extends Reducer<Writable, DoubleWritable, Writable, DoubleWritable>{
-    
+    DoubleWritable scoreWritable = new DoubleWritable();
     @Override
     public void reduce(Writable key, Iterable<DoubleWritable> values, Context context) {
         double score = 0;
@@ -16,7 +16,8 @@ public class DoubleSumReducer extends Reducer<Writable, DoubleWritable, Writable
         }
         
         try {
-            context.write(key, new DoubleWritable(score));
+            scoreWritable.set(score);
+            context.write(key, scoreWritable);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

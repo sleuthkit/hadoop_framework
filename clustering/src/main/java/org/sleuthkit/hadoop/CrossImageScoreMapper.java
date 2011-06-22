@@ -1,27 +1,55 @@
 package org.sleuthkit.hadoop;
 
 import java.io.IOException;
+import java.util.Arrays;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
-import org.apache.mahout.math.Arrays;
-// TODO: Still needs to be written. This is the first step for the cross-drive
-// reporting.
-public class CrossImageScoreMapper extends TableMapper<String, String>{
+import org.apache.hadoop.io.BytesWritable;
 
+import com.lightboxtechnologies.spectrum.KeyUtils;
+
+public class CrossImageScoreMapper extends TableMapper<BytesWritable, BytesWritable>{
+    
+    byte[] imgID = new byte[16];
+    byte[] hash = new byte[16];
+    
+    BytesWritable imgIDBytes = new BytesWritable();
+    BytesWritable hashBytes = new BytesWritable();
+    
+    byte[] ourImgID;
+        
     @Override
-    public void map(ImmutableBytesWritable key, Result value, Context context) throws IOException {
-        if (key.getLength() <= 128) {
-            // This key contains no information about the md5 hash; skip it.
-            return;
-        }
-        else {
-            // This key contains has information.
-            byte[] keyArray = key.get();
-            @SuppressWarnings("unused")
-            byte[] hash = Arrays.copyOf(keyArray, 128);
-            //byte[] fileName = Arrays
+    public void setup(Context context) {
+        try {
+            ourImgID = Hex.decodeHex(context.getConfiguration().get(SKMapper.ID_KEY).toCharArray());
+        } catch (DecoderException e) {
+            throw new RuntimeException("Could not parse key to hex! ", e);
         }
     }
+    
+    @Override
+    public void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException {
+        byte[] keyArray = key.get();
+        
+        // We want type 2 MD5 keys. Ignore type 1 and SHA1 keys.
+        if (KeyUtils.isType2(keyArray) && (KeyUtils.getHashLength(keyArray) == 16)) {
+            // This key contains has information.
+            KeyUtils.getImageID(imgID, keyArray);
+            KeyUtils.getHash(hash, keyArray);
+            imgIDBytes.set(imgID, 0, 16);
+            hashBytes.set(hash, 0, 16);
+            
+            if (Arrays.equals(imgID, ourImgID)) {
+                context.getCounter(CrossImageScorerJob.FileCount.FILES).increment(1);
+            }
+
+            context.write(hashBytes, imgIDBytes);
+        }
+    }
+    
+    
 }
