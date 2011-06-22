@@ -43,9 +43,19 @@ import org.apache.mahout.math.NamedVector;
 import org.apache.mahout.math.Vector;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClusterDocuments {
+    public static final Logger LOG = LoggerFactory.getLogger(ClusterDocuments.class);
 
+    public static void main(String[] argv) {
+        if (argv.length < 5) {
+            System.out.println("Usage: ClusterDocuments <input_dir> <output_dir> <dictionary_file> <t1> <t2> <image_hash> <friendly_name>");
+            System.exit(1);
+        }
+        runPipeline(argv[0], argv[1], argv[2], .65, .65, argv[3], argv[4]);
+    }
 
     public static int runPipeline(String input, String output, String dictionary, double t1, double t2, String imageID, String friendlyName) {
         Configuration conf = new Configuration();
@@ -64,37 +74,18 @@ public class ClusterDocuments {
         try {
             CanopyDriver.run(conf, canopyInputPath, canopyOutputPath, new CosineDistanceMeasure(), t1, t2, true, false);
         } catch (Exception e) {
+            LOG.error("Failure running mahout canopy.", e);
             return 1;
         }
 
         try {
             KMeansDriver.run(conf, kmeansInputPath, kmeansClusters, kmeansOutputPath, new CosineDistanceMeasure(), .5, 20, true, false);
         } catch (Exception e) {
+            LOG.error("Failure running mahout kmeans.", e);
             return 2;
         }
 
         try {
-            // Map vector names to clusters
-            // This is currently unused. Commenting in case we find a use for it.
-//            Job job = SKJobFactory.createJob(imageID, friendlyName, "VectorNamesToClusters");
-//            job.setJarByClass(ClusterDocuments.class);
-//
-//            FileInputFormat.setInputPaths(job, new Path(output + "/kmeans/clusteredPoints/"));
-//            FileOutputFormat.setOutputPath(job, new Path(output + "/kmeans/reducedClusters/"));
-//
-//            job.setMapperClass(ClusterDocuments.ClusterMapper.class);
-//            job.setMapOutputKeyClass(IntWritable.class);
-//            job.setMapOutputValueClass(Text.class);
-//
-//            job.setReducerClass(ClusterDocuments.SetReducer.class);
-//            job.setOutputKeyClass(IntWritable.class);
-//            job.setOutputValueClass(ArrayWritable.class);
-//
-//            job.setInputFormatClass(SequenceFileInputFormat.class);
-//            job.setOutputFormatClass(SequenceFileOutputFormat.class);
-//
-//            job.waitForCompletion(true);
-
             ////////////////////////////////
             // Output top cluster matches //
             ////////////////////////////////
@@ -141,7 +132,7 @@ public class ClusterDocuments {
             // Output Cluster->DocID JSON //
             ////////////////////////////////
             
-            job = SKJobFactory.createJob(imageID, friendlyName, "ClusteredVectorsToJson");
+            job = SKJobFactory.createJob(imageID, friendlyName, JobNames.OUTPUT_CLUSTER_JSON);
             job.setJarByClass(ClusterDocuments.class);
 
             FileInputFormat.setInputPaths(job, new Path(output + "/kmeans/clusteredPoints/"));
@@ -166,14 +157,18 @@ public class ClusterDocuments {
             ClusterJSONBuilder.buildReport(
                     new Path(output + "/kmeans/topClusters/part-r-00000"), 
                     new Path(output + "/kmeans/jsonClusteredPoints/part-r-00000"),
-                    new Path("/texaspete/" + imageID +  "/reports/data/documents.js"));
+                    new Path("/texaspete/data/" + imageID +  "/reports/data/documents.js"));
             return 0;
+        } catch (IOException ex) {
+            LOG.error("Failure while performing HDFS file IO.", ex);            
+        } catch (ClassNotFoundException ex) {
+            LOG.error("Error running job; class not found.", ex);            
+        } catch (InterruptedException ex) {
+            LOG.error("Hadoop job interrupted.", ex);
         }
-        catch(Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return 0;
+        // we have failed; return non-zero error code.
+        return 3;
+        
     }
     
 
@@ -251,10 +246,14 @@ public class ClusterDocuments {
             
             JSONObject obj = new JSONObject();
             try {
-                obj.put("a", key.toString());
-                obj.put("n", String.valueOf(value.getNumPoints()));
+                int i = Integer.parseInt(key.toString().substring(3));
+                obj.put("a", i);
+                obj.put("n", value.getNumPoints());
                 obj.put("kw", ClusterUtil.getTopFeatures(v, dictionaryVector, 10));
             } catch (JSONException ex) {
+                ex.printStackTrace();
+            } catch (NumberFormatException ex) {
+                System.out.println("Could not Parse Cluster name to number.");
                 ex.printStackTrace();
             }
 
