@@ -28,6 +28,7 @@ extends SKMapper<ImmutableHexWritable, FsEntry, Text, Text> {
             if ((grepResults != null) && (grepResults.size() > 0)) {
                 // There were grep results, so we are interested in this file.
                 context.write(new Text(value.getPath() + value.getName()), new Text(output));
+                context.getCounter(SequenceFsEntryText.WrittenDocumentCount.DOCUMENTS).increment(1);
             }
         }
     }

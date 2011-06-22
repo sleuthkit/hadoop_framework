@@ -46,9 +46,14 @@ public class Pipeline {
 
         FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, friendlyName);
         GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, friendlyName);
-        SequenceFsEntryText.runTask(seqDumpDirectory, imageID, friendlyName);
-
-        TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
+        
+        // This will allow us to only cluster if we have documents that are written out to sequence files.
+        // In other words, clustering will only take place if there are things TO cluster.
+        boolean filesToSequence = (SequenceFsEntryText.runPipeline(seqDumpDirectory, imageID, friendlyName));
+        if (filesToSequence) {
+            TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
+        }
+        
         GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName);
 
         ClusterDocuments.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, friendlyName);
