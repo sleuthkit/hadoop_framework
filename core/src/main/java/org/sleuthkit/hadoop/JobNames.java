@@ -16,6 +16,7 @@ public class JobNames {
     // with keyword hits.
     public static final String GREP_MATCHED_FILES_OUT = "GrepMatchesToSequenceFiles";
     public static final String OUTPUT_CLUSTER_MATCH = "TopClusterMatchPrinting";
+    public static final String OUTPUT_CLUSTER_JSON = "ClusteredVectorsToJson";   
     
     // Cluster reporting - these things happen last.
     public static final String CROSS_IMG_SIM_SCORING = "CrossImageSimilarityScoring";

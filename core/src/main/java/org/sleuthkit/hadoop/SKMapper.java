@@ -20,6 +20,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.DecoderException;
 
+import com.lightboxtechnologies.spectrum.FsEntry;
+
 public abstract class SKMapper<keyin, valin, keyout, valout>
 extends Mapper<keyin, valin, keyout, valout> {
 
@@ -47,5 +49,9 @@ extends Mapper<keyin, valin, keyout, valout> {
 
     public byte[] getImageID() {
       return ImageIDBytes;
+    }
+
+    public static boolean isKnownGood(FsEntry entry) {
+        return entry.get("nsrl") != null;
     }
 }
