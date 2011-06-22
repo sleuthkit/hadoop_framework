@@ -115,6 +115,8 @@ limitations under the License.
     var items = [];
     items.push('<colgroup><col /><col /><col /><col /><col /><col /></colgroup>');
     items.push('<thead><tr><th>Sel</th><th>Key ID</th><th>Keyword</th><th>Preview</th><th>File ID</th><th>File Path</th></tr></thead>');
+    items.push('<tbody>');
+/*
     var i = 0;
     while(i < dataLen) {
       items.push('<tr title="FileName: ' + Util.htmlSafeString(data[i].fN) + '<br>Path: ' + Util.htmlSafeString(data[i].fP) + '">' +
@@ -126,6 +128,8 @@ limitations under the License.
       	'</tr>');
       ++i;
     }
+*/
+    items.push('</tbody>');
     items.push('<tfoot><th colspan=6 style="text-align: left;"></th></tfoot>');
     $('<table>', {
       'class': 'display',
@@ -148,31 +152,48 @@ limitations under the License.
     else {
       aaSorting = [[1,"asc"]];
     }
-	  cTable = $('#dTable').dataTable({
-		  "aaSorting": aaSorting,
-		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-		  "iDisplayLength": 25,
-		  "aoColumns": [
-		  	{ "sWidth": "50px", "sSortDataType": "dom-checkbox" },
-		  	{ "sWidth": "75px" },
-		  	null,
-		  	null,
-		  	{ "sWidth": "185px" },
-		  	null
-		  ],
-		  "bJQueryUI": true,
-		  "bAutoWidth": false,
-		  "bInfo" : true,
-		  "bDestroy": destroy,
-		  "bProcessing": true,
-		  "bStateSave": true,
-		  "bLocalStorage": localstor,
-		  "sPaginationType": "input",
-		  "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
-		  	var nCells = nFoot.getElementsByTagName('th');
-				nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
-			}		  
-	  });
+    cTable = $('#dTable').dataTable({
+      "aaSorting": aaSorting,
+      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "iDisplayLength": 25,
+      
+      "sAjaxSource": "data/searchhits.js", //triggers ajax pull using overridden fnServerData
+      "sAjaxDataProp": "",
+      "aoColumns": [
+        { "mDataProp": null, "sWidth": "50px", "sSortDataType": "dom-checkbox" },
+        { "mDataProp": "a", "sWidth": "75px" },
+        { "mDataProp": "p" },
+        { "mDataProp": "p" },
+        { "mDataProp": "fId", "sWidth": "185px" },
+        { "mDataProp": "fP" }
+      ],
+      "fnServerData": function ( sSource, aoData, fnCallback ) {
+        fnCallback(searchHits);
+      },
+      "bDeferRender": true,
+      /*
+      "aoColumns": [
+        { "sWidth": "50px", "sSortDataType": "dom-checkbox" },
+        { "sWidth": "75px" },
+        null,
+        null,
+        { "sWidth": "185px" },
+        null
+      ],
+      */
+      "bJQueryUI": true,
+      "bAutoWidth": false,
+      "bInfo" : true,
+      "bDestroy": destroy,
+      "bProcessing": true,
+      "bStateSave": true,
+      "bLocalStorage": localstor,
+      "sPaginationType": "input",
+      "fnFooterCallback": "function (nFoot, aasData, iStart, iEnd, aiDisplay) {" +
+        "var nCells = nFoot.getElementsByTagName('th');" +
+        "nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';" +
+        "}" 	  
+      });
 //    fHead = new FixedHeader(cTable); //doesn't work with kiketable
   }
 
