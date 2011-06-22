@@ -19,13 +19,9 @@ public class ExtentInputStream extends InputStream {
   protected long cur_pos;
   protected long cur_end;
 
-  protected long remaining;
-
-  public ExtentInputStream(FSDataInputStream in,
-                           List<Map<String,?>> extents, long length) {
+  public ExtentInputStream(FSDataInputStream in, List<Map<String,?>> extents) {
     this.in = in;
     this.ext_iter = extents.iterator();
-    this.remaining = length;
   }
  
   protected boolean prepareExtent() {
@@ -34,8 +30,7 @@ public class ExtentInputStream extends InputStream {
       if (ext_iter.hasNext()) {
         cur_extent = ext_iter.next();
 
-        final long length =
-          Math.min(((Number) cur_extent.get("len")).longValue(), remaining);
+        final long length = ((Number) cur_extent.get("len")).longValue();
 
         cur_pos = ((Number) cur_extent.get("addr")).longValue();
         cur_end = cur_pos + length;
@@ -50,18 +45,17 @@ public class ExtentInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    if (!prepareExtent() || remaining <= 0) {
+    if (!prepareExtent()) {
       return -1;
     }
 
-    --remaining;
     final byte[] b = new byte[1];
     return in.read(cur_pos++, b, 0, 1);
   }
 
   @Override
   public int read(byte[] buf, int off, int len) throws IOException {
-    if (!prepareExtent() || remaining <= 0) {
+    if (!prepareExtent()) {
       return -1;
     }
 
@@ -72,7 +66,6 @@ public class ExtentInputStream extends InputStream {
 
     rlen = in.read(cur_pos, buf, off, rlen);
     cur_pos += rlen;
-    remaining -= rlen;
 
     return rlen;
   }
@@ -84,14 +77,16 @@ public class ExtentInputStream extends InputStream {
   }
 */
 
+/*
   @Override
   public int available() throws IOException {
     return (int) Math.min(remaining, Integer.MAX_VALUE);
   }
+*/
 
 /*
   @Override
   public void close() throws IOException {
   }
 */
-} 
+}
