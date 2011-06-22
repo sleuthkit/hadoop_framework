@@ -24,7 +24,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.codehaus.jettison.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 // Maps regex matches to an output file.
 public class GrepMapper
 extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
-    Logger LOG = LoggerFactory.getLogger(GrepMapper.class);
+    final Logger LOG = LoggerFactory.getLogger(GrepMapper.class);
     private List<Pattern> patterns = new ArrayList<Pattern>();
     
     @Override
@@ -65,7 +64,7 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
         try {
              text = (String)value.get(HBaseConstants.EXTRACTED_TEXT);
              if (text == null || text.equals("")) { return; }
-        } catch (Exception ex) {
+        } catch (NullPointerException ex) {
             System.err.println("No FsEntry for File: " + key.toString());
             return;
         }
@@ -73,24 +72,20 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
         List<String> s = new ArrayList<String>();
         // The list of regexes matched.
         List<Integer> g = new ArrayList<Integer>();
-        // TODO: We could have a context variable here as well, storing info
-        // about the text surrounding the grep match.
         int i = 0;
         for (i = 0; i < patterns.size(); i++) {
             Pattern item = patterns.get(i);
             Matcher matcher = item.matcher(text);
             
             while (matcher.find()) {
-                s.add(matcher.group());
+                int start = matcher.start();
+                int end = matcher.end();
+                s.add(text.substring(start < 20 ? 0 : start - 20, end + 20 > text.length() ? text.length() : end + 20));
                 g.add(i);
             }
         }
-        
-        JSONArray ar = new JSONArray(s);
-        JSONArray grepMatches = new JSONArray(g);
-            
-        value.put(HBaseConstants.GREP_RESULTS, ar.toString());
-        value.put(HBaseConstants.GREP_SEARCHES, grepMatches.toString());
+        value.put(HBaseConstants.GREP_RESULTS, s);
+        value.put(HBaseConstants.GREP_SEARCHES, g);
         context.write(key, value);
     }
 }

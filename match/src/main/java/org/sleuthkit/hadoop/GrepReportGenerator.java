@@ -36,6 +36,13 @@ import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 public class GrepReportGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(GrepReportGenerator.class);
     
+    public static void main(String[] argv) {
+        if (argv.length != 3) {
+            System.out.println("Usage: GrepReportGenerator <regex_file> <device_hash> <friendly_name>");
+        }
+        runPipeline(argv[0], argv[1], argv[2]);
+    }
+    
     public static void runPipeline(String regexFile, String deviceID, String friendlyName) {
         // STEP 1: Generate 'a' value file which maps regexes to numbers.
         
