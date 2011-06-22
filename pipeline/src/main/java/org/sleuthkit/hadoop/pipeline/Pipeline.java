@@ -48,7 +48,6 @@ public class Pipeline {
 
     FSEntryTikaTextExtractor.runPipeline(HBaseTables.ENTRIES_TBL, imageID, friendlyName);
     GrepSearchJob.runPipeline(HBaseTables.ENTRIES_TBL, imageID, GREP_KEYWORDS, friendlyName);
-    SequenceFsEntryText.runPipeline(seqDumpDirectory, imageID, friendlyName);
 
     // This will allow us to only cluster if we have documents that are written out to sequence files.
     // In other words, clustering will only take place if there are things TO cluster.
