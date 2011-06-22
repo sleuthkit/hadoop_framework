@@ -13,13 +13,14 @@ public class ExtentsInputStream extends InputStream {
 
   protected final FSDataInputStream in;
 
-  protected final Iterator<Map<String,?>> ext_iter;
+  protected final Iterator<Map<String,Object>> ext_iter;
 
   protected Map<String,?> cur_extent = null;
   protected long cur_pos;
   protected long cur_end;
 
-  public ExtentsInputStream(FSDataInputStream in, List<Map<String,?>> extents) {
+  public ExtentsInputStream(FSDataInputStream in,
+                            List<Map<String,Object>> extents) {
     this.in = in;
     this.ext_iter = extents.iterator();
   }
@@ -34,6 +35,8 @@ public class ExtentsInputStream extends InputStream {
 
         cur_pos = ((Number) cur_extent.get("addr")).longValue();
         cur_end = cur_pos + length;
+
+System.err.println("len == " + length + ", cur_pos == " + cur_pos + ", cur_end == " + cur_end);
       }
       else {
         return false;
@@ -53,7 +56,7 @@ public class ExtentsInputStream extends InputStream {
       rlen = read(b, 0, 1);
     } while (rlen == 0);
 
-    return rlen == -1 ? rlen : b[0];
+    return rlen == -1 ? -1 : b[0];
   }
 
   @Override
@@ -69,6 +72,8 @@ public class ExtentsInputStream extends InputStream {
 
     rlen = in.read(cur_pos, buf, off, rlen);
     cur_pos += rlen;
+
+System.err.println("off == " + off + ", len == " + len + ", rlen == " + rlen);
 
     return rlen;
   }

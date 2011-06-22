@@ -44,6 +44,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.DigestOutputStream;
@@ -145,41 +146,30 @@ public class ExtractMapper
 
   void extract(FSDataInputStream file, OutputStream outStream, Map<String,?> attrs, Context ctx) throws IOException {
     @SuppressWarnings("unchecked")
-    final List<Map<String,?>> extents =
-      (List<Map<String,?>>)attrs.get("extents");
+    final List<Map<String,Object>> extents =
+      (List<Map<String,Object>>) attrs.get("extents");
     final long size = ((Number) attrs.get("size")).longValue();
 
     long read = 0;
-    int bufOffset = 0,
-        numExtents = 0;
+    int bufOffset = 0;
 
-    for (Map<String,?> dataRun : extents) {
-      ++numExtents;
-      long curAddr = ((Number) dataRun.get("addr")).longValue();
-      final long length =
-        Math.min(((Number) dataRun.get("len")).longValue(), size - read);
-      final long endAddr = curAddr + length;
+    InputStream in = null;
+    try {
+      in = new ExtentsInputStream(file, extents);
 
       int rlen;
-      while (curAddr < endAddr) {
-        // NB: endAddr - curAddr might be larger than 2^31-1, so we must
+      while (read < size) {
+        // NB: size - read might be larger than 2^31-1, so we must
         // check that it doesn't overflow an int.
         rlen = Math.min(Buffer.length - bufOffset,
-                 (int) Math.min(endAddr - curAddr, Integer.MAX_VALUE));
+                 (int) Math.min(size - read, Integer.MAX_VALUE));
 
+        // fill the buffer
+        rlen = in.read(Buffer, bufOffset, rlen);
+        if (rlen == -1) break;
 
-        // read the next chunk to the buffer
-
-        // FIXME: Temporary workaround to prevent IndexOutOfBoundsExceptions from killing the ingest process.
-        try {
-          rlen = file.read(curAddr, Buffer, bufOffset, rlen);
-        }
-        catch (IndexOutOfBoundsException e) {
-          throw new IllegalStateException("Balls!\ncurAddr == " + curAddr + ", Buffer.length == " + Buffer.length + ", bufOffset == " + bufOffset + ", rlen == " + rlen, e);
-        }
-
-        curAddr += rlen;
         bufOffset += rlen;
+        read += rlen;
 
         if (bufOffset == Buffer.length) {
           // full buffer, flush it
@@ -189,20 +179,25 @@ public class ExtractMapper
         }
       }
 
-      read += length;
+      in.close();
+    }
+    finally {
+      IOUtils.closeQuietly(in);
     }
 
     // flush the remaining bytes
     outStream.write(Buffer, 0, bufOffset);
     outStream.flush();
 
-    if (numExtents > 1) {
+    if (extents.size() > 1) {
       ctx.getCounter(FileTypes.FRAGMENTED).increment(1);
     }
 
     ctx.getCounter(FileTypes.BYTES).increment(read);
+
     if (read != size) {
-      LOG.warn("problem reading " + (String)attrs.get("id") + ". read = " + read + "; size = " + size);
+      LOG.warn("problem reading " + (String)attrs.get("id") +
+               ". read = " + read + "; size = " + size);
       ctx.getCounter(FileTypes.PROBLEMS).increment(1);
     }
   }
@@ -241,21 +236,17 @@ public class ExtractMapper
   protected void hashAndExtract(final Map<String,Object> rec, OutputStream out, FSDataInputStream file, Map<String,?> map, Context context) throws IOException {
     MD5Hash.reset();
     SHA1Hash.reset();
+
     OutputStream dout = null;
     try {
-      dout = new DigestOutputStream(new DigestOutputStream(out, MD5Hash), SHA1Hash);
-      // FIXME: Temporary workaround to prevent IndexOutOfBoundsExceptions from killing the ingest process.
-      try {
-        extract(file, dout, map, context);
-      }
-      catch (IllegalStateException e) {
-        LOG.warn(e);
-        context.getCounter(FileTypes.PROBLEMS).increment(1);
-      }
+      dout = new DigestOutputStream(
+              new DigestOutputStream(out, MD5Hash), SHA1Hash);
+      extract(file, dout, map, context);
     }
     finally {
       IOUtils.closeQuietly(dout);
     }
+
     rec.put("md5", MD5Hash.digest());
     rec.put("sha1", SHA1Hash.digest());
   }
