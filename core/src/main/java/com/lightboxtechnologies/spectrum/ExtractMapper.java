@@ -111,10 +111,12 @@ public class ExtractMapper
     if (!admin.tableExists(HBaseTables.HASH_TBL_B)) {
       final HTableDescriptor tableDesc =
         new HTableDescriptor(HBaseTables.HASH_TBL_B);
-      final HColumnDescriptor colFamDesc =
-        new HColumnDescriptor(HBaseTables.HASH_COLFAM_B);
-      colFamDesc.setCompressionType(Compression.Algorithm.GZ);
-      tableDesc.addFamily(colFamDesc);
+      if (!tableDesc.hasFamily(HBaseTables.HASH_COLFAM_B)) {
+        final HColumnDescriptor colFamDesc =
+          new HColumnDescriptor(HBaseTables.HASH_COLFAM_B);
+        colFamDesc.setCompressionType(Compression.Algorithm.GZ);
+        tableDesc.addFamily(colFamDesc);
+      }
       admin.createTable(tableDesc);
     }
     else if (!admin.isTableEnabled(HBaseTables.HASH_TBL_B)) {
