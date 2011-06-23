@@ -71,13 +71,6 @@ limitations under the License.
 			}
       ++i;
     }
-		$("#chart6").position({
-			of: $("#content"),
-			my: "left top",
-			at: "left top",
-			offset: "0 0",
-			collision: "none none"
-		});
   });
 
 	function menuClick(e)
@@ -108,7 +101,6 @@ limitations under the License.
   $(document).ready(function () {
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
-  	$("#chart6Title").html(Util.stringFormatComma(imgClusterData.length));
 		$(".printReport").tipsy({
 			gravity: "e", 
 			fade: true,
@@ -134,55 +126,182 @@ limitations under the License.
 	<div class="ui-widget-menu-shadow" style="height: 10px;"></div>
 	<div id="menuContainer" style="height: 45px; "></div>
 	<div id="content">
-	<!--	<div id="dataTableContent" style="position:absolute;"></div> -->
-		<div id="chart6" class="ui-widget ui-widget-chart ui-corner-all" style="left: 850px; width: 250px; height: 250px; text-align: center;"><span id="chart6Title" class="ui-widget-chart-num">[chart6Title]</span><br>Image Clusters
-	    <script type="text/javascript+protovis">
-		  if (Modernizr.svg){
-			  var imgPlot_w = 225,
-			      imgPlot_h = 185,
-			      imgPlot_x = pv.Scale.linear(0, 100).range(0, imgPlot_w),
-			      imgPlot_y = pv.Scale.linear(0, 100).range(0, imgPlot_h),
-			      imgPlot_c = pv.Scale.log(1, 100).range("orange", "brown");
-			
-			  var imgPlot_vis = new pv.Panel()
-			      .width(imgPlot_w)
-			      .height(imgPlot_h)
-			      .bottom(1)
-			      .left(1)
-			      .right(1)
-			      .top(1)
-			      .def("i", -1)
-			      .event("click", function(d) self.location = "clusters.html");
-			
-			  imgPlot_vis.add(pv.Rule)
-			      .data(imgPlot_y.ticks())
-			      .bottom(imgPlot_y)
-			      .strokeStyle(function(d) d ? "#ddd" : "#000");
-	
-			  imgPlot_vis.add(pv.Rule)
-			      .data(imgPlot_x.ticks())
-			      .left(imgPlot_x)
-			      .strokeStyle(function(d) d ? "#ddd" : "#000");
-	
-			  var dot = imgPlot_vis.add(pv.Dot)
-			      .data(imgClusterData)
-			      .left(function(d) imgPlot_x(d.x))
-			      .bottom(function(d) imgPlot_y(d.y))
-			      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
-			      .fillStyle(function(d) imgPlot_vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.cf*0.01))
-			      .size(function(d) d.z*20)
-			      .title(function(d) d.name + "<br>Confidence: " + d.cf)
-			      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true, html: true}))
-			    .anchor("center").add(pv.Label)
-			      .text(function(d) d.z)
-			      .textStyle("black");
-			  imgPlot_vis.render();
-			}
-			else {
-				$('#chart6').append('<br><br>No SVG support detected');
-			}
-	    </script>
-		</div>
+
+    <div>
+      <a href="#" onclick="showvideos()">[Videos]</a>
+      <a href="#" onclick="showclusters('outdoors')">[Outdoor]</a>
+      <a href="#" onclick="showclusters('indoors')">[Indoor]</a>
+      <a href="#" onclick="showclusters('objects')">[Objects]</a>
+      <a href="#" onclick="showclusters('pr0n')">[Inappropriate]</a>
+      <a href="#" onclick="showclusters('faces')">[Faces]</a>
+    </div>
+    <div id="report">
+    </div>
+    <script type="text/javascript">
+      $(function () {
+        if (window.location.hash.length == 1) {
+            showclusters('outdoor') 
+        } else {
+            kind = window.location.hash.slice(1)
+            if (kind == 'videos') showvideos()
+            else showclusters(kind)
+        }
+        //showvideos()
+        //showclusters('faces')
+      })
+
+      function showclusters(type) {
+        $('div#report').empty()
+        $('div#report').append('<h3>'+type+'</h3>')
+        $.each(report[type], function (i, cluster) {
+            var divcluster = $('#templ_cluster > div').clone()
+            divcluster.find('span.cluster_size').html(cluster.size)
+            $.each(cluster.sample_images, function (j, image) {
+          var clusterimg = $('#templ_clusterim > div').clone()
+          var img = clusterimg.find('img')
+          if (type=='faces') {
+              // This assumes there is exactly 1 face per image
+              var face = image.faces[0]
+              var l = face.boundingbox[0][0]
+              var t = face.boundingbox[0][1]
+              var r = face.boundingbox[1][0]
+              var b = face.boundingbox[1][1]
+              img.attr('src', 'data/face_t/'+image.hash+'-face-x0'+
+                 l+'-y0'+t+'-x1'+r+'-y1'+b+'.jpg')
+          } else {
+              img.attr('src', 'data/t/'+image.hash+'.jpg')
+          }
+          if (image.faces.length) {
+              /*
+              img.load(function () {
+            var context = clusterimg.find('canvas')[0].getContext('2d')
+            $.each(image.faces, function (k, face) {
+                var w = img.width()
+                var h = img.height()
+                var left = face[0][0] * w
+                var top = face[0][1] * h
+                var right = face[1][0] * w
+                var bottom = face[1][1] * h
+                context.strokeStyle = '#f00'
+                context.lineWidth = 2
+                context.strokeRect(left, top, right-left, bottom-top)
+            })
+              })*/
+          }
+          clusterimg.appendTo(divcluster.find('.cluster_imgs'))
+            })
+          divcluster.find('.cluster_imgs').append('<div style="clear:both"></div>')
+            divcluster.appendTo('div#report')
+        })
+        $('templ_cluster')
+      }
+
+      function round(x) {
+        return Math.round(x * 100)/100;
+      }
+     
+      function showvideos() {
+        $('div#report').empty()
+        $('div#report').append('<h3>Videos</h3>')
+        $.each(report.videos, function (k, video) {
+            var divkeyframe = $('#templ_keyframe > div').clone()
+            var len2 = Math.floor(video.keyframes.length / 2);
+            console.info(len2)
+            divkeyframe.find('img.keyframe').attr('src', 'data/vid_t/'+video.keyframes[len2].image.hash+'.jpg')
+            divkeyframe.find('.keyframe_expand a').html(round(video.duration)+'s ['+video.keyframes[len2].count+']')
+            divkeyframe.click(function () {
+          showvideo(video)
+            })
+            $('div#report').append(divkeyframe)
+        })
+      }
+
+      function showvideo(video) {
+        $('div#report').empty()
+        $('div#report').append('<h3>Video '+video.hash+'</h3>')
+        push_keyframerow(video.keyframes, 0)
+        push_keyframerow(video.keyframes[0].children, 1)
+      }
+
+      function show_cluster_allimages(index) {
+        var div = $('div.all_images:eq('+index+')');
+        if (!div.is(":visible")) {
+            $.each(clusters[index].all_images, function (k, v) {
+          div.append('<img style="max-width:50;height:50" src="data/t/'+v+'"/></a>')
+            })
+            div.show()
+        } else {
+            div.empty()
+            div.hide()
+        }
+      }
+
+      function pop_keyframerows(rowheight) {
+        $('div#report div.keyframe_row:gt('+rowheight+')').remove();
+      }
+
+      function push_keyframerow(keyframes, rowheight) {
+        console.info(keyframes)
+        var keyframe_row = $('#templ_keyframerow > div').clone()
+        $.each(keyframes, function (k, keyframe) {
+            var divkeyframe = $('#templ_keyframe > div').clone()
+            divkeyframe.find('img.keyframe').attr('src', 'data/vid_t/'+keyframe.image.hash+'.jpg')
+            var children = keyframe.children
+            if (children.length > 0) {
+          divkeyframe.find('a').html(round(keyframe.timestamp)+'s ['+keyframe.count+']')
+          divkeyframe.find('a').click(function () {
+              pop_keyframerows(rowheight);
+              push_keyframerow(keyframe.children, rowheight+1);
+          })
+            } else {
+          divkeyframe.find('a').remove()
+          divkeyframe.find('div.keyframe_expand').html(round(keyframe.timestamp)+'s')
+            }
+            keyframe_row.append(divkeyframe)
+        })
+        keyframe_row.append('<div style="clear:both"></div>')
+        $('div#report').append(keyframe_row)
+      }
+    </script>
+    <div style="display:none" id="templates">
+      <!-- Cluster template -->
+      <div id="templ_cluster">
+        <div style="margin:5px;float:left;width:800px">
+          <!-- Cluster preview -->
+          <h3>Cluster  (<span class="cluster_size"></span> images)
+          <a href="#" class="cluster_expand">[Expand]</a></h3>
+          <div style="margin:10px;padding:5px;background:lightblue" class="cluster_imgs">
+          </div>
+          <!-- Full view of images in cluster -->
+          <div class="all_images visible" 
+         style="margin:10px;padding:5px;background:lightred;display:none;">
+          </div>
+        </div>    
+      </div>
+      <!-- Cluster image template -->
+      <div id="templ_clusterim">
+        <div style="float:left;height:100px">
+          <canvas style="position:absolute;z-index:1;" width="100" height="100"></canvas>
+          <img style="z-index:0;max-height:100px;width:100px"/>
+        </div>
+      </div>
+      <!-- Video report template -->
+      <div id="templ_video">
+        <div></div>
+      </div>
+      <!-- Keyframe Row template -->
+      <div id="templ_keyframerow">
+        <div class="keyframe_row" style="margin:5px;background:#FFFFFF"></div>
+      </div>
+      <!-- Video keyframe template -->
+      <div id="templ_keyframe">
+        <div style="float:left;margin:2px">
+          <div class="keyframe_expand"><a href="#"></a></div>
+          <div style="height:100px"><img class="keyframe" style="max-width:100px"/></div>
+        </div>
+      </div>
+    </div>
+    
 	</div>
 </div>
 </center>
