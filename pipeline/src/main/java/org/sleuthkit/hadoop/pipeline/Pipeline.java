@@ -58,7 +58,5 @@ public class Pipeline {
 
     }
     GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName);
-
-    HDFSArchiver.runPipeline(prefix + "/reports", prefix + "/reports.zip");
   }
 }
