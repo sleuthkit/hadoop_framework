@@ -239,7 +239,7 @@ limitations under the License.
     }
     else {
       makeTable(false, false, false);
-    	$("input", cTable.fnGetNodes()).change(checkChange);
+      $("#dataTableContent").delegate("input", "change", checkChange);
     	$.jGrowl("Your browser does not support local<br>storage, so checkbox selections will not<br>be saved.", { 
     		life: 5000,
         position: 'top-left' 
