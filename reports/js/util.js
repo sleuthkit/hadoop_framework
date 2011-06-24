@@ -77,6 +77,17 @@ Utility.prototype.getMax = function(data) {
   return m;
 }
 
+Utility.prototype.serializeObject = function(obj) {
+  if (obj) {
+	  var str = "";
+    for (var prop in obj) {
+	    str += prop + ",";
+	  }
+    str = str.substring(0, str.length-1);
+	  return str;
+	}
+}
+
 Utility.prototype.deserialize = function(queryString, start) {
 	var qArr = queryString.split("&");
 	if (qArr && (qArr.length>0)) {
