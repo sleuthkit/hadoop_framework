@@ -82,8 +82,8 @@ limitations under the License.
 			}
       ++i;
     }
-		$("#content").height($("#dataTableContent").height() + 5);
-		$("#dataTableContent").width($("#content").width());
+    $("#dataTableContent").width($("#content").width());
+    $("#content").height($("#dataTableContent").height());
 		$("#dataTableContent").position({
 			of: $("#content"),
 			my: "left top",
@@ -144,6 +144,9 @@ limitations under the License.
       "iDisplayLength": 10,
       "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
       "sAjaxDataProp": "",
+      "fnDrawCallback": function() {
+        $(window).resize();
+      },
       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
         $(nRow).attr("title", "FileName: " + Util.htmlSafeString(Util.getFileNameFromPath(aData.fP, "\/")));
         $(nRow).tipsy({
@@ -183,6 +186,8 @@ limitations under the License.
       "bStateSave": true,
       "bLocalStorage": localstor,
       "sPaginationType": "input",
+      //TODO: Override fnStateSaveCallback to use localStorage
+      //TODO: Override fnStateLoadCallback to use localStorage
       "fnFooterCallback": "function (nFoot, aasData, iStart, iEnd, aiDisplay) {" +
         "var nCells = nFoot.getElementsByTagName('th');" +
         "nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';" +
