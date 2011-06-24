@@ -40,6 +40,9 @@
       <tr>
         <td colspan="2" id="responseContainer"></td>
       </tr>
+      <tr>
+        <td colspan="2" id="monitorButtonContainer"></td>
+      </tr>
     </table>
   </body>
 </html>

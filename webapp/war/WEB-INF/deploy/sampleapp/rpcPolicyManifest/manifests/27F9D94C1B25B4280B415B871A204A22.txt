@@ -1,2 +1,0 @@
-serviceClass: org.sleuthkit.web.sampleapp.client.SampleService
-path: 5FB4B164C9B2E2FC19AFB80176BC6883.gwt.rpc

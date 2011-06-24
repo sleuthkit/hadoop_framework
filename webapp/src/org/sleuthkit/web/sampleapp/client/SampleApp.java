@@ -1,3 +1,19 @@
+/*
+   Copyright 2011 Basis Technology Corp.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package org.sleuthkit.web.sampleapp.client;
 
 import java.util.List;
@@ -24,29 +40,33 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ListBox;
 
 /**
- * Entry point classes define <code>onModuleLoad()</code>.
+ * This class (in conjunction with 3 JSP) implements GWT-based GUI for the TP web application. There are 3 "pages": login, main page and job monitor page.
  */
 public class SampleApp implements EntryPoint {
-	public static final String SERVER_ERROR = "An error occurred while attempting to connect the server";	
+	public static final String SERVER_ERROR = "A server error occurred: ";	
 	public static final String RUN_WAIT_MSG = "Executing...";	
 	public static final String ERROR_GETTING_CONFIG = "Error retrieving configuration parameters!";
 	public static final String ERROR_GETTING_FILES = "Error retrieving files!";
+	public static final String ERROR_ID_REQUIRED = "Image id is required";
+		
 	public static final String NO_ACCESS_MSG = "Access restricted!";
-	public static final String NO_ACCESS = "mzand";
-	public static final int UPDATE_INTERVAL = 10;	//in sec
-	public static final String HOME_PAGE_BUTTON_LABEL = "Analyze disk image"; 
+	public static final String NO_ACCESS = "NO_NO";	//set a path here to restrict access
+	
+	public static final int UPDATE_INTERVAL = 20;	//in sec
+	public static final String SUBMIT_BUTTON_LABEL = "Analyze disk image"; 
+	public static final String MONITOR_BUTTON_LABEL = "Monitor jobs"; 
 	public static final String JOB_PAGE_BUTTON_LABEL = "Analyze another disk image"; 
 		
 	/**
-	 * Create a remote service proxy to talk to the server-side Greeting service.
+	 * Create a remote service proxy to talk to the server-side service.
 	 */
 	private final SampleServiceAsync sampleService = GWT.create(SampleService.class);
 	
-	final Button sendButton = new Button(HOME_PAGE_BUTTON_LABEL);
+	final Button submitButton = new Button(SUBMIT_BUTTON_LABEL);
+	final Button monitorButton = new Button(MONITOR_BUTTON_LABEL);
 	final Button goHomeButton = new Button(JOB_PAGE_BUTTON_LABEL);
 	
 	private final ListBox fileField = new ListBox();
-	String commandPattern = null;
 	final FlexTable flexTable = new FlexTable();
 	String[] colNames = null;
 	
@@ -54,7 +74,7 @@ public class SampleApp implements EntryPoint {
 		public void run() {
 			flexTable.removeAllRows();
 			sampleService.getColNames(new ColNamesAsyncCallback<String[]>());
-			sampleService.getData(new MyAsyncCallback<String[][]>());
+			sampleService.getData(new GetDataAsyncCallback<String[][]>());
 		}
 	};
 	 
@@ -65,23 +85,23 @@ public class SampleApp implements EntryPoint {
 		
 		fileField.setVisibleItemCount(15);
 
-		// Retrieve initial values from server using config service
+		// Retrieve config parameters from server
 		getConfigParams();
 		
 		// Create a handler to navigate
-		class MyClickHandler implements ClickHandler {
+		class FileSelectHandler implements ClickHandler {
 			@Override
 			public void onClick(ClickEvent event) {
 				if(fileField.getItemText(fileField.getSelectedIndex()).startsWith("+")) {
 					populateFileField(fileField.getItemText(fileField.getSelectedIndex()));
-					sendButton.setEnabled(false);
+					submitButton.setEnabled(false);
 				} else {
-					sendButton.setEnabled(true);					
+					submitButton.setEnabled(true);					
 				}
 			}
 		}
-		MyClickHandler myClickHandler = new MyClickHandler();
-		fileField.addClickHandler(myClickHandler);
+		FileSelectHandler fileSelectHandler = new FileSelectHandler();
+		fileField.addClickHandler(fileSelectHandler);
 
 		final TextBox idField = new TextBox();
 		final HTML responseField = new HTML();
@@ -93,9 +113,11 @@ public class SampleApp implements EntryPoint {
 		final Button loginButton = new Button("Login");
 		final ScrollPanel scrollPanel = new ScrollPanel();
 
-		sendButton.addStyleName("sendButton");
-		sendButton.setEnabled(false);
+		submitButton.addStyleName("sendButton");
+		submitButton.setEnabled(false);
+		monitorButton.setEnabled(true);		
 		goHomeButton.setEnabled(true);
+		
 		idField.setWidth("400px");
 		responseField.setWidth("640px");
 		responseField.setVisible(false);
@@ -109,12 +131,13 @@ public class SampleApp implements EntryPoint {
 	    flexTable.setCellPadding(3);
 		
 		// Add the fields to the RootPanel
-		if(RootPanel.get("nameFieldContainer") != null) {
+		if (RootPanel.get("nameFieldContainer") != null) {
 			//main page
 			RootPanel.get("nameFieldContainer").add(fileField);
 			RootPanel.get("idFieldContainer").add(idField);
-			RootPanel.get("sendButtonContainer").add(sendButton);
+			RootPanel.get("sendButtonContainer").add(submitButton);
 			RootPanel.get("responseContainer").add(responseField);
+			RootPanel.get("monitorButtonContainer").add(monitorButton);
 		} 
 		else if (RootPanel.get("usernameFieldContainer") != null) {
 			//login page
@@ -128,12 +151,14 @@ public class SampleApp implements EntryPoint {
 			RootPanel.get("tableContainer").add(scrollPanel);
 		    cellFormatter.setHorizontalAlignment(0, 0, HasHorizontalAlignment.ALIGN_CENTER);
 		    //cellFormatter.setColSpan(0, 0, 0);	
-			flexTable.removeAllRows();		    
+		    //we no longer use timer scheduling, just run it once
+		    timer.run();			
 			// Program a Timer to execute this every N seconds
-		    timer.scheduleRepeating(UPDATE_INTERVAL*1000);
+		    //no more auto-refresh: user will refresh manually
+		    //timer.scheduleRepeating(UPDATE_INTERVAL*1000);
 		}
 		// Create a handler for the loginButtonButton
-		class MyLoginButtonHandler implements ClickHandler {
+		class LoginButtonHandler implements ClickHandler {
 			public void onClick(ClickEvent event) {
 				String username = usernameField.getText();
 				String password = passwordField.getText();
@@ -141,20 +166,17 @@ public class SampleApp implements EntryPoint {
 				Window.Location.assign("/sampleapp?username=" + username + "&password=" + password);
 			}			
 		}		
-		// Add a handler to send the name to the server
-		loginButton.addClickHandler(new MyLoginButtonHandler());
+		loginButton.addClickHandler(new LoginButtonHandler());
 		
-		// Focus the cursor on the name field when the app loads
+		// Focus the cursor on the name field when the page loads
 		fileField.setFocus(true);
 
 		// Create a handler for the sendButton and nameField
-		class MyHandler implements ClickHandler, KeyUpHandler {
+		class SubmitHandler implements ClickHandler, KeyUpHandler {
 			/**
 			 * Fired when the user clicks on the sendButton.
 			 */
 			public void onClick(ClickEvent event) {
-				responseField.setHTML("<div style='border: 1px solid grey; color: grey;'>" + RUN_WAIT_MSG + "</div>");
-				responseField.setVisible(true);
 				doExec();
 			}
 
@@ -171,41 +193,48 @@ public class SampleApp implements EntryPoint {
 			 * Send the request to the server and wait for a response.
 			 */
 			private void doExec() {
-				// We send the input to the server.
-				sendButton.setEnabled(false);
-				sampleService.runAsync(commandPattern, fileField.getItemText(fileField.getSelectedIndex()), idField.getText(),
+				String imageId = idField.getText();
+				if (imageId.length() == 0) {
+					Window.alert(ERROR_ID_REQUIRED);
+					return;
+				}
+				responseField.setHTML("<div style='border: 1px solid grey; color: grey;'>" + RUN_WAIT_MSG + "</div>");
+				responseField.setVisible(true);
+
+				// Send the input to the server.
+				submitButton.setEnabled(false);
+				sampleService.runAsync(fileField.getItemText(fileField.getSelectedIndex()), imageId,
 						new AsyncCallback<String>() {
 							public void onFailure(Throwable caught) {
-								String result = SERVER_ERROR;
-								result = "<div style='border: 1px solid red; color: red;'>" + result + "</div>";
+								String result = "<div style='border: 1px solid red; color: red;'>" + SERVER_ERROR + caught.getMessage() + "</div>";
 								responseField.setHTML(result);
 								responseField.setVisible(true);
-								sendButton.setEnabled(true);
 							}
 							public void onSuccess(String commandString) {
-								String result = "Command " + commandString + " started";
-								result = "<div style='border: 1px solid green; color: green;'>" + result + "</div>";
+								String result = "<div style='border: 1px solid green; color: green;'>" + "Command " + commandString + " started" + "</div>";
 								responseField.setHTML(result);
 								responseField.setVisible(true);
-								sendButton.setEnabled(true);
-								RootPanel.get().clear();
-								Window.Location.assign("/sampleapp/Jobs.jsp");
 							}
 						});
 			}
 		}
+		// a handler for monitorButton
+		class MonitorHandler implements ClickHandler {
+			public void onClick(ClickEvent event) {
+				RootPanel.get().clear();
+				Window.Location.assign("/sampleapp/Jobs.jsp");
+			}
+		}
 		// a handler for goHomeButton
 		class GoHomeHandler implements ClickHandler {
-			/**
-			 * Fired when the user clicks on the goHomeButton.
-			 */
 			public void onClick(ClickEvent event) {
 				RootPanel.get().clear();
 				Window.Location.assign("/sampleapp/SampleApp.jsp");
 			}
 		}
-		// Add a handler to send the name to the server
-		sendButton.addClickHandler(new MyHandler());
+		// Add button handlers
+		submitButton.addClickHandler(new SubmitHandler());
+		monitorButton.addClickHandler(new MonitorHandler());
 		goHomeButton.addClickHandler(new GoHomeHandler());
 	}
 
@@ -215,14 +244,13 @@ public class SampleApp implements EntryPoint {
 				Window.alert(ERROR_GETTING_CONFIG);
 			}
 			public void onSuccess(List<String> result) {
-				commandPattern = result.get(0);
-				populateFileField(result.get(1));
+				populateFileField(result.get(0));
 			}
 		});
 	}
 
 	private void populateFileField(String currentDir) {
-		if( currentDir!=null && currentDir.startsWith("+")) {
+		if ( currentDir!=null && currentDir.startsWith("+")) {
 			currentDir = currentDir.substring(1);
 		}
 		if (currentDir.indexOf(NO_ACCESS) >= 0) {
@@ -235,23 +263,22 @@ public class SampleApp implements EntryPoint {
 			}
 			public void onSuccess(List<String> result) {
 				fileField.clear();
-				for(String file : result) {
+				for (String file : result) {
 					fileField.addItem(file);
 				}
 			}
 		});
 	}
 	
-	private class MyAsyncCallback<T> implements AsyncCallback<String[][]> {
+	private class GetDataAsyncCallback<T> implements AsyncCallback<String[][]> {
 		public void onFailure(Throwable caught) {
 		}
 		public void onSuccess(String[][] result) {
-			if( result == null) {
+			if ( result == null) {
 				timer.cancel();
-				System.out.println("Data received: NULL. Stop refreshing data.");
 			} 
 			else {
-				for(int i=0; i<result.length; i++) {
+				for (int i=0; i<result.length; i++) {
 					addRow(flexTable, result[i]);
 				}
 			}
@@ -268,7 +295,7 @@ public class SampleApp implements EntryPoint {
 	
 	private void addRow(FlexTable flexTable, String []row) {
 		int numRows = flexTable.getRowCount();
-		for(int i=0; i<row.length; i++) {
+		for (int i=0; i<row.length; i++) {
 			flexTable.setWidget(numRows, i, new HTML(row[i]));
 		}
 	}

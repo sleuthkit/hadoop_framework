@@ -1,3 +1,19 @@
+/*
+   Copyright 2011 Basis Technology Corp.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package org.sleuthkit.web.sampleapp.server;
 
 import java.io.IOException;
@@ -14,9 +30,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+/**
+ * This class is a servlet security filter, to make sure user is authorized to view a page in web application
+ */
 public class SecurityFilter implements javax.servlet.Filter {
 
-	final static int SESSION_TIMEOUT = 10; 	// Session Time To Live in Minutes
+	final static int SESSION_TIMEOUT = 60; 	// Session Time To Live in Minutes
 	
 	static ResourceBundle rb = null;
 	static HashMap<String,String> credentials = null;
@@ -38,7 +57,7 @@ public class SecurityFilter implements javax.servlet.Filter {
 			// Check if login and password received
 			String username = req.getParameter("username");
 			String password = req.getParameter("password");
-			if( username!=null && password!=null) {
+			if ( username!=null && password!=null) {
 				if( checkCredentials(username, password)) {
 					session.setAttribute("SAMPLE_GWT_AUTH", "y");
 					session.setMaxInactiveInterval(SESSION_TIMEOUT*60);
@@ -78,15 +97,16 @@ public class SecurityFilter implements javax.servlet.Filter {
 			String userpass = null;
 			String username = null;
 			String password = null;
-			while(st.hasMoreElements()) {
+			while (st.hasMoreElements()) {
 				userpass = st.nextToken();
 				username = userpass.substring(0, userpass.indexOf("@"));
 				password = userpass.substring(userpass.indexOf("@")+1);
 				credentials.put(username, password);
 			}
 			
-		} catch(Exception ex) {
-			System.err.println("Error initializing application, cannot read configuration. Using defaults");
+		} 
+		catch (Exception ex) {
+			System.err.println("Error initializing application, cannot read configuration. Using default.");
 			ex.printStackTrace(System.err);
 			credentials.put("admin", "admin123");
 		}
