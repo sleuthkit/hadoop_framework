@@ -84,7 +84,6 @@ limitations under the License.
   }
   
   $(window).resize(function(){
-    positionMenus();
     $("#dataTableContent").width($("#content").width());
     $("#content").height($("#dataTableContent").height());
 		$("#dataTableContent").position({
@@ -94,6 +93,7 @@ limitations under the License.
 			offset: "0 0",
 			collision: "none none"
 		});
+    positionMenus();
   });
 	
 	function checkChange(e) {
@@ -153,6 +153,8 @@ limitations under the License.
           var arr = checkedList.split("&");
           if (arr && (arr.length>0)) {
             var aLen = arr.length;
+            //TODO: this could possibly be faster since there are only a small subset 
+            //      of checkboxes on the page at any given time
             for (var i = 0; i < aLen; i++) {
               var chkBox = "#" + arr[i].substr(0, arr[i].search("="));
               $(chkBox).attr("checked","checked");
