@@ -136,7 +136,7 @@ limitations under the License.
     items.push('<tfoot><th colspan=6 style="text-align: left;"></th></tfoot>');
     $('<table>', {
       'class': 'display',
-      'id' : 'dTable',
+      'id' : 'dTableKnownBad',
       html: items.join('')
     }).appendTo('#' + id);
     $("#exportAll").button()
@@ -155,7 +155,7 @@ limitations under the License.
     else {
       aaSorting = [[1,"asc"]];
     }
-	  cTable = $('#dTable').dataTable({
+	  cTable = $('#dTableKnownBad').dataTable({
 		  "aaSorting": aaSorting,
 		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 		  "iDisplayLength": 25,
@@ -210,7 +210,7 @@ limitations under the License.
   	fillDeviceInfo(deviceInfo);
   	$("#chart4Title").html(Util.stringFormatComma(Util.getSum(knownBadCounts)));
     fillTable(knownBad, "dataTableContent", "Known Bad Files");
-  	$("#dTable").kiketable_colsizable({
+  	$("#dTableKnownBad").kiketable_colsizable({
   		dragMove: true,
   		dragOpacity: 0,
   		minWidth: 50,

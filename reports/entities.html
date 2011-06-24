@@ -150,7 +150,7 @@ limitations under the License.
     items.push('<tfoot><th colspan=7 style="text-align: left;"></th></tfoot>');
     $('<table>', {
       'class': 'display',
-      'id' : 'dTable',
+      'id' : 'dTableEntities',
       html: items.join('')
     }).appendTo('#' + id);
     $("#exportAll").button()
@@ -169,7 +169,7 @@ limitations under the License.
     else {
       aaSorting = [[1,"asc"]];
     }
-	  cTable = $('#dTable').dataTable({
+	  cTable = $('#dTableEntities').dataTable({
 		  "aaSorting": aaSorting,
 		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 		  "iDisplayLength": 25,
@@ -241,7 +241,7 @@ limitations under the License.
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
     fillTable(entityHits, "dataTableContent", "Entity Hits");
-  	$("#dTable").kiketable_colsizable({
+  	$("#dTableEntities").kiketable_colsizable({
   		dragMove: true,
   		dragOpacity: 0,
   		minWidth: 50,
