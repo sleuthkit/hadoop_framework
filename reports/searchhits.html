@@ -51,8 +51,7 @@ limitations under the License.
   var cTable;
   var fHead;
   
-  $(window).resize(function(){
-    var elem = $(this);
+  function positionMenus() {
     $("#printReport").position({
 			of: $("#overviewContainer"),
 			my: "right top",
@@ -82,6 +81,10 @@ limitations under the License.
 			}
       ++i;
     }
+  }
+  
+  $(window).resize(function(){
+    positionMenus();
     $("#dataTableContent").width($("#content").width());
     $("#content").height($("#dataTableContent").height());
 		$("#dataTableContent").position({
@@ -140,11 +143,22 @@ limitations under the License.
     }
     cTable = $('#dTableSearchHits').dataTable({
       "aaSorting": aaSorting,
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "aLengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
       "iDisplayLength": 10,
       "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
       "sAjaxDataProp": "",
       "fnDrawCallback": function() {
+        var checkedList = localStorage.getItem(deviceName+"_searchHits");
+        if (checkedList) {
+          var arr = checkedList.split("&");
+          if (arr && (arr.length>0)) {
+            var aLen = arr.length;
+            for (var i = 0; i < aLen; i++) {
+              var chkBox = "#" + arr[i].substr(0, arr[i].search("="));
+              $(chkBox).attr("checked","checked");
+            }
+          }
+        }
         $(window).resize();
       },
       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
@@ -220,6 +234,7 @@ limitations under the License.
   	deviceName = Util.findObjectByName(deviceInfo, "deviceName").n;
   	dataLen = searchHits.length;
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
+    positionMenus();
   	fillDeviceInfo(deviceInfo);
     fillTable(searchHits, "dataTableContent", "Search Hits");
   	$("#dTableSearchHits").kiketable_colsizable({
@@ -236,11 +251,6 @@ limitations under the License.
   	if (Modernizr.localstorage) {
   		makeTable(false, false, true);
     	$("#dataTableContent").delegate("input", "change", checkChangeStorage);
-    	var checkedList = localStorage.getItem(deviceName+"_searchHits");
-    	if (checkedList) {
-    		restoreChecks(checkedList);
-    	}
-    	cTable.fnDraw(false);
     }
     else {
       makeTable(false, false, false);
