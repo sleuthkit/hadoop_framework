@@ -53,8 +53,7 @@ limitations under the License.
   var docClusterCoords = [];
   docClusterCoords = docClusterChart;
   
-  $(window).resize(function(){
-    var elem = $(this);
+  function positionMenus() {
     $("#printReport").position({
 			of: $("#overviewContainer"),
 			my: "right top",
@@ -84,6 +83,9 @@ limitations under the License.
 			}
       ++i;
     }
+  }
+  
+  $(window).resize(function(){
 		$("#chart2").position({
 			of: $("#content"),
 			my: "left top",
@@ -99,6 +101,7 @@ limitations under the License.
 			offset: "0 1",
 			collision: "none none"
 		});
+    positionMenus();
   });
 	
 	function checkChange(e) {
@@ -123,17 +126,7 @@ limitations under the License.
     var items = [];
 	items.push('<colgroup><col /><col /><col /><col /><col /></colgroup>');
     items.push('<thead><tr><th>Sel</th><th>Cluster</th><th>File ID</th><th>Topics</th><th>File Path</th></tr></thead>');
-    var i = 0;
-    while(i < dataLen) {
-      items.push('<tr title="File Name: ' + Util.htmlSafeString(Util.getFileNameFromPath(data[i].fP, "\/")) + '">' +
-      	'<td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td>' +
-		    '<td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].fId) + '</td>' +
-      	'<td>' + Util.htmlSafeString(Util.findObjectByName(docClusterCounts, data[i].a).kw) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].fP) + '</td>' +
-      	'</tr>');
-      ++i;
-    }
+    items.push('<tbody></tbody>');
     items.push('<tfoot><th colspan=5 style="text-align: left;"></th></tfoot>');
     $('<table>', {
       'class': 'display',
@@ -157,29 +150,72 @@ limitations under the License.
       aaSorting = [[1,"asc"]];
     }
 	  cTable = $('#dTableDocuments').dataTable({
-		  "aaSorting": aaSorting,
-		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "aaSorting": aaSorting,
+      "aLengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
 		  "iDisplayLength": 25,
-		  "aoColumns": [
-			{ "sWidth": "50px", "sSortDataType": "dom-checkbox" },
-		  	{ "sWidth": "80px" },
-		  	{ "sWidth": "120px" },
-        null,
-        null
-		  ],
-		  "bJQueryUI": true,
-		  "bAutoWidth": false,
-		  "bInfo" : true,
-		  "bDestroy": destroy,
-		  "bProcessing": true,
-		  "bStateSave": true,
-		  "bLocalStorage": localstor,
-		  "sPaginationType": "input",
-		  "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
-		  	var nCells = nFoot.getElementsByTagName('th');
-				nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
-			}		  
-	  });
+      "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
+      "sAjaxDataProp": "",
+      "fnDrawCallback": function() {
+        var checkedList = localStorage.getItem(deviceName+"_searchHits");
+        if (checkedList) {
+          var arr = checkedList.split("&");
+          if (arr && (arr.length>0)) {
+            var aLen = arr.length;
+            //TODO: this could possibly be faster since there are only a small subset 
+            //      of checkboxes on the page at any given time
+            for (var i = 0; i < aLen; i++) {
+              var chkBox = "#" + arr[i].substr(0, arr[i].search("="));
+              $(chkBox).attr("checked","checked");
+            }
+          }
+        }
+        $(window).resize();
+      },
+      "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+        $(nRow).attr("title", "FileName: " + Util.htmlSafeString(Util.getFileNameFromPath(aData.fP, "\/")));
+        $(nRow).tipsy({
+                  gravity: "s", 
+                  fade: true,
+                  html: true
+                });
+        return nRow;
+      },
+      "aoColumns": [
+        { "mDataProp": null, "sWidth": "50px", "sSortDataType": "dom-checkbox",
+          "fnRender":
+            function(oObj) {
+                return "<input type='checkbox' name='c" + oObj.iDataRow + "' id='c" + oObj.iDataRow + "' value='1'/>";
+            }
+        },
+        { "mDataProp": "a", "sWidth": "75px", "sClass": "tblRight" },
+        { "mDataProp": "fId", "sWidth": "120px" },
+        { "mDataProp": null,
+          "fnRender":
+            function(oObj) {
+                return Util.findObjectByIndex(docClusterCounts, oObj.aData.a).kw;
+            }
+        },
+        { "mDataProp": "fP" }
+      ],
+      "fnServerData": function ( sSource, aoData, fnCallback ) {
+        fnCallback(docClusters);
+      },
+      "bDeferRender": true,
+      "bJQueryUI": true,
+      "bAutoWidth": false,
+      "bInfo" : true,
+      "bDestroy": destroy,
+      "bProcessing": true,
+      "bStateSave": true,
+      "bLocalStorage": localstor,
+      "sPaginationType": "input",
+      //TODO: Override fnStateSaveCallback to use localStorage
+      //TODO: Override fnStateLoadCallback to use localStorage
+      "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
+        var nCells = nFoot.getElementsByTagName('th');
+        nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
+        }
+      });
 //    fHead = new FixedHeader(cTable); //doesn't work with kiketable
   }
 
@@ -207,6 +243,7 @@ limitations under the License.
   	deviceName = Util.findObjectByName(deviceInfo, "deviceName").n;
   	dataLen = docClusters.length;
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
+    positionMenus();
   	fillDeviceInfo(deviceInfo);
   	$("#chart2Title").html(Util.stringFormatComma(docClusterCounts.length));
     fillTable(docClusters, "dataTableContent", "Document Clusters");
@@ -216,35 +253,21 @@ limitations under the License.
   		minWidth: 50,
   		fixWidth: true
   	});
-  	if (Modernizr.localstorage) {
-  		makeTable(false, false, true);
-  	}
-  	else {
-  		makeTable(false, false, false);
-  	}
-		$(cTable.fnGetNodes()).tipsy({
-			gravity: "s", 
-			fade: true,
-			html: true
-		});
 		$(".printReport").tipsy({
 			gravity: "e", 
 			fade: true,
 			html: true
 		});
-    if (Modernizr.localstorage) {
-    	$("input", cTable.fnGetNodes()).change(checkChangeStorage);
-    	var checkedList = localStorage.getItem(deviceName+"_documents");
-    	if (checkedList) {
-    		restoreChecks(checkedList);
-    	}
-    	cTable.fnDraw(false);
+  	if (Modernizr.localstorage) {
+  		makeTable(false, false, true);
+    	$("#dataTableContent").delegate("input", "change", checkChangeStorage);
     }
     else {
-    	$("input", cTable.fnGetNodes()).change(checkChange);
+      makeTable(false, false, false);
+      $("#dataTableContent").delegate("input", "change", checkChange);
     	$.jGrowl("Your browser does not support local<br>storage, so checkbox selections will not<br>be saved.", { 
-    		sticky: true, 
-    		position: 'top-left' 
+    		life: 5000,
+        position: 'top-left' 
     	});
     }
     $(window).resize();
@@ -316,7 +339,7 @@ limitations under the License.
 			}
 	    </script>
 	  </div>
-	  <div id="dataTableContent" style="position:absolute;"></div>
+		<div id="dataTableContent" style="position:absolute;"></div>
 	</div>
 </div>
 </center>

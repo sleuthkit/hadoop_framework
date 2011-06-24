@@ -51,8 +51,7 @@ limitations under the License.
   var cTable;
   var fHead;
   
-  $(window).resize(function(){
-    var elem = $(this);
+  function positionMenus() {
     $("#printReport").position({
 			of: $("#overviewContainer"),
 			my: "right top",
@@ -82,8 +81,11 @@ limitations under the License.
 			}
       ++i;
     }
-		$("#content").height($("#dataTableContent").height() + 5);
-		$("#dataTableContent").width($("#content").width());
+  }
+  
+  $(window).resize(function(){
+    $("#dataTableContent").width($("#content").width());
+    $("#content").height($("#dataTableContent").height());
 		$("#dataTableContent").position({
 			of: $("#content"),
 			my: "left top",
@@ -91,6 +93,7 @@ limitations under the License.
 			offset: "0 0",
 			collision: "none none"
 		});
+    positionMenus();
   });
 	
 	function checkChange(e) {
@@ -115,38 +118,7 @@ limitations under the License.
     var items = [];
     items.push('<colgroup><col /><col /><col /><col /><col /><col /><col /></colgroup>');
     items.push('<thead><tr><th>Sel</th><th>Key ID</th><th>Keyword</th><th>Preview</th><th>File ID</th><th>File Path</th><th>Validated</th></tr></thead>');
-    items.push('<tbody>');
-/*
-    var i = 0;
-    while(i < dataLen) {
-      items.push('<tr title="FileName: ' + Util.htmlSafeString(data[i].fN) + '<br>Path: ' + Util.htmlSafeString(data[i].fP) + '">' +
-      	'<td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td><td class="tblRight">' + Util.htmlSafeString(data[i].a) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].kw) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].p) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].fId) + '</td>' +
-      	'<td>' + Util.htmlSafeString(data[i].fP) + '</td>' +
-      	'<td class="tblRight">' + Util.htmlSafeString(data[i].v) + '</td>' +
-      	'</tr>');
-      ++i;
-    }
-*/
-
-/*
-    var i = 0;
-    while(i < dataLen) {
-      items.push('<tr title="FileName: ' + Util.htmlSafeString(data[i].fN) + '<br>Path: ' + Util.htmlSafeString(data[i].fP) + '">' +
-      	'<td><input type="checkbox" name="c' + i + '" id="c' + i + '" value="1"/></td><td class="tblRight"></td>' +
-      	'<td></td>' +
-      	'<td></td>' +
-      	'<td></td>' +
-      	'<td></td>' +
-      	'<td class="tblRight"></td>' +
-      	'</tr>');
-      ++i;
-    }
-    */
-
-    items.push('</tbody>');
+    items.push('<tbody></tbody>');
     items.push('<tfoot><th colspan=7 style="text-align: left;"></th></tfoot>');
     $('<table>', {
       'class': 'display',
@@ -170,48 +142,70 @@ limitations under the License.
       aaSorting = [[1,"asc"]];
     }
 	  cTable = $('#dTableEntities').dataTable({
-		  "aaSorting": aaSorting,
-		  "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "aaSorting": aaSorting,
+      "aLengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
 		  "iDisplayLength": 25,
-      
-      "sAjaxSource": "data/entities.js", //triggers ajax pull using overridden fnServerData
+      "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
       "sAjaxDataProp": "",
-		  "aoColumns": [
-		  	{ "mDataProp": null, "sWidth": "50px", "sSortDataType": "dom-checkbox" },
-		  	{ "mDataProp": "a", "sWidth": "75px" },
+      "fnDrawCallback": function() {
+        var checkedList = localStorage.getItem(deviceName+"_entities");
+        if (checkedList) {
+          var arr = checkedList.split("&");
+          if (arr && (arr.length>0)) {
+            var aLen = arr.length;
+            //TODO: this could possibly be faster since there are only a small subset 
+            //      of checkboxes on the page at any given time
+            for (var i = 0; i < aLen; i++) {
+              var chkBox = "#" + arr[i].substr(0, arr[i].search("="));
+              $(chkBox).attr("checked","checked");
+            }
+          }
+        }
+        $(window).resize();
+      },
+      "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+        $(nRow).attr("title", "FileName: " + Util.htmlSafeString(Util.getFileNameFromPath(aData.fP, "\/")));
+        $(nRow).tipsy({
+                  gravity: "s", 
+                  fade: true,
+                  html: true
+                });
+        return nRow;
+      },
+      "aoColumns": [
+        { "mDataProp": null, "sWidth": "50px", "sSortDataType": "dom-checkbox",
+          "fnRender":
+            function(oObj) {
+                return "<input type='checkbox' name='c" + oObj.iDataRow + "' id='c" + oObj.iDataRow + "' value='1'/>";
+            }
+        },
+        { "mDataProp": "a", "sWidth": "75px", "sClass": "tblRight" },
+
 		  	{ "mDataProp": "fN", "sWidth": "200px" },
 		  	{ "mDataProp": "p" },
 		  	{ "mDataProp": "fId", "sWidth": "185px" },
 		  	{ "mDataProp": "fP" },
 		  	{ "mDataProp": "v", "sWidth": "90px" }
-		  ],
+      ],
       "fnServerData": function ( sSource, aoData, fnCallback ) {
         fnCallback(entityHits);
       },
-      /*
-		  "aoColumns": [
-		  	{ "sWidth": "50px", "sSortDataType": "dom-checkbox" },
-		  	{ "sWidth": "75px" },
-		  	{ "sWidth": "200px" },
-		  	{  },
-		  	{ "sWidth": "185px" },
-		  	{  },
-		  	{ "sWidth": "90px" }
-		  ],
-      */
-		  "bJQueryUI": true,
-		  "bAutoWidth": false,
-		  "bInfo" : true,
-		  "bDestroy": destroy,
-		  "bProcessing": true,
-		  "bStateSave": true,
-		  "bLocalStorage": localstor,
-		  "sPaginationType": "input",
-		  "fnFooterCallback": "function (nFoot, aasData, iStart, iEnd, aiDisplay) {" +
-		  	"var nCells = nFoot.getElementsByTagName('th');" +
-				"nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';" +
-        "}" 
-	  });
+      "bDeferRender": true,
+      "bJQueryUI": true,
+      "bAutoWidth": false,
+      "bInfo" : true,
+      "bDestroy": destroy,
+      "bProcessing": true,
+      "bStateSave": true,
+      "bLocalStorage": localstor,
+      "sPaginationType": "input",
+      //TODO: Override fnStateSaveCallback to use localStorage
+      //TODO: Override fnStateLoadCallback to use localStorage
+      "fnFooterCallback": function (nFoot, aasData, iStart, iEnd, aiDisplay) {
+        var nCells = nFoot.getElementsByTagName('th');
+        nCells[0].innerHTML = $('input', this.fnGetNodes()).serializeArray().length + ' selected';
+        }
+      });
 //    fHead = new FixedHeader(cTable); //doesn't work with kiketable
   }
 
@@ -239,6 +233,7 @@ limitations under the License.
   	deviceName = Util.findObjectByName(deviceInfo, "deviceName").n;
   	dataLen = entityHits.length;
   	menuLen = Util.buildMenu(menuList, 'menuContainer');
+    positionMenus();
   	fillDeviceInfo(deviceInfo);
     fillTable(entityHits, "dataTableContent", "Entity Hits");
   	$("#dTableEntities").kiketable_colsizable({
@@ -247,35 +242,21 @@ limitations under the License.
   		minWidth: 50,
   		fixWidth: true
   	});
-  	if (Modernizr.localstorage) {
-  		makeTable(false, false, true);
-  	}
-  	else {
-  		makeTable(false, false, false);
-  	}
-		$(cTable.fnGetNodes()).tipsy({
-			gravity: "s", 
-			fade: true,
-			html: true
-		});
 		$(".printReport").tipsy({
 			gravity: "e", 
 			fade: true,
 			html: true
 		});
-    if (Modernizr.localstorage) {
-    	$("input", cTable.fnGetNodes()).change(checkChangeStorage);
-    	var checkedList = localStorage.getItem(deviceName+"_entities");
-    	if (checkedList) {
-    		restoreChecks(checkedList);
-    	}
-    	cTable.fnDraw(false);
+  	if (Modernizr.localstorage) {
+  		makeTable(false, false, true);
+    	$("#dataTableContent").delegate("input", "change", checkChangeStorage);
     }
     else {
-    	$("input", cTable.fnGetNodes()).change(checkChange);
+      makeTable(false, false, false);
+      $("#dataTableContent").delegate("input", "change", checkChange);
     	$.jGrowl("Your browser does not support local<br>storage, so checkbox selections will not<br>be saved.", { 
-    		sticky: true, 
-    		position: 'top-left' 
+    		life: 5000,
+        position: 'top-left' 
     	});
     }
     $(window).resize();
