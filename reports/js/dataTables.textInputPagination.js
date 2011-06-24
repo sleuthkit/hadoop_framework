@@ -91,12 +91,13 @@ $.fn.dataTableExt.oPagination.input = {
 			}
 			
 			var iNewStart = oSettings._iDisplayLength * (this.value - 1);
-			if ( iNewStart > oSettings.fnRecordsDisplay() )
+			if ( iNewStart >= oSettings.fnRecordsDisplay() )
 			{
 				/* Display overrun */
 				oSettings._iDisplayStart = (Math.ceil((oSettings.fnRecordsDisplay()-1) / 
 					oSettings._iDisplayLength)-1) * oSettings._iDisplayLength;
-				fnCallbackDraw( oSettings );
+				if(oSettings._iDisplayStart < 0) oSettings._iDisplayStart = 0;
+        fnCallbackDraw( oSettings );
 				return;
 			}
 			
@@ -161,7 +162,8 @@ $.fn.dataTableExt.oPagination.input = {
 			
 			if ( iPages === 0 || iCurrentPage == iPages || oSettings._iDisplayLength == -1 )
 			{
-				anStatic[2].className += " "+oClasses.sPageButtonStaticDisabled;
+				inputs[0].value = iPages;
+        anStatic[2].className += " "+oClasses.sPageButtonStaticDisabled;
 				anStatic[3].className += " "+oClasses.sPageButtonStaticDisabled;
 			}
 			else
