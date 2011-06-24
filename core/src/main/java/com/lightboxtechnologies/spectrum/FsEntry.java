@@ -152,6 +152,21 @@ public class FsEntry extends HashMap<String,Object> {
     return null;
   }
 
+  boolean isContentHDFS() {
+    StreamProxy proxy = Streams.get("Content");
+    return proxy != null && proxy instanceof BufferProxy;
+  }
+
+  byte[] getContentBuffer() {
+    BufferProxy p = (BufferProxy)Streams.get("Content");
+    return p.getBuffer();
+  }
+
+  String getContentHdfsPath() {
+    FileProxy p = (FileProxy)Streams.get("Content");
+    return p.getPath();
+  }
+
   public boolean hasMetadata() {
     return hasMRec;
   }

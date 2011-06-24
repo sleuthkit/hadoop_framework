@@ -43,9 +43,9 @@ import java.io.DataOutputStream;
 
 import org.apache.commons.codec.binary.Hex;
 
-public class VideoOutput {
+public class SequenceFileExport {
 
-  public static class VideoOutputMapper
+  public static class SequenceFileExportMapper
        extends Mapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, MapWritable> {
 
     private final MapWritable Fields = new MapWritable();
@@ -56,7 +56,7 @@ public class VideoOutput {
     private final BytesWritable Vid = new BytesWritable();
     private final Text HdfsPath = new Text();
 
-    VideoOutputMapper() {
+    SequenceFileExportMapper() {
       Fields.put(new Text("fullpath"), FullPath);
       Fields.put(new Text("extension"), Ext);
       Fields.put(new Text("sha1"), Sha);
