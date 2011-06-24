@@ -141,7 +141,7 @@ limitations under the License.
     cTable = $('#dTableSearchHits').dataTable({
       "aaSorting": aaSorting,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-      "iDisplayLength": 25,
+      "iDisplayLength": 10,
       "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
       "sAjaxDataProp": "",
       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
@@ -223,22 +223,14 @@ limitations under the License.
   		minWidth: 50,
   		fixWidth: true
   	});
-  	if (Modernizr.localstorage) {
-  		makeTable(false, false, true);
-  	}
-  	else {
-  		makeTable(false, false, false);
-  	}
-    $('#dTableSearchHits').delegate('input', 'change', function() {
-      //attach handler to all checkbox change events
-    });
 		$(".printReport").tipsy({
 			gravity: "e", 
 			fade: true,
 			html: true
 		});
-    if (Modernizr.localstorage) {
-    	$("input", cTable.fnGetNodes()).change(checkChangeStorage);
+  	if (Modernizr.localstorage) {
+  		makeTable(false, false, true);
+    	$("#dataTableContent").delegate("input", "change", checkChangeStorage);
     	var checkedList = localStorage.getItem(deviceName+"_searchHits");
     	if (checkedList) {
     		restoreChecks(checkedList);
@@ -246,6 +238,7 @@ limitations under the License.
     	cTable.fnDraw(false);
     }
     else {
+      makeTable(false, false, false);
     	$("input", cTable.fnGetNodes()).change(checkChange);
     	$.jGrowl("Your browser does not support local<br>storage, so checkbox selections will not<br>be saved.", { 
     		life: 5000,
