@@ -27,7 +27,7 @@ limitations under the License.
   <script src="js/jquery-1.5.2.min.js" type="text/javascript"></script>
   <script src="js/jquery-ui-1.8.12.custom.min.js" type="text/javascript"></script>
   <script src="js/jquery.dataTables.localStorage.min.js" type="text/javascript"></script>
-  <script src="js/FixedHeader.min.js" type="text/javascript"></script>
+  <script src="js/FixedHeader.js" type="text/javascript"></script>
   <script src="js/dataTables.textInputPagination.js" type="text/javascript"></script>
   <script src="js/jquery.event.drag-1.5.js" type="text/javascript"></script>
   <script src="js/jquery.kiketable.colsizable-1.1.js" type="text/javascript"></script>
@@ -146,6 +146,11 @@ limitations under the License.
       "sAjaxDataProp": "",
       "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
         $(nRow).attr("title", "FileName: " + Util.htmlSafeString(Util.getFileNameFromPath(aData.fP, "\/")));
+        $(nRow).tipsy({
+                  gravity: "s", 
+                  fade: true,
+                  html: true
+                });
         return nRow;
       },
       "aoColumns": [
@@ -224,11 +229,9 @@ limitations under the License.
   	else {
   		makeTable(false, false, false);
   	}
-		$(cTable.fnGetNodes()).tipsy({
-			gravity: "s", 
-			fade: true,
-			html: true
-		});
+    $('#dTableSearchHits').delegate('input', 'change', function() {
+      //attach handler to all checkbox change events
+    });
 		$(".printReport").tipsy({
 			gravity: "e", 
 			fade: true,
@@ -245,8 +248,8 @@ limitations under the License.
     else {
     	$("input", cTable.fnGetNodes()).change(checkChange);
     	$.jGrowl("Your browser does not support local<br>storage, so checkbox selections will not<br>be saved.", { 
-    		sticky: true, 
-    		position: 'top-left' 
+    		life: 5000,
+        position: 'top-left' 
     	});
     }
     $(window).resize();
