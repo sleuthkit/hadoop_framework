@@ -100,6 +100,19 @@ Utility.prototype.deserialize = function(queryString, start) {
 	}
 }
 
+Utility.prototype.getLinksFromScores = function(scoresArr, devName) {
+  var obj = {nodes:[],links:[]};
+  obj.nodes.push({nodeName:devName, group:1});
+  var sLen = scoresArr.length;
+  var mult = 1;
+  if (sLen < 5) mult = 4; //increase weight for small number of nodes
+  for (var i = 0; i < sLen; i++) {
+    obj.nodes.push({nodeName:scoresArr[i].a, group:1});
+    obj.links.push({source:0, target:i+1, value:scoresArr[i].iif*mult});
+  }
+  return obj;
+}
+
 Utility.prototype.sortNumberAsc = function(a, b) {
 	return a - b;
 }

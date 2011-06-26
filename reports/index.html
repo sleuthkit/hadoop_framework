@@ -46,6 +46,7 @@ limitations under the License.
   <script>
   var docClusterCoords = [];
   docClusterCoords = docClusterChart;
+  var deviceLinks;
   	
   $(window).resize(function(){
     var elem = $(this);
@@ -233,7 +234,8 @@ limitations under the License.
 	}
 
   $(document).ready(function () {
-  	menuLen = Util.buildMenu(menuList, 'menuContainer');
+  	deviceLinks = Util.getLinksFromScores(similarityScores, Util.findObjectByName(deviceInfo, "deviceName").n);
+    menuLen = Util.buildMenu(menuList, 'menuContainer');
   	fillDeviceInfo(deviceInfo);
 	  $(".ui-widget-hdd-unused").tipsy({
 			gravity: "ne", 
