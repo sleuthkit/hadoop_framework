@@ -120,7 +120,7 @@ limitations under the License.
 
   $(document).ready(function () {
   	deviceName = Util.findObjectByName(deviceInfo, "deviceName").n;
-  	menuLen = Util.buildMenu(menuList, 'menuContainer');
+  	menuLen = Util.buildMenu(menuList, "menuContainer");
     positionMenus();
   	fillDeviceInfo(deviceInfo);
 		$(".printReport").tipsy({
@@ -128,6 +128,8 @@ limitations under the License.
 			fade: true,
 			html: true
 		});
+    $("#choiceContainer").button()
+      .css("class", "ui-button ui-widget ui-corner-all");
   	if (Modernizr.localstorage) {
 //    	$("#dataTableContent").delegate("input", "change", checkChangeStorage);
     }
@@ -159,13 +161,21 @@ limitations under the License.
 	<div id="menuContainer" style="height: 45px; "></div>
 	<div id="content">
 
-    <div>
+    <div id="choiceContainer">
+      <button    onclick="showvideos()">Videos</button>
+      <button class="choiceButton" onclick="showclusters('faces')">Faces</button>
+      <button class="choiceButton" onclick="showclusters('outdoors')">Outdoor</button>
+      <button class="choiceButton" onclick="showclusters('indoors')">Indoor</button>
+      <button class="choiceButton" onclick="showclusters('objects')">Objects</button>
+      <button class="choiceButton" onclick="showclusters('pr0n')">Inappropriate</button>
+      <!--
       <a href="#" onclick="showvideos()">[Videos]</a>
       <a href="#" onclick="showclusters('outdoors')">[Outdoor]</a>
       <a href="#" onclick="showclusters('indoors')">[Indoor]</a>
       <a href="#" onclick="showclusters('objects')">[Objects]</a>
       <a href="#" onclick="showclusters('pr0n')">[Inappropriate]</a>
       <a href="#" onclick="showclusters('faces')">[Faces]</a>
+      -->
     </div>
     <div id="report">
     </div>
