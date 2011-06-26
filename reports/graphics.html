@@ -48,6 +48,8 @@ limitations under the License.
 	var menuLen = 0;
 	var dataLen = 0;
 	var deviceName = "";
+  var mainUrl = location.href.split("?")[0];
+  var urlParams = Util.getUrlParams();
   
   function positionMenus() {
     $("#printReport").position({
@@ -118,6 +120,16 @@ limitations under the License.
 		}
 	}
 
+  function showSelection(pageName) {
+    if (pageName == null || pageName == "") location.href = mainUrl + '?p=faces';
+    if (pageName == "videos") {
+      showvideos();
+    }
+    else {
+      showclusters(pageName);  
+    }
+  }
+
   $(document).ready(function () {
   	deviceName = Util.findObjectByName(deviceInfo, "deviceName").n;
   	menuLen = Util.buildMenu(menuList, "menuContainer");
@@ -128,7 +140,7 @@ limitations under the License.
 			fade: true,
 			html: true
 		});
-    $("#choiceContainer").button()
+    $(".choiceButton").button()
       .css("class", "ui-button ui-widget ui-corner-all");
   	if (Modernizr.localstorage) {
 //    	$("#dataTableContent").delegate("input", "change", checkChangeStorage);
@@ -140,6 +152,7 @@ limitations under the License.
         position: 'top-left' 
     	});
     }
+    showSelection(urlParams["p"]);
     $(window).resize();
   });
 	</script>
@@ -160,38 +173,18 @@ limitations under the License.
 	<div class="ui-widget-menu-shadow" style="height: 10px;"></div>
 	<div id="menuContainer" style="height: 45px; "></div>
 	<div id="content">
-
     <div id="choiceContainer">
-      <button    onclick="showvideos()">Videos</button>
-      <button class="choiceButton" onclick="showclusters('faces')">Faces</button>
-      <button class="choiceButton" onclick="showclusters('outdoors')">Outdoor</button>
-      <button class="choiceButton" onclick="showclusters('indoors')">Indoor</button>
-      <button class="choiceButton" onclick="showclusters('objects')">Objects</button>
-      <button class="choiceButton" onclick="showclusters('pr0n')">Inappropriate</button>
-      <!--
-      <a href="#" onclick="showvideos()">[Videos]</a>
-      <a href="#" onclick="showclusters('outdoors')">[Outdoor]</a>
-      <a href="#" onclick="showclusters('indoors')">[Indoor]</a>
-      <a href="#" onclick="showclusters('objects')">[Objects]</a>
-      <a href="#" onclick="showclusters('pr0n')">[Inappropriate]</a>
-      <a href="#" onclick="showclusters('faces')">[Faces]</a>
-      -->
+      <button class="choiceButton" onclick="location.href = mainUrl + '?p=faces'">Faces</button>
+      <button class="choiceButton" onclick="location.href = mainUrl + '?p=objects'">Objects</button>
+      <button class="choiceButton" onclick="location.href = mainUrl + '?p=outdoors'">Outdoor</button>
+      <button class="choiceButton" onclick="location.href = mainUrl + '?p=indoors'">Indoor</button>
+      <button class="choiceButton" onclick="location.href = mainUrl + '?p=pr0n'">Inappropriate</button>
+      |
+      <button class="choiceButton" onclick="location.href = mainUrl + '?p=videos'">Videos</button>
     </div>
     <div id="report">
     </div>
     <script type="text/javascript">
-      $(function () {
-        if (window.location.hash.length == 1) {
-            showclusters('outdoor') 
-        } else {
-            var kind = window.location.hash.slice(1)
-            if (kind == 'videos') showvideos()
-            else showclusters(kind)
-        }
-        //showvideos()
-        //showclusters('faces')
-      })
-
       function showclusters(type) {
         $('div#report').empty()
         $('div#report').append('<h3>'+type+'</h3>')
