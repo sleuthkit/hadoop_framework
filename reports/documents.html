@@ -51,7 +51,7 @@ limitations under the License.
   var cTable;
   var fHead;
   var docClusterCoords = [];
-  docClusterCoords = docClusterChart;
+  //docClusterCoords = docClusterChart;
   
   function positionMenus() {
     $("#printReport").position({
@@ -156,7 +156,7 @@ limitations under the License.
       "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
       "sAjaxDataProp": "",
       "fnDrawCallback": function() {
-        var checkedList = localStorage.getItem(deviceName+"_searchHits");
+        var checkedList = localStorage.getItem(deviceName+"_documents");
         if (checkedList) {
           var arr = checkedList.split("&");
           if (arr && (arr.length>0)) {
