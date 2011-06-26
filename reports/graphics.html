@@ -85,15 +85,8 @@ limitations under the License.
   }
   
   $(window).resize(function(){
-    $("#dataTableContent").width($("#content").width());
-    $("#content").height($("#dataTableContent").height());
-		$("#dataTableContent").position({
-			of: $("#content"),
-			my: "left top",
-			at: "left top",
-			offset: "0 0",
-			collision: "none none"
-		});
+    var topHeight = $("#topContainer").height() + 10 + $("#menuContainer").height() + $("#choiceContainer").height();
+    $("#content").height($(document).height() - topHeight);
     positionMenus();
   });
 	
@@ -155,12 +148,13 @@ limitations under the License.
     }
     showSelection(urlParams["p"]);
     $(window).resize();
+    $("#btn"+urlParams["p"]).addClass("ui-state-button-selected");
   });
 	</script>
 </head>
 <body style="height:100%;">
 <center>
-<div id="allContainer" style="margin: 0px auto; width: 1200px; border: 1px solid #434a4f;">
+<div id="allContainer" style="margin: 0px auto; width: 1202px; border: 1px solid #434a4f;">
 	<div id="topContainer" style="margin: 0px auto; width: 100%;">
 		<div id="overviewContainer" style="margin: 0px auto;">
 			<h2 id="deviceName" class="ui-widget" style="font-size: 1.5em; text-align: center;">[device.name]</h2>
@@ -176,19 +170,20 @@ limitations under the License.
 	<div id="content">
     <div id="choiceContainer">
       <!-- TODO: create from JSON -->
-      <button class="choiceButton" onclick="location.href = mainUrl + '?p=faces'">Faces</button>
-      <button class="choiceButton" onclick="location.href = mainUrl + '?p=objects'">Objects</button>
-      <button class="choiceButton" onclick="location.href = mainUrl + '?p=outdoors'">Outdoor</button>
-      <button class="choiceButton" onclick="location.href = mainUrl + '?p=indoors'">Indoor</button>
-      <button class="choiceButton" onclick="location.href = mainUrl + '?p=pr0n'">Inappropriate</button>
+      <button class="choiceButton" id="btnfaces" onclick="location.href = mainUrl + '?p=faces'">Faces</button>
+      <button class="choiceButton" id="btnobjects" onclick="location.href = mainUrl + '?p=objects'">Objects</button>
+      <button class="choiceButton" id="btnoutdoors" onclick="location.href = mainUrl + '?p=outdoors'">Outdoor</button>
+      <button class="choiceButton" id="btnindoors" onclick="location.href = mainUrl + '?p=indoors'">Indoor</button>
+      <button class="choiceButton" id="btnpr0n" onclick="location.href = mainUrl + '?p=pr0n'">Inappropriate</button>
       ||
-      <button class="choiceButton" onclick="location.href = mainUrl + '?p=videos'">Videos</button>
+      <button class="choiceButton" id="btnvideos" onclick="location.href = mainUrl + '?p=videos'">Videos</button>
     </div>
+    <div id="typeTitle" style="height: 20px;"></div>
     <div id="clustersContainer"></div>
     <script type="text/javascript">
       function showclusters(type) {
+        //$('div#typeTitle').html(type);
         $('div#clustersContainer').empty();
-        $('div#clustersContainer').append('<h3>'+type+'</h3>');
         $.each(report[type], function (i, cluster) {
           var clusterDiv = $('#templ_cluster > div').clone();
           clusterDiv.find('span.cluster_size').html(cluster.size);
@@ -227,6 +222,14 @@ limitations under the License.
         });
         $('templ_cluster');
         $(window).resize();
+        var colWidth = Math.floor($("#content").width() / 3);
+        $('#clustersContainer').isotope({
+          itemSelector: '.cluster',
+          layoutMode : 'cellsByRow',
+          cellsByRow : {
+            columnWidth : colWidth
+          }
+        });
       }
 
       function round(x) {
@@ -304,8 +307,7 @@ limitations under the License.
       <div id="templ_cluster">
         <div class="ui-corner-all cluster">
           <!-- Cluster preview -->
-          <h3>Cluster  (<span class="cluster_size"></span> images)
-          <a href="#" class="cluster_expand">[Expand]</a></h3>
+          <h3>Cluster  (<span class="cluster_size"></span> images)<a href="#" class="cluster_expand">[Expand]</a></h3>
           <div class="ui-corner-all clusterImgs"></div>
           <!-- Full view of images in cluster -->
           <div class="all_images visible" style="margin:10px;padding:5px;background:lightred;display:none;"></div>
