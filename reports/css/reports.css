@@ -18,7 +18,7 @@ limitations under the License.
 
 /* Custom - Lightbox Technologies, Inc.
 ----------------------------------*/
-.ui-widget-chart { border: 1px solid #333333;cursor: pointer; position: absolute; background: #f2f5f7 url(../images/ui-bg_highlight-hard_100_f2f5f7_1x100.png) 50% top repeat-x; font-weight: bold; color: #2779aa; }
+.ui-widget-chart { border: 1px solid #333333; cursor: pointer; position: absolute; background: #f2f5f7 url(../images/ui-bg_highlight-hard_100_f2f5f7_1x100.png) 50% top repeat-x; font-weight: bold; color: #2779aa; }
 .ui-widget-hdd-odd { position: absolute; border: 1px solid #aed0ea; background: #fcf45a url(../images/ui-bg_hdd-gloss-wave_35_fcf45a_500x100.png) 50% 50% repeat-x; font-weight: bold; color: #2779aa; vertical-align: middle; height: 75px; text-align: center; }
 .ui-widget-hdd-even { position: absolute; border: 1px solid #aed0ea; background: #1978a9 url(../images/ui-bg_hdd-gloss-wave_35_1978a9_500x100.png) 50% 50% repeat-x; font-weight: bold; color: #fdf8aa; vertical-align: middle; height: 75px; text-align: center; }
 .ui-widget-hdd-unused { position: absolute; border: 1px solid #aed0ea; background: #dddddd; font-weight: bold; color: #555555; vertical-align: middle; height: 75px; text-align: center; }
@@ -31,6 +31,9 @@ limitations under the License.
 .ui-widget-menu-active a{ text-decoration: none; color: #222222; }
 .ui-widget-menu-plain a{ text-decoration: none; color: #666666; }
 .tblRight { text-align: right; }
+.cluster { max-width: 330px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
+.clusterImgs { float: left; cursor: pointer; background: #f2f5f7; }
+.singleImage { float: left; height: 100px; padding: 3px 3px; }
 
 body {
   margin: 0;
