@@ -100,6 +100,18 @@ Utility.prototype.deserialize = function(queryString, start) {
 	}
 }
 
+Utility.prototype.getUrlParams = function() {
+    var urlParams = {};
+    var e,
+        a = /\+/g,
+        r = /([^&=]+)=?([^&]*)/g,
+        d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+        q = window.location.search.substring(1);
+    while (e = r.exec(q))
+       urlParams[d(e[1])] = d(e[2]);
+    return urlParams;
+}
+
 Utility.prototype.getLinksFromScores = function(scoresArr, devName) {
   var obj = {nodes:[],links:[]};
   obj.nodes.push({nodeName:devName, group:1});
@@ -200,7 +212,7 @@ Utility.prototype.menuMouseOut = function(e) {
   .css({ background: '' });
 }
 
-Utility.prototype.buildMenu = function(list, id) {
+Utility.prototype.buildMenu = function(list, targetDivId) {
 	mlen = list.length;
 	var fileName = Util.getFileNameFromUrl();
   var items = [];
@@ -217,7 +229,7 @@ Utility.prototype.buildMenu = function(list, id) {
     items.push(line);
     ++i;
   }
-  $('#' + id).html(items.join(''));
+  $('#' + targetDivId).html(items.join(''));
 	$(".rpt-top-menu").bind('mouseover', this.menuMouseOver);
 	$(".rpt-top-menu").bind('mouseout', this.menuMouseOut);
 	$(".rpt-top-menu").bind('click', this.menuClick);
