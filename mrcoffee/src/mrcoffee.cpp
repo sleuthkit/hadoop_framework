@@ -347,7 +347,7 @@ int main(int argc, char** argv) {
     }
 
     // open the character device
-    CHECK((chdev = open(argv[1], O_RDWR))); 
+    CHECK((chdev = open(argv[1], O_RDWR)));
 
     // handles client requests
     try {
@@ -359,7 +359,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    // close the client 
+    // close the client
     CHECK(close((chdev)));
     exit(0);
   }
