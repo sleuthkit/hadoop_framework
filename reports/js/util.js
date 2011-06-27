@@ -202,16 +202,6 @@ Utility.prototype.menuClick = function(e) {
   location.href = $(this).attr("link");
 }
 
-Utility.prototype.menuMouseOver = function(e) {
-  $(this)
-  .css({ background: '#aeb6f4', cursor: 'pointer' });
-}
-
-Utility.prototype.menuMouseOut = function(e) {
-  $(this)
-  .css({ background: '' });
-}
-
 Utility.prototype.buildMenu = function(list, targetDivId) {
 	mlen = list.length;
 	var fileName = Util.getFileNameFromUrl();
@@ -230,8 +220,6 @@ Utility.prototype.buildMenu = function(list, targetDivId) {
     ++i;
   }
   $('#' + targetDivId).html(items.join(''));
-	$(".rpt-top-menu").bind('mouseover', this.menuMouseOver);
-	$(".rpt-top-menu").bind('mouseout', this.menuMouseOut);
 	$(".rpt-top-menu").bind('click', this.menuClick);
   return mlen;
 }
