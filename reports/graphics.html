@@ -251,23 +251,30 @@ limitations under the License.
         allImages = report[type][index].all_images ;
         if (allImages) {
           var allimgDiv = $('#templ_all_images > div').clone();
+          allimgDiv.attr("id", "allImages");
           allimgDiv.click(function(){
-            //TODO: popup info about image - maybe tipsy instead of click
             $("#allImages").fadeOut('slow');
-            $("#allImages").remove();
             $(".cluster").fadeIn('slow');
+            $("#allImages").remove();
+            //TODO: clear tipsy when closing
           });
           allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
           var aLen = allImages.length;
           for (var i = 0; i < aLen; i++) {
             var clusterimgDiv = $('#templ_clusterim > div').clone();
-            clusterimgDiv.attr("title", allImages[i].hash);
+            clusterimgDiv.attr("title", "MD5: " + allImages[i].hash);
             var img = clusterimgDiv.find('img');
             img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
-            clusterimgDiv.appendTo(allimgDiv.find('.clusterImgs'));
+            clusterimgDiv.tipsy({
+                      gravity: "s", 
+                      fade: true,
+                      html: true
+            });
+            clusterimgDiv.appendTo(allimgDiv.find('.allClusterImages'));
           }
           allimgDiv.appendTo('div#clustersContainer');
           $("#allImages").fadeIn('slow');
+          //TODO: lightbox?
         }
         setContentSize();
       }
@@ -344,9 +351,9 @@ limitations under the License.
       </div>
       <!-- All images template -->
       <div id="templ_all_images">
-        <div id="allImages" class="ui-corner-all allImages">
+        <div class="ui-corner-all allImages">
           <h3>Cluster</h3>
-          <div class="ui-corner-all clusterImgs"></div>
+          <div class="allClusterImages"></div>
         </div>    
       </div>
       <!-- Video report template -->

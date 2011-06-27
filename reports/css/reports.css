@@ -38,7 +38,7 @@ limitations under the License.
 .tblRight { text-align: right; }
 .cluster { max-width: 330px; margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
 .cluster:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
-.allImages { display: none; margin: 5px; float: left; border: 1px solid #bbbbbb; background: #f2f5f7; }
+.allImages { display: none; margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
 .clusterImgs { float: left; cursor: pointer; background: #f2f5f7; }
 .singleImage { float: left; height: 100px; padding: 3px 3px; }
 .keyframe { float: left; margin: 5px; background: #eeeeee; }
