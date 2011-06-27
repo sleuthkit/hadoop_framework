@@ -1,3 +1,19 @@
+/*
+   Copyright 2011 Basis Technology Corp.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
 package org.sleuthkit.hadoop.scoring;
 
 import java.io.IOException;
@@ -11,44 +27,46 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.sleuthkit.hadoop.SKMapper;
 
 public class CrossImageScoreReducer extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesArrayWritable> {
-    byte[] imageID;
+    byte[] ourImageID;
     @Override
     public void setup(Context context) {
         try {
-            imageID = Hex.decodeHex(context.getConfiguration().get(SKMapper.ID_KEY).toCharArray());
+            ourImageID = Hex.decodeHex(context.getConfiguration().get(SKMapper.ID_KEY).toCharArray());
         } catch (DecoderException e) {
             e.printStackTrace();
         }
     }
     
     @Override
-    public void reduce(BytesWritable key, Iterable<BytesWritable> values, Context context) throws IOException, InterruptedException {
+    public void reduce(BytesWritable fileHash, Iterable<BytesWritable> imgIDs, Context context) throws IOException, InterruptedException {
         boolean inThisImage = false;
         BytesArrayWritable aw = new BytesArrayWritable();
         HashSet<Writable> valueList = new HashSet<Writable>();
-        for (BytesWritable w : values) {
-            if (belongsToImage(w.getBytes())) {
+        for (BytesWritable curImgID : imgIDs) {
+            if (belongsToImage(curImgID.getBytes())) {
+                System.out.println("Hashes equal: " + new String(Hex.encodeHex(curImgID.getBytes())) + " to " + Hex.encodeHexString(ourImageID));
                 inThisImage = true;
             }
-            valueList.add(w);
+            valueList.add(new BytesWritable(curImgID.getBytes().clone()));
         }
         
         if (inThisImage) {
             aw.set(valueList.toArray(new BytesWritable[0]));
-            context.write(key, aw);
+            context.write(fileHash, aw);
+            System.out.println("Done Writing Context.");
         }
     }
     
 
-    public boolean belongsToImage(byte[] hash) {
+    public boolean belongsToImage(byte[] imgID) {
         // there are often trailing zeroes on the byte array returned by
         // hadoop. This code is intended to help account that problem by
         // ensuring that the relevant bytes match.
-        if (hash.length < imageID.length) {
+        if (imgID.length < ourImageID.length) {
             return false;
         }
-        for (int i = 0; i < imageID.length; i++) {
-            if (hash[i] != imageID[i]) {
+        for (int i = 0; i < ourImageID.length; i++) {
+            if (imgID[i] != ourImageID[i]) {
                 return false;
             }
         }
