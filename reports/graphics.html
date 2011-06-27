@@ -245,24 +245,24 @@ limitations under the License.
       }
      
       function showvideos() {
-        $('div#clustersContainer').empty()
+        $('#clustersContainer').empty()
         $.each(report.videos, function (k, video) {
             var divkeyframe = $('#templ_keyframe > div').clone();
             var len2 = Math.floor(video.keyframes.length / 2);
-            console.info(len2)
+            //console.info(len2)
             divkeyframe.find('img.keyframe').attr('src', 'data/t/'+video.keyframes[len2].image.hash+'.jpg');
             divkeyframe.find('.keyframe_expand a').html(round(video.duration)+'s ['+video.keyframes[len2].count+']');
             divkeyframe.click(function () {
               showvideo(video);
             })
-            $('div#clusterContainer').append(divkeyframe);
+            $('#clustersContainer').append(divkeyframe);
         });
         $(window).resize();
       }
 
       function showvideo(video) {
-        $('div#clustersContainer').empty();
-        $('div#clustersContainer').append('<h3>Video '+video.hash+'</h3>');
+        $('#clustersContainer').empty();
+        $('#clustersContainer').append('<h3>Video '+video.hash+'</h3>');
         push_keyframerow(video.keyframes, 0);
         push_keyframerow(video.keyframes[0].children, 1);
       }
@@ -282,7 +282,7 @@ limitations under the License.
       }
 
       function pop_keyframerows(rowheight) {
-        $('div#clustersContainer div.keyframe_row:gt('+rowheight+')').remove();
+        $('#clustersContainer div.keyframe_row:gt('+rowheight+')').remove();
       }
 
       function push_keyframerow(keyframes, rowheight) {
@@ -306,7 +306,7 @@ limitations under the License.
             keyframe_row.append(divkeyframe);
         })
         keyframe_row.append('<div style="clear:both"></div>');
-        $('div#clustersContainer').append(keyframe_row);
+        $('#clustersContainer').append(keyframe_row);
       }
     </script>
     <div style="display:none" id="templates">
