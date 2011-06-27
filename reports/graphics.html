@@ -197,7 +197,7 @@ limitations under the License.
           buttonList.push(" || " + videos);
         }
         else {
-          buttonList.push("graphics report not found");
+          buttonList.push("<h3>Graphics report not found</h3>");
         }
         $("#choiceContainer").html(buttonList.join(''));
       </script>
@@ -205,6 +205,10 @@ limitations under the License.
     <div id="typeTitle" style="height: 20px;"></div>
     <div id="clustersContainer"></div>
     <script type="text/javascript">
+      $("#clustersContainer").delegate(".cluster", "click", function(){
+        $(this).toggleClass("hover");
+      });
+      
       function showclusters(type) {
         $('div#clustersContainer').empty();
         $.each(report[type], function (i, cluster) {
@@ -318,7 +322,7 @@ limitations under the License.
       <div id="templ_cluster">
         <div class="ui-corner-all cluster">
           <!-- Cluster preview -->
-          <h3>Cluster  (<span class="cluster_size"></span> images)<a href="#" class="cluster_expand">[Expand]</a></h3>
+          <h3>Cluster  (<span class="cluster_size"></span> images)</h3>
           <div class="ui-corner-all clusterImgs"></div>
           <!-- Full view of images in cluster -->
           <div class="all_images visible" style="margin: 10px; padding: 5px; background: lightred; display: none;"></div>
