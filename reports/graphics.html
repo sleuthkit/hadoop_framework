@@ -85,7 +85,7 @@ limitations under the License.
   }
   
   function setContentSize() {
-    var topHeight = $("#topContainer").height() + 10 + $("#menuContainer").height() + $("#choiceContainer").height();
+    var topHeight = $("#topContainer").height() + $("#menuContainer").height() + $("#choiceContainer").height();
     $("#content").height($(document).height() - topHeight);
   }
   
@@ -212,10 +212,9 @@ limitations under the License.
           clusterDiv.attr("cluster", i);
           clusterDiv.click(function(){
             $(".cluster").fadeOut('slow');
-            //TODO: show all images in cluster
-            console.log($(this).attr("cluster"));
+            showAllImages(type, $(this).attr("cluster"));
           });
-          clusterDiv.find('span.cluster_size').html(cluster.size);
+          clusterDiv.find('h3').html("Cluster " + i + " (" + cluster.size + " images)");
           var cLen = cluster.sample_images.length;
           if (cLen > 12) cLen = 12;
           for (var i = 0; i < cLen; i++) {
@@ -237,7 +236,6 @@ limitations under the License.
           clusterDiv.find('.clusterImgs').append('<div style="clear:both"></div>');
           clusterDiv.appendTo('div#clustersContainer');
         });
-        $('templ_cluster');
         setContentSize();
         var colWidth = Math.floor($("#content").width() / 3);
         $('#clustersContainer').isotope({
@@ -249,18 +247,29 @@ limitations under the License.
         });
       }
 
-      function showClusterAllimages(index) {
-        var div = $('div.all_images:eq('+index+')');
-        if (!div.is(":visible")) {
-          $.each(clusters[index].all_images, function (k, v) {
-            div.append('<img style="max-width:50;height:50" src="data/t/'+v+'"/></a>');
-          })
-          div.show();
-        } 
-        else {
-          div.empty();
-          div.hide();
+      function showAllImages(type, index) {
+        allImages = report[type][index].all_images ;
+        if (allImages) {
+          var allimgDiv = $('#templ_all_images > div').clone();
+          allimgDiv.click(function(){
+            //TODO: popup info about image - maybe tipsy instead of click
+            $("#allImages").fadeOut('slow');
+            $("#allImages").remove();
+            $(".cluster").fadeIn('slow');
+          });
+          allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
+          var aLen = allImages.length;
+          for (var i = 0; i < aLen; i++) {
+            var clusterimgDiv = $('#templ_clusterim > div').clone();
+            clusterimgDiv.attr("title", allImages[i].hash);
+            var img = clusterimgDiv.find('img');
+            img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
+            clusterimgDiv.appendTo(allimgDiv.find('.clusterImgs'));
+          }
+          allimgDiv.appendTo('div#clustersContainer');
+          $("#allImages").fadeIn('slow');
         }
+        setContentSize();
       }
 
       function round(x) {
@@ -322,11 +331,8 @@ limitations under the License.
       <!-- Cluster template -->
       <div id="templ_cluster">
         <div class="ui-corner-all cluster">
-          <!-- Cluster preview -->
-          <h3>Cluster  (<span class="cluster_size"></span> images)</h3>
+          <h3>Cluster</h3>
           <div class="ui-corner-all clusterImgs"></div>
-          <!-- Full view of images in cluster -->
-          <div class="all_images visible" style="margin: 10px; padding: 5px; background: lightred; display: none;"></div>
         </div>    
       </div>
       <!-- Cluster image template -->
@@ -335,6 +341,13 @@ limitations under the License.
           <canvas style="position: absolute; z-index: 1;" width="100" height="100"></canvas>
           <img style="z-index: 0; max-height: 100px; width: 100px"/>
         </div>
+      </div>
+      <!-- All images template -->
+      <div id="templ_all_images">
+        <div id="allImages" class="ui-corner-all allImages">
+          <h3>Cluster</h3>
+          <div class="ui-corner-all clusterImgs"></div>
+        </div>    
       </div>
       <!-- Video report template -->
       <div id="templ_video">
