@@ -169,20 +169,40 @@ limitations under the License.
 	<div id="menuContainer" style="height: 45px; "></div>
 	<div id="content">
     <div id="choiceContainer">
-      <!-- TODO: create from JSON -->
-      <button class="choiceButton" id="btnfaces" onclick="location.href = mainUrl + '?p=faces'">Faces</button>
-      <button class="choiceButton" id="btnobjects" onclick="location.href = mainUrl + '?p=objects'">Objects</button>
-      <button class="choiceButton" id="btnoutdoors" onclick="location.href = mainUrl + '?p=outdoors'">Outdoor</button>
-      <button class="choiceButton" id="btnindoors" onclick="location.href = mainUrl + '?p=indoors'">Indoor</button>
-      <button class="choiceButton" id="btnpr0n" onclick="location.href = mainUrl + '?p=pr0n'">Inappropriate</button>
-      ||
-      <button class="choiceButton" id="btnvideos" onclick="location.href = mainUrl + '?p=videos'">Videos</button>
+      <script type="text/javascript">
+        var buttonList = [];
+        if (report) {
+          var str = "";
+          var faces = "",
+              videos = "";
+          for (var prop in report) {
+            var pText = prop.substring(0,1).toUpperCase() + prop.substring(1,prop.length);
+            if (prop == "faces") {
+              faces = "<button class=\"choiceButton\" id=\"btn" + prop + 
+                "\" onclick=\"location.href = mainUrl + '?p=" + prop + "'\">" + pText + "</button>";
+            }
+            else if (prop == "videos") {
+              videos = "<button class=\"choiceButton\" id=\"btn" + prop + 
+                "\" onclick=\"location.href = mainUrl + '?p=" + prop + "'\">" + pText + "</button>";
+            }
+            else {
+              buttonList.push("<button class=\"choiceButton\" id=\"btn" + prop + 
+                "\" onclick=\"location.href = mainUrl + '?p=" + prop + "'\">" + pText + "</button>");
+            }
+          }
+          buttonList.unshift(faces);
+          buttonList.push(" || " + videos);
+        }
+        else {
+          buttonList.push("graphics report not found");
+        }
+        $("#choiceContainer").html(buttonList.join(''));
+      </script>
     </div>
     <div id="typeTitle" style="height: 20px;"></div>
     <div id="clustersContainer"></div>
     <script type="text/javascript">
       function showclusters(type) {
-        //$('div#typeTitle').html(type);
         $('div#clustersContainer').empty();
         $.each(report[type], function (i, cluster) {
           var clusterDiv = $('#templ_cluster > div').clone();
@@ -192,31 +212,19 @@ limitations under the License.
           for (var i = 0; i < cLen; i++) {
             var clusterimgDiv = $('#templ_clusterim > div').clone();
             var img = clusterimgDiv.find('img');
-            img.attr('src', 'data/t/'+cluster.sample_images[i].hash+'.jpg');
-            clusterimgDiv.appendTo(clusterDiv.find('.clusterImgs'));
-          }
-          /*
-          $.each(cluster.sample_images, function (j, image) {
-            var clusterimgDiv = $('#templ_clusterim > div').clone();
-            var img = clusterimgDiv.find('img');
             if (type=='faces') {
-                // This assumes there is exactly 1 face per image
-                var face = image.faces[0];
-                var l = face.boundingbox[0][0];
-                var t = face.boundingbox[0][1];
-                var r = face.boundingbox[1][0];
-                var b = face.boundingbox[1][1];
-                img.attr('src', 'data/t/'+image.hash+'-face-x0'+
-                   l+'-y0'+t+'-x1'+r+'-y1'+b+'.jpg');
+              var face = cluster.sample_images[i].faces[0];
+              var lb = face.boundingbox[0][0];
+              var tb = face.boundingbox[0][1];
+              var rb = face.boundingbox[1][0];
+              var bb = face.boundingbox[1][1];
+              img.attr('src', 'data/t/'+cluster.sample_images[i].hash+'-face-x0'+lb+'-y0'+tb+'-x1'+rb+'-y1'+bb+'.jpg');
             }
             else {
-                img.attr('src', 'data/t/'+image.hash+'.jpg');
+              img.attr('src', 'data/t/'+cluster.sample_images[i].hash+'.jpg');
             }
-            if (j % 2 == 0)
-              img.attr('src', 'data/t/'+image.hash+'.jpg');
-            clusterimgDiv.appendTo(divcluster.find('.clusterImgs'));
-          });
-          */
+            clusterimgDiv.appendTo(clusterDiv.find('.clusterImgs'));
+          }
           clusterDiv.find('.clusterImgs').append('<div style="clear:both"></div>');
           clusterDiv.appendTo('div#clustersContainer');
         });
@@ -238,11 +246,10 @@ limitations under the License.
      
       function showvideos() {
         $('div#clustersContainer').empty()
-        $('div#clustersContainer').append('<h3>Videos</h3>')
         $.each(report.videos, function (k, video) {
             var divkeyframe = $('#templ_keyframe > div').clone();
             var len2 = Math.floor(video.keyframes.length / 2);
-            //console.info(len2)
+            console.info(len2)
             divkeyframe.find('img.keyframe').attr('src', 'data/t/'+video.keyframes[len2].image.hash+'.jpg');
             divkeyframe.find('.keyframe_expand a').html(round(video.duration)+'s ['+video.keyframes[len2].count+']');
             divkeyframe.click(function () {
