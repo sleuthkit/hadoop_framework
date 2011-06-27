@@ -7,11 +7,8 @@
 #include <vector>
 
 #include <endian.h>
-#include <signal.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include <sys/select.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/wait.h>
 
 #include <boost/scoped_array.hpp>
@@ -93,14 +90,14 @@ std::cerr << cfd << ": wrote " << block_size << " bytes" << std::endl;
   }
 }
 
-bool handle_client_request(int c_sock) {
+bool handle_client_request(int cl_fd) {
   ssize_t rlen, wlen;
   size_t len, off;
 
   // read command length from client
   off = 0;
   while (off < sizeof(len)) {
-    off += rlen = read(c_sock, &len+off, sizeof(len)-off);
+    off += rlen = read(cl_fd, &len+off, sizeof(len)-off);
     if (rlen == -1) {
       THROW("read: " << strerror(errno));
     }
@@ -114,7 +111,7 @@ bool handle_client_request(int c_sock) {
 
   // read command line from client
   boost::scoped_array<char> cmdline(new char[len]);
-  read_bytes(c_sock, cmdline.get(), len);
+  read_bytes(cl_fd, cmdline.get(), len);
 
   // break command line into command and arguments
   std::vector<char*> args;
@@ -123,13 +120,13 @@ bool handle_client_request(int c_sock) {
     if (cmdline[i] == '\0') {
       args.push_back(cmdline.get()+i+1);
     }
-  } 
+  }
   
   args.push_back(NULL); // last arg for execvp must be NULL
 
   // read data length from client
   size_t in_len;
-  read_bytes(c_sock, (char*) &in_len, sizeof(in_len));
+  read_bytes(cl_fd, (char*) &in_len, sizeof(in_len));
   in_len = be64toh(in_len);
 
   // set up the pipes; pipes named from the POV of the child
@@ -157,8 +154,6 @@ bool handle_client_request(int c_sock) {
     CHECK(close((in_pipe[0])));
   }
 
-  std::vector<char> ch_out, ch_err;
-
   // read from client socket, child stdout, stderr and write to child
   // stdin as data is available
   fd_set rfds, wfds;
@@ -184,11 +179,11 @@ bool handle_client_request(int c_sock) {
           cl_buf, cl_available, sizeof(cl_buf));
 
     // drain child stderr buffer to client buffer
-    drain(out_buf, out_written, out_available, STDOUT_FILENO,
+    drain(err_buf, err_written, err_available, STDERR_FILENO,
           cl_buf, cl_available, sizeof(cl_buf));
 
     // create the set of file descriptors on which to select
-    nfds = 0;
+    nfds = -1;
     FD_ZERO(&rfds);
     FD_ZERO(&wfds);
 
@@ -203,18 +198,24 @@ bool handle_client_request(int c_sock) {
     }
 
     if (cl_available > cl_written) {
-      FD_SET(c_sock, &wfds);
-      nfds = std::max(nfds, c_sock);
+      FD_SET(cl_fd, &wfds);
+      nfds = std::max(nfds, cl_fd);
     }
 
     if (in_len > 0) {
-      FD_SET(c_sock, &rfds);
-      nfds = std::max(nfds, c_sock);
+      FD_SET(cl_fd, &rfds);
+      nfds = std::max(nfds, cl_fd);
     }
 
     if (in_pipe[1] != -1 && in_available > in_written) {
       FD_SET(in_pipe[1], &wfds);
       nfds = std::max(nfds, in_pipe[1]);
+    }
+
+    // don't call select unless there's an active file descriptor,
+    // probably should not happen, but would cause select to hang
+    if (nfds < 0) {
+      break;
     }
 
     // determine whether any file descriptors are ready
@@ -235,17 +236,17 @@ bool handle_client_request(int c_sock) {
 
           if (in_len == 0) {
             // close child's stdin
-            CHECK(close((in_pipe[1])));
+            CHECK(close(in_pipe[1]));
             in_pipe[1] = -1;
           }
         }
       }
     }
 
-    // read data from client socket if there is space in the buffer
-    if (FD_ISSET(c_sock, &rfds) && in_available < sizeof(in_buf)) {
-      // read from client socket
-      rlen = read(c_sock, in_buf+in_available,
+    // read data from client if there is space in the buffer
+    if (FD_ISSET(cl_fd, &rfds) && in_available < sizeof(in_buf)) {
+      // read from client
+      rlen = read(cl_fd, in_buf+in_available,
                   std::min(sizeof(in_buf)-in_available, in_len));
       if (rlen == -1) {
         THROW("read: " << strerror(errno));
@@ -259,9 +260,9 @@ bool handle_client_request(int c_sock) {
       }
     }
 
-    // write child stdout and stderr data to client socket if available
-    if (FD_ISSET(c_sock, &wfds)) {
-      wlen = write(c_sock, cl_buf+cl_written, cl_available-cl_written);
+    // write child stdout and stderr data to client if available
+    if (FD_ISSET(cl_fd, &wfds)) {
+      wlen = write(cl_fd, cl_buf+cl_written, cl_available-cl_written);
       if (wlen == -1) {
         THROW("write: " << strerror(errno));
       }
@@ -285,7 +286,7 @@ bool handle_client_request(int c_sock) {
       }
       else if (rlen == 0) {
         // child closed stdout
-        CHECK(close((out_pipe[0])));
+        CHECK(close(out_pipe[0]));
         out_pipe[0] = -1;
       }
       else {
@@ -295,7 +296,7 @@ bool handle_client_request(int c_sock) {
 
     // read data from child stderr if there is space in the buffer
     if (FD_ISSET(err_pipe[0], &rfds)) {
-      // read from child stdout
+      // read from child sterr
       rlen = read(err_pipe[0], err_buf+err_available,
                   sizeof(err_buf)-err_available);
       if (rlen == -1) {
@@ -303,7 +304,7 @@ bool handle_client_request(int c_sock) {
       }
       else if (rlen == 0) {
         // child closed stderr
-        CHECK(close((err_pipe[0])));
+        CHECK(close(err_pipe[0]));
         err_pipe[0] = -1;
       }
       else {
@@ -319,15 +320,15 @@ bool handle_client_request(int c_sock) {
   int fd = htobe32(STDOUT_FILENO);
   size_t zero = 0;
   
-  write_bytes(c_sock, (char*) &fd, sizeof(fd));
-  write_bytes(c_sock, (char*) &zero, sizeof(zero));
+  write_bytes(cl_fd, (char*) &fd, sizeof(fd));
+  write_bytes(cl_fd, (char*) &zero, sizeof(zero));
 
 std::cerr << STDOUT_FILENO << ": wrote 0 bytes" << std::endl;
 
   // write final stderr block to client 
   fd = htobe32(STDERR_FILENO);
-  write_bytes(c_sock, (char*) &fd, sizeof(fd));
-  write_bytes(c_sock, (char*) &zero, sizeof(zero));
+  write_bytes(cl_fd, (char*) &fd, sizeof(fd));
+  write_bytes(cl_fd, (char*) &zero, sizeof(zero));
 
 std::cerr << STDERR_FILENO << ": wrote 0 bytes" << std::endl;
 
@@ -338,81 +339,32 @@ std::cerr << STDERR_FILENO << ": wrote 0 bytes" << std::endl;
 }
 
 int main(int argc, char** argv) {
-  int s_sock = -1;
+  int chdev = -1;
 
   try {
     if (argc != 2) {
       THROW("incorrect number of arguments");
     }
 
-    // create the socket
-    CHECK((s_sock = socket(AF_UNIX, SOCK_STREAM, 0)));
+    // open the character device
+    CHECK((chdev = open(argv[1], O_RDWR))); 
 
-    // bind to the socket
-    sockaddr_un s_addr;
-    memset(&s_addr, 0, sizeof(s_addr));
-    s_addr.sun_family = AF_UNIX;
-    strncpy(s_addr.sun_path, argv[1], sizeof(s_addr.sun_path));
-
-    CHECK(bind(s_sock, (sockaddr*) &s_addr, sizeof(s_addr)));
-
-    // listen on our socket
-    CHECK(listen(s_sock, 10));
-
-    // ignore SIGCHLD to prevent zombie children
-    struct sigaction r_act;
-    r_act.sa_handler = SIG_IGN;
-
-    CHECK(sigaction(SIGCHLD, &r_act, NULL));
-
-    // start the server loop 
-    for (;;) {
-      // accept connection from client
-      sockaddr_un c_addr;
-      memset(&c_addr, 0, sizeof(c_addr));
-      socklen_t c_addr_len;
-
-      int c_sock;
-      CHECK((c_sock = accept(s_sock, (sockaddr*) &c_addr, &c_addr_len)));
-
-      // fork to handle client requests
-      int pid;
-      CHECK((pid = fork()));
-
-      if (pid != 0) {
-        // close the client socket, parent doesn't use it 
-        CHECK(close((c_sock)));
-        // parent loops back to accept more client requests
-        continue;
-      }
-
-      // reset SIGCHLD action, as request handler waits on its child
-      struct sigaction c_act;
-      c_act.sa_handler = SIG_DFL;
-      CHECK(sigaction(SIGCHLD, &c_act, NULL));
-
-      // child handles client requests
-      try {
-        while (handle_client_request(c_sock));
-      }
-      catch (std::exception& e) {
-        close(c_sock);
-        std::cerr << e.what() << std::endl;
-        exit(1);
-      }
-
-      // close the client socket
-      CHECK(shutdown(c_sock, SHUT_RDWR));
-      CHECK(close((c_sock)));
-      exit(0);
+    // handles client requests
+    try {
+      while (handle_client_request(chdev));
+    }
+    catch (std::exception& e) {
+      close(chdev);
+      std::cerr << e.what() << std::endl;
+      exit(1);
     }
 
-    // close the server socket
-    CHECK(shutdown(s_sock, SHUT_RDWR));
-    CHECK(close((s_sock)));
+    // close the client 
+    CHECK(close((chdev)));
+    exit(0);
   }
   catch (std::exception& e) {
-    close(s_sock);
+    close(chdev);
     std::cerr << e.what() << std::endl;
     exit(1);
   }
