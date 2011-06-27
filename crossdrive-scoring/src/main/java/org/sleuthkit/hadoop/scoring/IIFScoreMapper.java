@@ -24,7 +24,7 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Writable;
 import org.sleuthkit.hadoop.SKMapper;
 
-public class DocumentScoreMapper extends SKMapper<BytesWritable, BytesArrayWritable, Writable, DoubleWritable> {
+public class IIFScoreMapper extends SKMapper<BytesWritable, BytesArrayWritable, Writable, DoubleWritable> {
     
     public enum TestWritableCount {WRITEOUTS};
 

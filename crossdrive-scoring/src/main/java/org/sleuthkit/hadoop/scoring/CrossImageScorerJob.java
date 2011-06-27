@@ -88,13 +88,13 @@ public class CrossImageScorerJob {
             long filesInImage = j.getCounters().findCounter(FileCount.FILES).getValue();
 
             j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", JobNames.CROSS_IMG_SIM_SCORING_CALC);
-            j.getConfiguration().setLong(DoubleSumReducer.FILES_IN_IMAGE, filesInImage);
+            j.getConfiguration().setLong(IIFScoreReducer.FILES_IN_IMAGE, filesInImage);
             // TODO: Get the number of images from the images table. This is pretty key for IIF.
-            j.getConfiguration().setLong(DocumentScoreMapper.TOTAL_IMAGES, 11);
+            j.getConfiguration().setLong(IIFScoreMapper.TOTAL_IMAGES, 11);
 
-            j.setMapperClass(DocumentScoreMapper.class);
-            j.setReducerClass(DoubleSumReducer.class);
-            j.setJarByClass(DocumentScoreMapper.class);
+            j.setMapperClass(IIFScoreMapper.class);
+            j.setReducerClass(IIFScoreReducer.class);
+            j.setJarByClass(IIFScoreMapper.class);
 
             j.setInputFormatClass(SequenceFileInputFormat.class);
             j.setOutputFormatClass(TextOutputFormat.class);

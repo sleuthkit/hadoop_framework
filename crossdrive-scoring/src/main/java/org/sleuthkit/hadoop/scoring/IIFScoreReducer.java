@@ -16,8 +16,6 @@
 
 package org.sleuthkit.hadoop.scoring;
 
-import java.io.IOException;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DoubleWritable;
@@ -29,7 +27,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-public class DoubleSumReducer extends Reducer<Writable, DoubleWritable, NullWritable, Text>{
+public class IIFScoreReducer extends Reducer<Writable, DoubleWritable, NullWritable, Text>{
     DoubleWritable scoreWritable = new DoubleWritable();
     
     public enum iifCounter {COUNT};
@@ -65,8 +63,6 @@ public class DoubleSumReducer extends Reducer<Writable, DoubleWritable, NullWrit
             outputRecord.put("c", confidence);
             outputRecord.put("iif", iif);
             output.put(outputRecord);
-            //scoreWritable.set(iif);
-            //context.write(key, scoreWritable);
         } catch (JSONException ex) { 
             ex.printStackTrace();
         }
