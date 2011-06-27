@@ -148,6 +148,7 @@ limitations under the License.
       "sAjaxSource": "", //triggers ajax pull using overridden fnServerData below
       "sAjaxDataProp": "",
       "fnDrawCallback": function() {
+        $(".tipsy").remove();
         var checkedList = localStorage.getItem(deviceName+"_entities");
         if (checkedList) {
           var arr = checkedList.split("&");

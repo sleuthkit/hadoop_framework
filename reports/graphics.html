@@ -256,7 +256,7 @@ limitations under the License.
             $("#allImages").fadeOut('slow');
             $(".cluster").fadeIn('slow');
             $("#allImages").remove();
-            //TODO: clear tipsy when closing
+            $(".tipsy").remove();
           });
           allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
           var aLen = allImages.length;
