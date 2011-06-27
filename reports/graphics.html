@@ -264,7 +264,17 @@ limitations under the License.
             var clusterimgDiv = $('#templ_clusterim > div').clone();
             clusterimgDiv.attr("title", "MD5: " + allImages[i].hash);
             var img = clusterimgDiv.find('img');
-            img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
+            if (type=='faces') {
+              var face = allImages[i].faces[0];
+              var lb = face.boundingbox[0][0];
+              var tb = face.boundingbox[0][1];
+              var rb = face.boundingbox[1][0];
+              var bb = face.boundingbox[1][1];
+              img.attr('src', 'data/t/'+allImages[i].hash+'-face-x0'+lb+'-y0'+tb+'-x1'+rb+'-y1'+bb+'.jpg');
+            }
+            else {
+              img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
+            }
             clusterimgDiv.tipsy({
                       gravity: "s", 
                       fade: true,
