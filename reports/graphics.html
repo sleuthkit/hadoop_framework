@@ -84,9 +84,12 @@ limitations under the License.
     }
   }
   
-  $(window).resize(function(){
+  function setContentSize() {
     var topHeight = $("#topContainer").height() + 10 + $("#menuContainer").height() + $("#choiceContainer").height();
     $("#content").height($(document).height() - topHeight);
+  }
+  
+  $(window).resize(function(){
     positionMenus();
   });
 	
@@ -229,7 +232,7 @@ limitations under the License.
           clusterDiv.appendTo('div#clustersContainer');
         });
         $('templ_cluster');
-        $(window).resize();
+        setContentSize();
         var colWidth = Math.floor($("#content").width() / 3);
         $('#clustersContainer').isotope({
           itemSelector: '.cluster',
@@ -238,6 +241,7 @@ limitations under the License.
             columnWidth : colWidth
           }
         });
+        
       }
 
       function round(x) {
@@ -245,19 +249,19 @@ limitations under the License.
       }
      
       function showvideos() {
-        $('#clustersContainer').empty()
+        $('#clustersContainer').empty();
         $.each(report.videos, function (k, video) {
-            var divkeyframe = $('#templ_keyframe > div').clone();
+            var keyframeDiv = $('#templ_keyframe > div').clone();
             var len2 = Math.floor(video.keyframes.length / 2);
             //console.info(len2)
-            divkeyframe.find('img.keyframe').attr('src', 'data/t/'+video.keyframes[len2].image.hash+'.jpg');
-            divkeyframe.find('.keyframe_expand a').html(round(video.duration)+'s ['+video.keyframes[len2].count+']');
-            divkeyframe.click(function () {
+            keyframeDiv.find('img.keyframe').attr('src', 'data/t/'+video.keyframes[len2].image.hash+'.jpg');
+            keyframeDiv.find('.keyframe_expand a').html(round(video.duration)+'s ['+video.keyframes[len2].count+']');
+            keyframeDiv.click(function () {
               showvideo(video);
             })
-            $('#clustersContainer').append(divkeyframe);
+            $('div#clustersContainer').append(keyframeDiv);
         });
-        $(window).resize();
+        setContentSize();
       }
 
       function showvideo(video) {
@@ -317,14 +321,14 @@ limitations under the License.
           <h3>Cluster  (<span class="cluster_size"></span> images)<a href="#" class="cluster_expand">[Expand]</a></h3>
           <div class="ui-corner-all clusterImgs"></div>
           <!-- Full view of images in cluster -->
-          <div class="all_images visible" style="margin:10px;padding:5px;background:lightred;display:none;"></div>
+          <div class="all_images visible" style="margin: 10px; padding: 5px; background: lightred; display: none;"></div>
         </div>    
       </div>
       <!-- Cluster image template -->
       <div id="templ_clusterim">
         <div class="singleImage">
-          <canvas style="position:absolute;z-index:1;" width="100" height="100"></canvas>
-          <img style="z-index:0;max-height:100px;width:100px"/>
+          <canvas style="position: absolute; z-index: 1;" width="100" height="100"></canvas>
+          <img style="z-index: 0; max-height: 100px; width: 100px"/>
         </div>
       </div>
       <!-- Video report template -->
@@ -333,13 +337,13 @@ limitations under the License.
       </div>
       <!-- Keyframe Row template -->
       <div id="templ_keyframerow">
-        <div class="keyframe_row" style="margin:5px;background:#FFFFFF"></div>
+        <div class="keyframe_row" style="margin: 5px; background: #cccccc;"></div>
       </div>
       <!-- Video keyframe template -->
       <div id="templ_keyframe">
-        <div style="float:left;margin:2px">
+        <div class="ui-corner-all keyframe">
           <div class="keyframe_expand"><a href="#"></a></div>
-          <div style="height:100px"><img class="keyframe" style="max-width:100px"/></div>
+          <div style="height: 100px;"><img class="keyframe" style="max-width: 100px;"/></div>
         </div>
       </div>
     </div>
