@@ -57,7 +57,7 @@ public class SequenceFileExport {
     private final Text HdfsPath = new Text();
 
     SequenceFileExportMapper() {
-      Fields.put(new Text("fullpath"), FullPath);
+      Fields.put(new Text("full_path"), FullPath);
       Fields.put(new Text("extension"), Ext);
       Fields.put(new Text("sha1"), Sha);
       Fields.put(new Text("md5"), Md5);
