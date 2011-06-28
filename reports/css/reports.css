@@ -84,6 +84,8 @@ td {
 
 h3 { margin: 5px 0px; }
 
+.align-center { text-align: center; }
+
 .e-resize {
 	cursor: e-resize;
 }
