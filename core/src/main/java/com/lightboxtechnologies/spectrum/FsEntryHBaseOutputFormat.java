@@ -31,6 +31,8 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
 import org.apache.hadoop.hbase.io.hfile.Compression;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
@@ -42,6 +44,8 @@ import java.util.List;
 import java.io.IOException;
 
 public class FsEntryHBaseOutputFormat extends OutputFormat {
+
+  private static final Log LOG = LogFactory.getLog(FsEntryHBaseInputFormat.class);
 
   public static class NullOutputCommitter extends OutputCommitter {
     public void 	abortTask(TaskAttemptContext taskContext) {}
@@ -58,10 +62,10 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
   public void	checkOutputSpecs(JobContext context) {}
 
   public static HTable getHTable(TaskAttemptContext ctx, byte[] colFam) throws IOException {
-    final Configuration hconf = HBaseConfiguration.create();
-    final Configuration conf = ctx.getConfiguration();
+    final Configuration conf = HBaseConfiguration.create(ctx.getConfiguration());
+    LOG.info("hbase.zookeeper.quorum:" + conf.get("hbase.zookeeper.quorum"));
     final String tblName = conf.get(HBaseTables.ENTRIES_TBL_VAR, HBaseTables.ENTRIES_TBL);
-    final HBaseAdmin admin = new HBaseAdmin(hconf);
+    final HBaseAdmin admin = new HBaseAdmin(conf);
     if (!admin.tableExists(tblName)) {
     	final HTableDescriptor tableDesc = new HTableDescriptor(tblName);
 // FIXME: how could the family already exist if the table doesn't?
@@ -75,7 +79,7 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     else if (!admin.isTableEnabled(tblName)) {
     	admin.enableTable(tblName);
     }
-    return new HTable(hconf, tblName);
+    return new HTable(conf, tblName);
   }
 
   public RecordWriter<ImmutableBytesWritable, FsEntry> getRecordWriter(TaskAttemptContext ctx) throws IOException {
