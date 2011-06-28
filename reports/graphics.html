@@ -169,8 +169,8 @@ limitations under the License.
       var allimgDiv = cloneDiv.find("div.allImages");
       allimgDiv.attr("id", "allImages" + index);
       allimgDiv.click(function(){
-        //$(".cluster").fn.fancybox.close();
-        //$("#allImages").remove();
+        $.fancybox.close();
+        $("#allImages").remove();
         $(".tipsy").remove();
       });
       allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
