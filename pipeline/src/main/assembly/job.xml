@@ -27,6 +27,7 @@
       <scope>runtime</scope>
       <outputDirectory>/</outputDirectory>
       <excludes>
+	<exclude>org.apache.mahout.hbase:hbase</exclude>
         <exclude>org.sleuthkit:sleuthkit-clustering</exclude>
         <exclude>org.sleuthkit:sleuthkit-textextraction</exclude>
         <exclude>org.sleuthkit:sleuthkit-grep</exclude>
