@@ -44,8 +44,9 @@ public class ExtentsExtractor {
   static class ExtentsExtractorMapper extends SKMapper<ImmutableHexWritable, FsEntry, LongWritable, JsonWritable> {
 
     final LongWritable Offset = new LongWritable();
-    final Map<String,Object> Output = new HashMap();
-    final List<Map<String,Object>> Extents = new ArrayList();
+    final Map<String,Object> Output = new HashMap<String,Object>();
+    final List<Map<String,Object>> Extents =
+      new ArrayList<Map<String,Object>>();
     final JsonWritable JsonOutput = new JsonWritable();
 
     public ExtentsExtractorMapper() {
