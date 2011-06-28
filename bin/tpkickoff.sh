@@ -34,6 +34,7 @@ fsrip dumpfs $ImagePath | $HADOOP_HOME/bin/hadoop jar $JarFile com.lightboxtechn
 
 # upload image to hdfs
 ImageID=`cat $ImagePath | $HADOOP_HOME/bin/hadoop jar $JarFile com.lightboxtechnologies.spectrum.Uploader $HdfsImage`
+echo "done uploading"
 if [ $# -eq 4 ]
   then
   ImageID=$4
@@ -42,6 +43,7 @@ echo "Image ID is ${ImageID}"
 
 # kick off ingest
 $HADOOP_HOME/bin/hadoop jar $JarFile org.sleuthkit.hadoop.pipeline.Ingest $ImageID $HdfsImage $JsonFile
+echo "done with ingest"
 
 # copy reports template
 $HADOOP_HOME/bin/hadoop fs -cp /texaspete/templates/reports /texaspete/data/$ImageID/
