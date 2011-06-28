@@ -18,6 +18,9 @@ public class FSEntryTikaTextExtractor {
 
         @Override
         public void map(ImmutableHexWritable key, FsEntry value, Context context) throws IOException {
+            // Don't extract text for known good files.
+            if (isKnownGood(value)) { return; }
+            
             InputStream proxy = value.getInputStream();
             System.out.println("Extracting Text from file:" + key.toString());
             if (proxy == null) { return; } //No stream for this file. Get out.
