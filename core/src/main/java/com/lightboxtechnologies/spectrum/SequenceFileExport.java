@@ -16,7 +16,11 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -105,29 +109,86 @@ public class SequenceFileExport {
     }
   }
 
+  protected static void die() {
+    System.err.println(
+      "Usage: SequenceFileExport <image_id> <outpath> <ext> [<ext>]...\n" +
+      "       SequenceFileExport -f <ext_file> <image_id> <outpath>"
+    );
+    System.exit(2);
+  }
+
   public static void main(String[] args) throws Exception {
     final Configuration conf = new Configuration();
 
     final String[] otherArgs =
       new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    if (otherArgs.length < 3) {
-      System.err.println(
-        "Usage: SequenceFileExport <image_id> <outpath> <ext> [<ext>]... "
-      );
-      System.exit(2);
+    String imageID;
+    String outpath;
+    final Set<String> exts = new HashSet<String>();
+
+    if ("-f".equals(otherArgs[0])) {
+      if (otherArgs.length != 4) {
+        die();
+      }
+
+      // load extensions from file
+      final Path extpath = new Path(otherArgs[1]);
+
+      InputStream in = null;
+      try {
+        in = extpath.getFileSystem(conf).open(extpath);
+
+        Reader r = null;
+        try {
+          r = new InputStreamReader(in);
+
+          BufferedReader br = null;
+          try {
+            br = new BufferedReader(r);
+
+            String line;
+            while ((line = br.readLine()) != null) {
+              exts.add(line.trim().toLowerCase());
+            }
+
+            br.close();
+          }
+          finally {
+            IOUtils.closeQuietly(br);
+          }
+
+          r.close();
+        }
+        finally {
+          IOUtils.closeQuietly(r);
+        }
+
+        in.close();
+      }
+      finally {
+        IOUtils.closeQuietly(in);
+      }
+
+      imageID = otherArgs[2];
+      outpath = otherArgs[3];
+    }
+    else {
+      if (otherArgs.length < 3) {
+        die();
+      }
+
+      // read extensions from trailing args
+      imageID = otherArgs[0];
+      outpath = otherArgs[1];
+
+      // lowercase all file extensions
+      for (int i = 2; i < otherArgs.length; ++i) {
+        exts.add(otherArgs[i].toLowerCase());
+      }
     }
 
-    final String imageID = otherArgs[0];
-    final String outpath = otherArgs[1];
-
-    // lowercase all file extensions
-    final String[] exts = new String[otherArgs.length-2];
-    for (int i = 2; i < otherArgs.length; ++i) {
-      exts[i-2] = otherArgs[i].toLowerCase();
-    }
-
-    conf.setStrings("extensions", exts);
+    conf.setStrings("extensions", exts.toArray(new String[exts.size()]));
 
     final Job job = new Job(conf, "SequenceFileExport");
     job.setJarByClass(SequenceFileExport.class);
