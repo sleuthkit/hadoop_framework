@@ -84,6 +84,17 @@ public class SequenceFileExport {
       Extensions.addAll(conf.getStringCollection("extensions"));
     }
 
+    void encodeHex(Text val, FsEntry entry, String field) {
+      Object o = entry.get(field);
+      if (o != null && o instanceof byte[]) {
+        byte[] b = (byte[])o;
+        val.set(new String(Hex.encodeHex(b)));
+      }
+      else {
+        val.set("");
+      }
+    }
+
     @Override
     public void map(ImmutableHexWritable key, FsEntry value, Context context)
                                      throws IOException, InterruptedException {
@@ -91,8 +102,8 @@ public class SequenceFileExport {
         FullPath.set(value.fullPath());
         Ext.set(value.extension());
 
-        Sha.set(new String(Hex.encodeHex((byte[])value.get("sha1"))));
-        Md5.set(new String(Hex.encodeHex((byte[])value.get("md5"))));
+        encodeHex(Sha, value, "sha1");
+        encodeHex(Md5, value, "md5");
 
         if (value.isContentHDFS()) {
           Vid.setSize(0);
