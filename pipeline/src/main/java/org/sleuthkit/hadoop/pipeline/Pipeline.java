@@ -18,7 +18,7 @@
 
 package org.sleuthkit.hadoop.pipeline;
 
-import org.sleuthkit.hadoop.ClusterDocuments;
+import org.sleuthkit.hadoop.ClusterDocumentsJob;
 import org.sleuthkit.hadoop.FSEntryTikaTextExtractor;
 import org.sleuthkit.hadoop.GrepReportGenerator;
 import org.sleuthkit.hadoop.GrepSearchJob;
@@ -54,7 +54,7 @@ public class Pipeline {
     boolean filesToSequence = (SequenceFsEntryText.runPipeline(seqDumpDirectory, imageID, friendlyName));
     if (filesToSequence) {
       TokenizeAndVectorizeDocuments.runPipeline(seqDumpDirectory, tokenDumpDirectory, vectorDumpDirectory);
-      ClusterDocuments.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, friendlyName);
+      ClusterDocumentsJob.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, friendlyName);
 
     }
     GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName);

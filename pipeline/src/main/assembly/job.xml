@@ -1,92 +1,39 @@
 <assembly
-  xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>job</id>
+   xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>libs</id>
   <formats>
-    <format>jar</format>
+    <format>zip</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
     <!-- <dependencySet>
+	 <unpack>false</unpack>
+	 <scope>runtime</scope>
+	 <outputDirectory>lib</outputDirectory>
+	 <excludes>
+           <exclude>org.sleuthkit:sleuthkit-clustering</exclude>
+           <exclude>org.sleuthkit:sleuthkit-textextraction</exclude>
+           <exclude>org.sleuthkit:sleuthkit-grep</exclude>
+           <exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
+           <exclude>org.sleuthkit:sleuthkit-core</exclude>
+	   <exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
+	   <exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
+	 </excludes>
+    </dependencySet> -->
+    <dependencySet>
       <unpack>false</unpack>
       <scope>runtime</scope>
-      <outputDirectory>lib</outputDirectory>
+      <outputDirectory>/</outputDirectory>
       <excludes>
         <exclude>org.sleuthkit:sleuthkit-clustering</exclude>
         <exclude>org.sleuthkit:sleuthkit-textextraction</exclude>
         <exclude>org.sleuthkit:sleuthkit-grep</exclude>
         <exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
         <exclude>org.sleuthkit:sleuthkit-core</exclude>
-				<exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
-				<exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
+	<exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
       </excludes>
-    </dependencySet> -->
-    <dependencySet>
-      <unpack>true</unpack>
-      <scope>runtime</scope>
-      <outputDirectory>/</outputDirectory>
-      <includes>
-        <include>org.sleuthkit:sleuthkit-clustering</include>
-        <include>org.sleuthkit:sleuthkit-textextraction</include>
-        <include>org.sleuthkit:sleuthkit-grep</include>
-        <include>org.sleuthkit:sleuthkit-pipeline</include>
-        <include>org.sleuthkit:sleuthkit-core</include>
-				<include>org.sleuthkit:sleuthkit-crossdrive-scoring</include>
-      </includes>
-      <excludes>
-				<exclude>org.apache.lucene:*</exclude>
-				<exclude>org.jruby:jruby-complete</exclude>
-      </excludes>
-      <unpackOptions>
-        <excludes>
-          <exclude>META-INF</exclude>
-          <exclude>META-INF/**</exclude>
-					<exclude>lib/**</exclude> <!-- I thought this was the one excluding tika, but after enabling it and building, no Tika was included. JLS -->
-				  <exclude>jruby/**</exclude>
-				  <exclude>org/objenesis/**</exclude>
-				  <exclude>org/objectweb/**</exclude>
-				  <!-- <exclude>org/python/**</exclude> -->
-				  <exclude>org/slf4j/**</exclude>
-				  <exclude>org/hamcrest/**</exclude>
-				  <exclude>org/jmock/**</exclude>
-				  <exclude>org/mortbay/**</exclude>
-				  <exclude>org/jruby/**</exclude>
-				  <exclude>org/junit/**</exclude>
-				  <exclude>org/jvyamlb/**</exclude>
-				  <exclude>rubyunit.rb</exclude>
-				  <exclude>soap/mapping/rubytypeFactory.rb</exclude>
-				  <exclude>wsdl/soap/wsdl2ruby.rb</exclude>
-				  <exclude>wsdl/xmlSchema/xsd2ruby.rb</exclude>
-				  <exclude>org/apache/avro/**</exclude>
-				  <exclude>org/apache/lucene/**</exclude>
-				  <!-- <exclude>org/apache/commons/**</exclude> -->
-				  <!-- <exclude>org/apache/hadoop/**</exclude> -->
-				  <exclude>org/apache/jasper/**</exclude>
-				  <!-- <exclude>org/apache/jute/**</exclude> -->
-				  <!-- <exclude>org/apache/log4j/**</exclude> -->
-				  <exclude>org/apache/taglibs/**</exclude>
-				  <!-- <exclude>org/apache/thrift/**</exclude> -->
-				  <exclude>org/apache/tools/**</exclude>
-				  <!-- <exclude>org/apache/zookeeper/**</exclude> -->
-				  <!-- <exclude>org/codehaus/**</exclude> -->
-				  <exclude>org/eclipse/**</exclude>
-				  <!-- <exclude>edu/**</exclude>
-				  <exclude>Lib/**</exclude> -->
-				  <!-- <exclude>**/*.py</exclude> -->
-				  <exclude>**/*.rb</exclude>
-				  <!-- <exclude>au/**</exclude> -->
-				  <!-- <exclude>com/**</exclude> -->
-				  <exclude>junit/**</exclude>
-				  <exclude>jregex/**</exclude>
-				  <exclude>jnr/**</exclude>
-				  <exclude>jni/**</exclude>
-				  <exclude>jline/**</exclude>
-				  <exclude>javatests/**</exclude>
-				  <exclude>javax/**</exclude>
-				  <exclude>net/**</exclude>
-        </excludes>
-      </unpackOptions>
     </dependencySet>
   </dependencySets>
 </assembly>
