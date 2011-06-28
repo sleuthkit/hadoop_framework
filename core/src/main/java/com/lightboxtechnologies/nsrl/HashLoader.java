@@ -124,9 +124,9 @@ public class HashLoader {
     final String[] otherArgs =
       new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    if (otherArgs.length != 5) {
+    if (otherArgs.length != 6) {
       System.err.println(
-        "Usage: HashLoader <mfgfile> <osfile> <prodfile> <hashfile> <outpath>"
+        "Usage: HashLoader <mfgfile> <osfile> <prodfile> <hashfile> <outpath> <num_reducers>"
       );
       System.exit(2);
     }
@@ -147,7 +147,7 @@ public class HashLoader {
     job.setJarByClass(HashLoader.class);
     job.setMapperClass(HashLoaderMapper.class);
     job.setReducerClass(KeyValueSortReducer.class);
-    job.setNumReduceTasks(1);
+    job.setNumReduceTasks(Integer.parseInt(otherArgs[5]));
 
     job.setOutputKeyClass(ImmutableBytesWritable.class);
     job.setOutputValueClass(KeyValue.class);
