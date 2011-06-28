@@ -21,16 +21,17 @@ import com.lightboxtechnologies.spectrum.*;
 
 public class Ingest {
   public static void main(String[] argv) throws Exception {
-    if (argv.length != 3) {
-      System.err.println("Usage: Ingest <image_hash_id> <image.dd> <image.json>");
+    if (argv.length != 4) {
+      System.err.println("Usage: Ingest <image_hash_id> <image.dd> <image.json> <friendlyName>");
       System.exit(2);
     }
     final String imgID = argv[0];
     final String image = argv[1];
     final String jsonImg = argv[2];
+    final String friendlyName = argv[3];
     final String extents = "/texaspete/data/" + imgID + "/extents";
     if (0 == JsonImport.run(jsonImg, imgID, null)
-      && 0 == PythonJob.run(imgID, extents, "mrpy/extents_list.py", "identity", "SequenceFileOutputFormat", null)
+      && 0 == ExtentsExtractor.run(imgID, friendlyName, extents)
       && 0 == ExtractData.run(extents + "/part-r-00000", image, null))
     {
       System.exit(0);
