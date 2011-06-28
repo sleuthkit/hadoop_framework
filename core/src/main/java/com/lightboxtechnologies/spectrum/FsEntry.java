@@ -154,7 +154,7 @@ public class FsEntry extends HashMap<String,Object> {
 
   boolean isContentHDFS() {
     StreamProxy proxy = Streams.get("Content");
-    return proxy != null && proxy instanceof BufferProxy;
+    return proxy != null && proxy instanceof FileProxy;
   }
 
   byte[] getContentBuffer() {
