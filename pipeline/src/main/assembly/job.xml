@@ -42,7 +42,7 @@
         <excludes>
           <exclude>META-INF</exclude>
           <exclude>META-INF/**</exclude>
-					<exclude>lib/**</exclude> <!-- I thought this was the one excluding tika, but after enabling it and building, no Tika was included. --JLS -->
+					<exclude>lib/**</exclude> <!-- I thought this was the one excluding tika, but after enabling it and building, no Tika was included. JLS -->
 				  <exclude>jruby/**</exclude>
 				  <exclude>org/objenesis/**</exclude>
 				  <exclude>org/objectweb/**</exclude>
