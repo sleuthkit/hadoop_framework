@@ -8,7 +8,7 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
-    <dependencySet>
+    <!-- <dependencySet>
       <unpack>false</unpack>
       <scope>runtime</scope>
       <outputDirectory>lib</outputDirectory>
@@ -18,10 +18,10 @@
         <exclude>org.sleuthkit:sleuthkit-grep</exclude>
         <exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
         <exclude>org.sleuthkit:sleuthkit-core</exclude>
-	<exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
-	<exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
+				<exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
+				<exclude>org.apache.mahout.hbase:hbase:jar:0.20.0</exclude>
       </excludes>
-    </dependencySet>
+    </dependencySet> -->
     <dependencySet>
       <unpack>true</unpack>
       <scope>runtime</scope>
@@ -32,58 +32,59 @@
         <include>org.sleuthkit:sleuthkit-grep</include>
         <include>org.sleuthkit:sleuthkit-pipeline</include>
         <include>org.sleuthkit:sleuthkit-core</include>
-	<include>org.sleuthkit:sleuthkit-crossdrive-scoring</include>
+				<include>org.sleuthkit:sleuthkit-crossdrive-scoring</include>
       </includes>
       <excludes>
-	<exclude>org.apache.lucene:*</exclude>
-	<exclude>org.jruby:jruby-complete</exclude>
+				<exclude>org.apache.lucene:*</exclude>
+				<exclude>org.jruby:jruby-complete</exclude>
       </excludes>
       <unpackOptions>
         <excludes>
           <exclude>META-INF</exclude>
           <exclude>META-INF/**</exclude>
-	  <exclude>jruby/**</exclude>
-	  <exclude>org/objenesis/**</exclude>
-	  <exclude>org/objectweb/**</exclude>
-	  <exclude>org/python/**</exclude>
-	  <exclude>org/slf4j/**</exclude>
-	  <exclude>org/hamcrest/**</exclude>
-	  <exclude>org/jmock/**</exclude>
-	  <exclude>org/mortbay/**</exclude>
-	  <exclude>org/jruby/**</exclude>
-	  <exclude>org/junit/**</exclude>
-	  <exclude>org/jvyamlb/**</exclude>
-	  <exclude>rubyunit.rb</exclude>
-	  <exclude>soap/mapping/rubytypeFactory.rb</exclude>
-	  <exclude>wsdl/soap/wsdl2ruby.rb</exclude>
-	  <exclude>wsdl/xmlSchema/xsd2ruby.rb</exclude>
-	  <exclude>org/apache/avro/**</exclude>
-	  <exclude>org/apache/lucene/**</exclude>
-	  <exclude>org/apache/commons/**</exclude>
-	  <exclude>org/apache/hadoop/**</exclude>
-	  <exclude>org/apache/jasper/**</exclude>
-	  <exclude>org/apache/jute/**</exclude>
-	  <exclude>org/apache/log4j/**</exclude>
-	  <exclude>org/apache/taglibs/**</exclude>
-	  <exclude>org/apache/thrift/**</exclude>
-	  <exclude>org/apache/tools/**</exclude>
-	  <exclude>org/apache/zookeeper/**</exclude>
-	  <exclude>org/codehaus/**</exclude>
-	  <exclude>org/eclipse/**</exclude>
-	  <exclude>edu/**</exclude>
-	  <exclude>Lib/**</exclude>
-	  <exclude>**/*.py</exclude>
-	  <exclude>**/*.rb</exclude>
-	  <exclude>au/**</exclude>
-	  <exclude>com/**</exclude>
-	  <exclude>junit/**</exclude>
-	  <exclude>jregex/**</exclude>
-	  <exclude>jnr/**</exclude>
-	  <exclude>jni/**</exclude>
-	  <exclude>jline/**</exclude>
-	  <exclude>javatests/**</exclude>
-	  <exclude>javax/**</exclude>
-	  <exclude>net/**</exclude>
+					<exclude>lib/**</exclude>
+				  <exclude>jruby/**</exclude>
+				  <exclude>org/objenesis/**</exclude>
+				  <exclude>org/objectweb/**</exclude>
+				  <!-- <exclude>org/python/**</exclude> -->
+				  <exclude>org/slf4j/**</exclude>
+				  <exclude>org/hamcrest/**</exclude>
+				  <exclude>org/jmock/**</exclude>
+				  <exclude>org/mortbay/**</exclude>
+				  <exclude>org/jruby/**</exclude>
+				  <exclude>org/junit/**</exclude>
+				  <exclude>org/jvyamlb/**</exclude>
+				  <exclude>rubyunit.rb</exclude>
+				  <exclude>soap/mapping/rubytypeFactory.rb</exclude>
+				  <exclude>wsdl/soap/wsdl2ruby.rb</exclude>
+				  <exclude>wsdl/xmlSchema/xsd2ruby.rb</exclude>
+				  <exclude>org/apache/avro/**</exclude>
+				  <exclude>org/apache/lucene/**</exclude>
+				  <!-- <exclude>org/apache/commons/**</exclude> -->
+				  <!-- <exclude>org/apache/hadoop/**</exclude> -->
+				  <exclude>org/apache/jasper/**</exclude>
+				  <exclude>org/apache/jute/**</exclude>
+				  <!-- <exclude>org/apache/log4j/**</exclude> -->
+				  <exclude>org/apache/taglibs/**</exclude>
+				  <exclude>org/apache/thrift/**</exclude>
+				  <exclude>org/apache/tools/**</exclude>
+				  <!-- <exclude>org/apache/zookeeper/**</exclude> -->
+				  <exclude>org/codehaus/**</exclude>
+				  <exclude>org/eclipse/**</exclude>
+				  <exclude>edu/**</exclude>
+				  <exclude>Lib/**</exclude>
+				  <exclude>**/*.py</exclude>
+				  <exclude>**/*.rb</exclude>
+				  <exclude>au/**</exclude>
+				  <!-- <exclude>com/**</exclude> -->
+				  <exclude>junit/**</exclude>
+				  <exclude>jregex/**</exclude>
+				  <exclude>jnr/**</exclude>
+				  <exclude>jni/**</exclude>
+				  <exclude>jline/**</exclude>
+				  <exclude>javatests/**</exclude>
+				  <exclude>javax/**</exclude>
+				  <exclude>net/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>
