@@ -25,7 +25,11 @@ import org.apache.mahout.vectorizer.tfidf.TFIDFConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/** Contains methods allowing one to
+ *  tokenize and then vectorize documents previously exported to
+ *  sequence files. This class uses mahout to generate TF and TF-IDF
+ *  vectors for the documents on a specific disk. 
+ */
 public class TokenizeAndVectorizeDocuments {
 
     private static final Logger log = LoggerFactory.getLogger(TokenizeAndVectorizeDocuments.class);
@@ -126,4 +130,3 @@ public class TokenizeAndVectorizeDocuments {
         return 0;
     }
 }
-

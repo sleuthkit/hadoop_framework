@@ -24,13 +24,11 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+/** Concatenates file data generated from the clustering step into an output report. */
 public class ClusterJSONBuilder {
-// Concatenates file data from 
-    
+
     public static void buildReport(Path countReport, Path clusterReport, Path outFile)
     throws IOException {
-        
-        
         FSDataOutputStream out = FileSystem.get(new Configuration()).create(outFile, true);
         out.write("var docClusterCounts = ".getBytes());
         writeFileToStream(countReport, out);
@@ -38,12 +36,11 @@ public class ClusterJSONBuilder {
         writeFileToStream(clusterReport, out);
         out.flush();
         out.close();
-
     }
-    
-    public static void writeFileToStream(Path path, FSDataOutputStream stream) throws IOException {
+
+    private static void writeFileToStream(Path path, FSDataOutputStream stream) throws IOException {
         FileSystem fs = FileSystem.get(new Configuration());
-        
+
         FSDataInputStream in = fs.open(path);
 
         byte[] bytes = new byte[1024];

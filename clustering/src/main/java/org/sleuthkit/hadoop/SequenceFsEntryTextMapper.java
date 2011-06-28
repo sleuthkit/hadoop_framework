@@ -26,8 +26,10 @@ import org.slf4j.LoggerFactory;
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
-// Write out files from the HBase table to a sequence file IFF
-// they have a regex match from the previous step.
+/** A mapper which will write out files from the HBase table
+ *  to a sequence file IFF
+ *  they have a regex match from the previous grep search.
+ */
 public class SequenceFsEntryTextMapper
 extends SKMapper<ImmutableHexWritable, FsEntry, Text, Text> {
 

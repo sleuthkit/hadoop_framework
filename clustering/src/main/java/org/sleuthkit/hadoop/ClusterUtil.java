@@ -1,5 +1,4 @@
 /*
-   Copyright 2011 Basis Technology Corp.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,6 +41,7 @@ import org.apache.mahout.common.Pair;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.map.OpenObjectIntHashMap;
 
+/** Clustering utilites for extracting information from cluster vectors. */
 public class ClusterUtil {
     private static final Pattern TAB_PATTERN = Pattern.compile("\t");
 

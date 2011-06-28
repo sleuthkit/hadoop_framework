@@ -28,17 +28,23 @@ import org.slf4j.LoggerFactory;
 
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 
+/** Contains methods which will output file data to sequence files for use
+ *  with mahout. Only outputs file data for files which also have grep search
+ *  matches; the idea is to cluster results which might be interesting in
+ *  order to give us a better idea of which files most likely actually *are*
+ *  interesting.
+ */
 public class SequenceFsEntryText {
     public static final Logger LOG = LoggerFactory.getLogger(SequenceFsEntryText.class);
-    
+
     public static enum WrittenDocumentCount { DOCUMENTS };
 
     public static final String GREP_MATCHES_TO_SEARCH = "org.sleuthkit.grepsearchfield";
-    
+
     public static void main(String[] argv) throws Exception {
         runPipeline(argv[0], argv[1], argv[2]);
     }
-    
+
     /** Runs a mapreduce task which will iterate over the HBase entries table
      * using FSEntry. It will output files on the hdd with the identifier
      * id that have grep matches to one or more sequence files in outDir.
