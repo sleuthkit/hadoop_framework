@@ -61,7 +61,7 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
 
   private byte[] ImageID;
   private TableInputFormat TblInput;
-  private final Log LOG = LogFactory.getLog(FsEntryHBaseInputFormat.class);
+  private static final Log LOG = LogFactory.getLog(FsEntryHBaseInputFormat.class);
 
   public FsEntryHBaseInputFormat() {
     TblInput = new TableInputFormat();
@@ -80,6 +80,7 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
     job.getConfiguration().set(TableInputFormat.INPUT_TABLE, HBaseTables.ENTRIES_TBL);
     job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
     job.getConfiguration().set(SKMapper.ID_KEY, deviceID);
+    LOG.info("hbase.zookeeper.quorum:" + job.getConfiguration().get("hbase.zookeeper.quorum"));
   }
 
   static String convertScanToString(Scan scan) throws IOException {
@@ -108,8 +109,10 @@ public class FsEntryHBaseInputFormat extends InputFormat implements Configurable
     else {
       LOG.error("Table name was null");
     }
-    TblInput.setConf(HBaseConfiguration.create(c));
-    String id = c.get(SKMapper.ID_KEY);
+    Configuration conf = HBaseConfiguration.create(c);
+    LOG.info("hbase.zookeeper.quorum:" + conf.get("hbase.zookeeper.quorum"));
+    TblInput.setConf(conf);
+    String id = conf.get(SKMapper.ID_KEY);
     if (id != null) {
       LOG.info("scan is for image id " + id);
       try {
