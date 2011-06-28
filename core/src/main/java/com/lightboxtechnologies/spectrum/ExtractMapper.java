@@ -47,6 +47,7 @@ import org.apache.commons.logging.LogFactory;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Closeable;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -443,9 +444,20 @@ public class ExtractMapper
     }
   }
 
+  void closeTable(HTable tbl) {
+    try {
+      tbl.close();
+    }
+    catch (IOException e) {
+      ;
+    }
+  }
+
   @Override
   protected void cleanup(Mapper.Context context) {
     IOUtils.closeQuietly(ImgFile);
+    closeTable(HashTbl);
+    closeTable(EntryTbl);
   }
 
   public static String hashFolder(String hash) {
