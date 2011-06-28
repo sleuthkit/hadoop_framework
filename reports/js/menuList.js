@@ -22,6 +22,6 @@ var menuList = [
   {a: "Entities", link: "entities.html"},
   {a: "Known Bad", link: "knownbad.html"},
   {a: "Document Clusters", link: "documents.html"},
-  {a: "Graphics", link: "graphics.html"},
+  {a: "Graphics", link: "graphics.html?p=faces"},
   {a: "Similar Devices", link: "linkanalysis.html"}
 ];
