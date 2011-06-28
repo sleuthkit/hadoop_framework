@@ -55,6 +55,7 @@ public class SequenceFileExport {
     private final Text Ext = new Text();
     private final Text Sha = new Text();
     private final Text Md5 = new Text();
+// FIXME: IBW instead?
     private final BytesWritable Vid = new BytesWritable();
     private final Text HdfsPath = new Text();
 
@@ -138,13 +139,6 @@ public class SequenceFileExport {
 
     job.setInputFormatClass(FsEntryHBaseInputFormat.class);
     FsEntryHBaseInputFormat.setupJob(job, imageID);
-
-/*
-    final Scan scan = new Scan();
-    scan.addFamily(HBaseTables.ENTRIES_COLFAM_B);
-    job.getConfiguration().set(TableInputFormat.INPUT_TABLE, otherArgs[0]);
-    job.getConfiguration().set(TableInputFormat.SCAN, convertScanToString(scan));
-*/
 
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
     SequenceFileOutputFormat.setOutputCompressionType(
