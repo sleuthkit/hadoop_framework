@@ -41,13 +41,16 @@ import org.apache.hadoop.hbase.util.*;
 import org.apache.hadoop.hbase.client.Scan;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 
-import org.apache.commons.codec.binary.Hex;
-
 public class SequenceFileExport {
+
+  private static final Log LOG = LogFactory.getLog(SequenceFileExport.class);
 
   protected static class SequenceFileExportMapper extends
         Mapper<ImmutableHexWritable,FsEntry,ImmutableHexWritable,MapWritable> {
@@ -91,6 +94,7 @@ public class SequenceFileExport {
         val.set(new String(Hex.encodeHex(b)));
       }
       else {
+        LOG.warn(entry.fullPath() + " didn't have a hash for " + field);
         val.set("");
       }
     }
@@ -111,10 +115,13 @@ public class SequenceFileExport {
         }
         else {
           final byte[] buf = value.getContentBuffer();
+          if (buf == null) {
+            LOG.warn(value.fullPath() + " didn't have a content buffer, skipping.");
+            return;
+          }
           Vid.set(buf, 0, buf.length);
           HdfsPath.set("");
         }
-
         context.write(key, Fields);
       }
     }
