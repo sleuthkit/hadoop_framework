@@ -42,7 +42,7 @@
         <excludes>
           <exclude>META-INF</exclude>
           <exclude>META-INF/**</exclude>
-					<exclude>lib/**</exclude>
+					<exclude>lib/**</exclude> <!-- I thought this was the one excluding tika, but after enabling it and building, no Tika was included. --JLS -->
 				  <exclude>jruby/**</exclude>
 				  <exclude>org/objenesis/**</exclude>
 				  <exclude>org/objectweb/**</exclude>
@@ -63,19 +63,19 @@
 				  <!-- <exclude>org/apache/commons/**</exclude> -->
 				  <!-- <exclude>org/apache/hadoop/**</exclude> -->
 				  <exclude>org/apache/jasper/**</exclude>
-				  <exclude>org/apache/jute/**</exclude>
+				  <!-- <exclude>org/apache/jute/**</exclude> -->
 				  <!-- <exclude>org/apache/log4j/**</exclude> -->
 				  <exclude>org/apache/taglibs/**</exclude>
-				  <exclude>org/apache/thrift/**</exclude>
+				  <!-- <exclude>org/apache/thrift/**</exclude> -->
 				  <exclude>org/apache/tools/**</exclude>
 				  <!-- <exclude>org/apache/zookeeper/**</exclude> -->
-				  <exclude>org/codehaus/**</exclude>
+				  <!-- <exclude>org/codehaus/**</exclude> -->
 				  <exclude>org/eclipse/**</exclude>
-				  <exclude>edu/**</exclude>
-				  <exclude>Lib/**</exclude>
-				  <exclude>**/*.py</exclude>
+				  <!-- <exclude>edu/**</exclude>
+				  <exclude>Lib/**</exclude> -->
+				  <!-- <exclude>**/*.py</exclude> -->
 				  <exclude>**/*.rb</exclude>
-				  <exclude>au/**</exclude>
+				  <!-- <exclude>au/**</exclude> -->
 				  <!-- <exclude>com/**</exclude> -->
 				  <exclude>junit/**</exclude>
 				  <exclude>jregex/**</exclude>
