@@ -32,8 +32,6 @@ limitations under the License.
 .ui-widget-menu-plain a { text-decoration: none; color: #666666; }
 .ui-widget-menu-active:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
 .ui-widget-menu-plain:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
-.ui-widget-menu-active a:hover { color: #ffffff; }
-.ui-widget-menu-plain a:hover { color: #ffffff; }
 .ui-state-button-selected { background: #3baae3 url(jqueryui/images/ui-bg_glass_50_3baae3_1x400.png) 50% 50% repeat-x !important; color: #ffffff !important; }
 .tblRight { text-align: right; }
 .cluster { max-width: 330px; margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
@@ -42,6 +40,7 @@ limitations under the License.
 .clusterImgs { float: left; cursor: pointer; background: #f2f5f7; }
 .singleImage { float: left; height: 100px; padding: 3px 3px; }
 .keyframe { float: left; margin: 5px; background: #eeeeee; }
+.keyframe_expand a { text-decoration: none; }
 
 body {
   margin: 0;
