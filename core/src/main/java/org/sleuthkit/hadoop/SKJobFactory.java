@@ -18,18 +18,49 @@ package org.sleuthkit.hadoop;
 
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.filecache.DistributedCache;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class SKJobFactory {
+
+  private static final Log LOG = LogFactory.getLog(SKJobFactory.class);
     
-    public static Job createJob(String imageID, String friendlyName, String step) throws IOException {
-        Job j = new Job();
-        
-        j.setJobName("TP$" + imageID + "$" + friendlyName + "$" + step);
-        j.getConfiguration().set(SKMapper.ID_KEY, imageID);
-        j.getConfiguration().set(SKMapper.USER_ID_KEY, friendlyName);
-
-        return j;
+  public static void addDependencies(Configuration conf) throws IOException {
+    FileSystem fs = FileSystem.get(conf);
+    FileStatus[] jars = fs.globStatus(new Path("/texaspete/lib/*.jar"));
+    if (jars.length > 0) {
+      for (FileStatus jar: jars) {
+        LOG.info("Adding jar to DC/CP: " + jar.getPath());
+        DistributedCache.addFileToClassPath(jar.getPath(), conf, fs);
+      }
     }
-
+    else {
+      LOG.warn("Did not add any jars to distributed cache. This job will probably throw a ClassNotFound exception.");
+    }
+  }
+  
+  public static Job createJob(String imageID, String friendlyName, String step) throws IOException {
+    Job j = new Job();
+    
+    StringBuilder sb = new StringBuilder("TP$");
+    sb.append(imageID);
+    sb.append("$");
+    sb.append(friendlyName);
+    sb.append("$");
+    sb.append(step);
+    String jobname = sb.toString();
+    j.setJobName(jobname);
+    LOG.info("Configuring job " + jobname);
+    j.getConfiguration().set(SKMapper.ID_KEY, imageID);
+    j.getConfiguration().set(SKMapper.USER_ID_KEY, friendlyName);
+    addDependencies(j.getConfiguration());
+    return j;
+  }
 }
