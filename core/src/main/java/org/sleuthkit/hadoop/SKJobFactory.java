@@ -45,9 +45,9 @@ public class SKJobFactory {
       LOG.warn("Did not add any jars to distributed cache. This job will probably throw a ClassNotFound exception.");
     }
   }
-  
-  public static Job createJob(String imageID, String friendlyName, String step) throws IOException {
-    Job j = new Job();
+
+  public static Job createJobFromConf(String imageID, String friendlyName, String step, Configuration conf) throws IOException {
+    Job j = conf == null ? new Job(): new Job(conf);
     
     StringBuilder sb = new StringBuilder("TP$");
     sb.append(imageID);
@@ -62,5 +62,9 @@ public class SKJobFactory {
     j.getConfiguration().set(SKMapper.USER_ID_KEY, friendlyName);
     addDependencies(j.getConfiguration());
     return j;
+  }
+  
+  public static Job createJob(String imageID, String friendlyName, String step) throws IOException {
+    return createJobFromConf(imageID, friendlyName, step, null);
   }
 }

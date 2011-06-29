@@ -66,7 +66,7 @@ public class JsonImport {
     }
     conf.set(HBaseTables.ENTRIES_TBL_VAR, HBaseTables.ENTRIES_TBL);
 
-    final Job job = SKJobFactory.createJob(imageHash, friendlyName, "JsonImport");
+    final Job job = SKJobFactory.createJobFromConf(imageHash, friendlyName, "JsonImport", conf);
     job.setJarByClass(JsonImport.class);
     job.setMapperClass(FsEntryMapLoader.class);
     job.setNumReduceTasks(0);

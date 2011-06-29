@@ -40,17 +40,19 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.sleuthkit.hadoop.SKJobFactory;
+
 public class ExtractData {
   protected ExtractData() {}
 
   public static final Log LOG = LogFactory.getLog(ExtractData.class.getName());
 
-  public static int run(String extentsPath, String image, Configuration conf)
+  public static int run(String imageID, String friendlyName, String extentsPath, String image, Configuration conf)
              throws ClassNotFoundException, IOException, InterruptedException {
     if (conf == null) {
       conf = HBaseConfiguration.create();
     }
-    final Job job = new Job(conf, "ExtractData");
+    final Job job = SKJobFactory.createJobFromConf(imageID, friendlyName, "ExtractData", conf);
     job.setJarByClass(ExtractData.class);
     job.setMapperClass(ExtractMapper.class);
     job.setReducerClass(KeyValueSortReducer.class);
@@ -101,11 +103,11 @@ public class ExtractData {
     final Configuration conf = HBaseConfiguration.create();
     final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    if (otherArgs.length != 2) {
-      System.err.println("Usage: ExtractData <extents_file> <evidence file>");
+    if (otherArgs.length != 4) {
+      System.err.println("Usage: ExtractData <imageID> <friendly_name> <extents_file> <evidence file>");
       System.exit(2);
     }
 
-    System.exit(run(args[0], args[1], conf));
+    System.exit(run(args[0], args[1], args[2], args[3], conf));
   }
 }
