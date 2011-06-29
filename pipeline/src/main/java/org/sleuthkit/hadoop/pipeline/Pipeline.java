@@ -58,7 +58,7 @@ public class Pipeline {
       ClusterDocumentsJob.runPipeline(vectorDumpDirectory + "/tfidf-vectors/", clusterDumpDirectory, dictionaryDumpDirectory, .65, .65, imageID, friendlyName);
 
     }
-    GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName);
+    GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName, prefix);
     
     CrossImageScorerJob.runPipeline(prefix, imageID);
 

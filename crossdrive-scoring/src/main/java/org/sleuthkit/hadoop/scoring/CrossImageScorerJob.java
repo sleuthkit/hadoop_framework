@@ -104,19 +104,24 @@ public class CrossImageScorerJob {
 
             j.setOutputKeyClass(NullWritable.class);
             j.setOutputValueClass(Text.class);
-
+            // Because we're building a json object, we need to have exactly one reducer.
+            j.setNumReduceTasks(1);
 
             SequenceFileOutputFormat.setOutputPath(j, scoreDir);
             SequenceFileInputFormat.setInputPaths(j, crossImageDir);
 
             j.waitForCompletion(true);
+
+            CrossImageJSONOutputBuilder.buildReport(new Path(scoreDir, "part-r-00000"), new Path(imgDir + "/reports/data/crossimg.js"));
         } catch (IOException ex) {
-            LOG.error("Failure while performing HDFS file IO.", ex);            
+            LOG.error("Failure while performing HDFS file IO.", ex);
         } catch (ClassNotFoundException ex) {
-            LOG.error("Error running job; class not found.", ex);            
+            LOG.error("Error running job; class not found.", ex);
         } catch (InterruptedException ex) {
             LOG.error("Hadoop job interrupted.", ex);
         }
+        
+        
     }
     
     public static void main(String[] argv) {

@@ -38,12 +38,12 @@ public class GrepReportGenerator {
     
     public static void main(String[] argv) {
         if (argv.length != 3) {
-            System.out.println("Usage: GrepReportGenerator <regex_file> <device_hash> <friendly_name>");
+            System.out.println("Usage: GrepReportGenerator <regex_file> <device_hash> <friendly_name> <img_dir>");
         }
-        runPipeline(argv[0], argv[1], argv[2]);
+        runPipeline(argv[0], argv[1], argv[2], argv[3]);
     }
     
-    public static void runPipeline(String regexFile, String deviceID, String friendlyName) {
+    public static void runPipeline(String regexFile, String deviceID, String friendlyName, String imgDir) {
         // STEP 1: Generate 'a' value file which maps regexes to numbers.
         
         try {
@@ -83,7 +83,7 @@ public class GrepReportGenerator {
             job.setInputFormatClass(FsEntryHBaseInputFormat.class);
             FsEntryHBaseInputFormat.setupJob(job, deviceID);
             job.setOutputFormatClass(TextOutputFormat.class);
-            TextOutputFormat.setOutputPath(job, new Path("/texaspete/data/" + deviceID + "/grep/count"));
+            TextOutputFormat.setOutputPath(job, new Path(imgDir + "/grep/count"));
 
             job.waitForCompletion(true);
             ///////////////////////////////////////////////////////////////////
@@ -109,16 +109,16 @@ public class GrepReportGenerator {
             job.setOutputFormatClass(TextOutputFormat.class);
             
             
-            TextOutputFormat.setOutputPath(job, new Path("/texaspete/data/" + deviceID + "/grep/matchinfo"));
+            TextOutputFormat.setOutputPath(job, new Path(imgDir + "/grep/matchinfo"));
 
             job.waitForCompletion(true);
             
             ///////////////////////////////////////////////////////////////////
             // Finally, write the output.
             
-            GrepJSONBuilder.buildReport(new Path("/texaspete/data/" + deviceID + "/grep/count/part-r-00000"),
-                    new Path("/texaspete/data/" + deviceID + "/grep/matchinfo/part-r-00000"),
-                    new Path("/texaspete/data/" + deviceID + "/reports/data/searchhits.js"));
+            GrepJSONBuilder.buildReport(new Path(imgDir + "/grep/count/part-r-00000"),
+                    new Path(imgDir + "/grep/matchinfo/part-r-00000"),
+                    new Path(imgDir + "/reports/data/searchhits.js"));
             
         } catch (Exception ex) {
             LOG.error("Exception while attempting to output grep.", ex);
