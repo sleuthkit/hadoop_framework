@@ -30,6 +30,10 @@ import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
 
+/** Extracts text from files and emits the result back into
+ * the file table. If text cannot be extracted, this method will
+ * fail quietly. It does not extract text from known good files.
+ */
 public class FSEntryTikaTextExtractor {
 
     static class TikaTextExtractorMapper extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
@@ -72,7 +76,8 @@ public class FSEntryTikaTextExtractor {
         job.setMapperClass(TikaTextExtractorMapper.class);
 
         // We don't need a combiner or a reducer for this job. We aren't
-        // writing anything out either.
+        // writing anything out either; the data is going back into HBase
+        // through FsEntryHBaseOutputFormat.
         job.setNumReduceTasks(0);
         job.setOutputKeyClass(ImmutableHexWritable.class);
         job.setOutputValueClass(FsEntry.class);
@@ -90,10 +95,6 @@ public class FSEntryTikaTextExtractor {
     }
     
     public static int runPipeline(String tablename, String deviceID, String friendlyName) throws Exception{
-        // We probably won't have that outdir there down the line, but for
-        // testing I've left it in. Since there are not yet set methods, we
-        // are simply dumping the outputted text to a sequence file. Once we
-        // get one, we'll have to move that part to separate step.
         runTask(tablename, deviceID, friendlyName);
         return 0;
 
