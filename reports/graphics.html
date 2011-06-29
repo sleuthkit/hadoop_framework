@@ -191,7 +191,7 @@ limitations under the License.
           img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
         }
         clusterimgDiv.tipsy({
-                  gravity: "s", 
+                  gravity: $.fn.tipsy.autoAll, 
                   fade: true,
                   html: true
         });
@@ -212,8 +212,14 @@ limitations under the License.
         var keyframeDiv = $('#templ_keyframe > div').clone();
         var len2 = Math.floor(video.keyframes.length / 2);
         //console.info(len2)
+        keyframeDiv.attr('title', video.keyframes[len2].count + ' keyframes || ' + round(video.fps) + " fps<br>MD5: " + video.hash);
+        keyframeDiv.tipsy({
+          gravity: $.fn.tipsy.autoAll, 
+          fade: true,
+          html: true
+        });
         keyframeDiv.find('img.keyframe').attr('src', 'data/t/'+video.keyframes[len2].image.hash+'.jpg');
-        keyframeDiv.find('.keyframe_expand a').html(round(video.duration)+'s ['+video.keyframes[len2].count+']');
+        keyframeDiv.find('.keyframe_expand a').html('[filename]<br>' + round(video.duration)+' s');
         keyframeDiv.click(function () {
           showvideo(video);
         })

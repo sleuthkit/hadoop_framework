@@ -195,4 +195,11 @@
         return $(this).offset().left > ($(document).scrollLeft() + $(window).width() / 2) ? 'e' : 'w';
     };
     
+    $.fn.tipsy.autoAll = function() {
+        var autoGrav = '';
+        autoGrav += $(this).offset().top > ($(document).scrollTop() + $(window).height() / 2) ? 's' : 'n';
+        autoGrav += $(this).offset().left > ($(document).scrollLeft() + $(window).width() / 2) ? 'e' : 'w';
+        return autoGrav;
+    };
+    
 })(jQuery);
