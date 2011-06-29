@@ -28,6 +28,10 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/** Factory method for creating jobs conforming to a naming convention
+ * for use with the web interface.
+ * 
+ */
 public class SKJobFactory {
 
   private static final Log LOG = LogFactory.getLog(SKJobFactory.class);

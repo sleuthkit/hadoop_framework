@@ -16,6 +16,8 @@
 
 package org.sleuthkit.hadoop;
 
+/** Contains constants for Job names used when we generate and spin off
+ * Hadoop jobs. */
 public class JobNames {
 
     // Text extraction. This is the first thing that happens in the pipeline.

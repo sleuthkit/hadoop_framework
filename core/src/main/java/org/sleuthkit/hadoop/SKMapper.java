@@ -22,6 +22,7 @@ import org.apache.commons.codec.DecoderException;
 
 import com.lightboxtechnologies.spectrum.FsEntry;
 
+/** Base class for our Hadoop mappers. */
 public abstract class SKMapper<keyin, valin, keyout, valout>
 extends Mapper<keyin, valin, keyout, valout> {
 
