@@ -79,11 +79,12 @@ public class ExtractData {
     
     HFileOutputFormat.setOutputPath(job, hfileDir);
 
-    final URI extents = new Path(extentsPath).toUri();
+    final Path extp = new Path(extentsPath);
+    final URI extents = extp.toUri();
     LOG.info("extents file is " + extents);
 
     DistributedCache.addCacheFile(extents, conf);
-    conf.set("com.lbt.extentspath", extents.toString());
+    conf.set("com.lbt.extentsname", extp.getName());
     // job.getConfiguration().setBoolean("mapred.task.profile", true);
     // job.getConfiguration().setBoolean("mapreduce.task.profile", true);
     boolean result = job.waitForCompletion(true);

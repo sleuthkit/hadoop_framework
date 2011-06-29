@@ -218,9 +218,20 @@ public class ExtractMapper
 
     final Path[] files = DistributedCache.getLocalCacheFiles(conf);
     if (files != null && files.length > 0) {
+      String extentsname = conf.get("com.lbt.extentsname");
       final LocalFileSystem localfs = FileSystem.getLocal(conf);
-      LOG.info("Opening extents file " + files[0]);
-      extents = new SequenceFile.Reader(localfs, files[0], conf);
+      boolean found = false;
+      for (Path p: files) {
+        if (p.getName().equals(extentsname)) {
+          found = true;
+          LOG.info("Opening extents file " + p);
+          extents = new SequenceFile.Reader(localfs, p, conf);
+          break;
+        }
+      }
+      if (!found) {
+        LOG.warn("Could not find extents file in local cache named " + extentsname);
+      }
     }
     else if (files == null) {
       throw new RuntimeException("No file paths retrieved from distributed cache");
