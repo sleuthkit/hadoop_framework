@@ -28,6 +28,9 @@ import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
 import com.lightboxtechnologies.spectrum.HBaseTables;
 import com.lightboxtechnologies.spectrum.HDFSArchiver;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class Pipeline {
   // A file containing lines of text, each of which represents a regex.
   public static final String GREP_KEYWORDS = "/texaspete/regexes";
