@@ -218,7 +218,7 @@ Utility.prototype.buildMenu = function(list, targetDivId) {
   	else {
   		line += ' ui-widget-menu-plain ';
   	}
-    line += ' ui-corner-bottom" link="' + list[i].link + '"><a href=#>' + list[i].a + '</a></div>';
+    line += ' ui-corner-bottom" link="' + list[i].link + '"><a href="#">' + list[i].a + '</a></div>';
     items.push(line);
     ++i;
   }
