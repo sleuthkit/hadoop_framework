@@ -33,6 +33,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 
 import org.sleuthkit.hadoop.SKMapper;
+import org.sleuthkit.hadoop.SKJobFactory;
 
 public class JsonImport {
 
@@ -59,14 +60,13 @@ public class JsonImport {
     }
   }
 
-  public static int run(String jsonPath, String imageHash, Configuration conf) throws Exception {
+  public static int run(String jsonPath, String imageHash, String friendlyName, Configuration conf) throws Exception {
     if (conf == null) {
       conf = HBaseConfiguration.create();
     }
     conf.set(HBaseTables.ENTRIES_TBL_VAR, HBaseTables.ENTRIES_TBL);
-    conf.set(SKMapper.ID_KEY, imageHash);
 
-    final Job job = new Job(conf, "JsonImport");
+    final Job job = SKJobFactory.createJob(imageHash, friendlyName, "JsonImport");
     job.setJarByClass(JsonImport.class);
     job.setMapperClass(FsEntryMapLoader.class);
     job.setNumReduceTasks(0);
@@ -77,13 +77,13 @@ public class JsonImport {
   }
 
   public static void main(String[] args) throws Exception {
-    final Configuration conf = new Configuration();
+    final Configuration conf = HBaseConfiguration.create();
     final String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    if (otherArgs.length != 2) {
-      System.err.println("Usage: JsonImport <in> <image_hash>");
+    if (otherArgs.length != 3) {
+      System.err.println("Usage: JsonImport <in> <image_hash> <friendly_name>");
       System.exit(2);
     }
-    System.exit(run(args[0], args[1], conf));
+    System.exit(run(args[0], args[1], args[2], conf));
   }
 }
