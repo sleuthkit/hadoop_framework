@@ -53,10 +53,11 @@ public class SequenceFileExport {
   private static final Log LOG = LogFactory.getLog(SequenceFileExport.class);
 
   protected static class SequenceFileExportMapper extends
-        Mapper<ImmutableHexWritable,FsEntry,ImmutableHexWritable,MapWritable> {
+        Mapper<ImmutableHexWritable,FsEntry,BytesWritable,MapWritable> {
 
     private final Set<String> Extensions = new HashSet<String>();
 
+    private final BytesWritable OutKey = new BytesWritable();
     private final MapWritable Fields = new MapWritable();
     private final Text FullPath = new Text();
     private final Text Ext = new Text();
@@ -122,7 +123,9 @@ public class SequenceFileExport {
           Vid.set(buf, 0, buf.length);
           HdfsPath.set("");
         }
-        context.write(key, Fields);
+        byte[] keybytes = key.get();
+        OutKey.set(keybytes, 0, keybytes.length);
+        context.write(OutKey, Fields);
       }
     }
   }
@@ -213,7 +216,7 @@ public class SequenceFileExport {
     job.setMapperClass(SequenceFileExportMapper.class);
     job.setNumReduceTasks(0);
 
-    job.setOutputKeyClass(ImmutableHexWritable.class);
+    job.setOutputKeyClass(BytesWritable.class);
     job.setOutputValueClass(MapWritable.class);
 
     job.setInputFormatClass(FsEntryHBaseInputFormat.class);
