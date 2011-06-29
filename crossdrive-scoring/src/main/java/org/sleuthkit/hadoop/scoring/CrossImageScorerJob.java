@@ -48,10 +48,10 @@ public class CrossImageScorerJob {
     
     public static enum FileCount { FILES };
     
-    public static void runPipeline(String imgID){
+    public static void runPipeline(String imgDir, String imgID){
         try {
-            Path crossImageDir = new Path("/texaspete/data/" + imgID + "/crossimg/data/");
-            Path scoreDir = new Path("/texaspete/data/" + imgID + "/crossimg/scores/");
+            Path crossImageDir = new Path(imgDir + "/crossimg/data/");
+            Path scoreDir = new Path(imgDir + "/crossimg/scores/");
 
             Job j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", JobNames.CROSS_IMG_SIM_SCORING);
             j.setInputFormatClass(TableInputFormat.class);
@@ -121,9 +121,9 @@ public class CrossImageScorerJob {
     
     public static void main(String[] argv) {
         if (argv.length != 1) {
-            System.out.println("Usage: CrossImageScorerJob <image_hash>");
+            System.out.println("Usage: CrossImageScorerJob <img_dir> <image_hash>");
         }
-        runPipeline(argv[0]);
+        runPipeline(argv[0], argv[1]);
     }
     
     static String convertScanToString(Scan scan) throws IOException {

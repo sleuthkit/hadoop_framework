@@ -24,12 +24,10 @@ import org.sleuthkit.hadoop.GrepReportGenerator;
 import org.sleuthkit.hadoop.GrepSearchJob;
 import org.sleuthkit.hadoop.SequenceFsEntryText;
 import org.sleuthkit.hadoop.TokenizeAndVectorizeDocuments;
+import org.sleuthkit.hadoop.scoring.CrossImageScorerJob;
 
 import com.lightboxtechnologies.spectrum.HBaseTables;
 import com.lightboxtechnologies.spectrum.HDFSArchiver;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 public class Pipeline {
   // A file containing lines of text, each of which represents a regex.
@@ -61,6 +59,8 @@ public class Pipeline {
 
     }
     GrepReportGenerator.runPipeline(GREP_KEYWORDS, imageID, friendlyName);
+    
+    CrossImageScorerJob.runPipeline(prefix, imageID);
 
     HDFSArchiver.runPipeline(prefix + "/reports", prefix + "/reports.zip");
   }
