@@ -24,6 +24,9 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Writable;
 import org.sleuthkit.hadoop.SKMapper;
 
+/** Calculates the raw score per matched file. Emits the drive id and score
+ * for the file (to be added during the reduce step).
+ */
 public class IIFScoreMapper extends SKMapper<BytesWritable, BytesArrayWritable, Writable, DoubleWritable> {
     
     public enum TestWritableCount {WRITEOUTS};

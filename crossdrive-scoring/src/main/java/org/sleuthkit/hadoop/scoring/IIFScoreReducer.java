@@ -27,6 +27,11 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+/** Sums the scores provided by the IIFScoreMapper and outputs JSON
+ * data for the results. Also adds a 'confidence' value, which is an
+ * extra step intended to normalize the data accounting for the size
+ * of this hard drive.
+ */
 public class IIFScoreReducer extends Reducer<Writable, DoubleWritable, NullWritable, Text>{
     DoubleWritable scoreWritable = new DoubleWritable();
     

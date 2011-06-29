@@ -24,9 +24,8 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-
+/** Generates an output report from the cross image scoring json output files. */
 public class CrossImageJSONOutputBuilder {
-//Concatenates file data from 
  
  public static void buildReport(Path report, Path outFile)
  throws IOException {

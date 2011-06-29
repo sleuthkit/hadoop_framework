@@ -29,6 +29,9 @@ import org.sleuthkit.hadoop.SKMapper;
 
 import com.lightboxtechnologies.spectrum.KeyUtils;
 
+/** Iterates over the hashes table, finds all file+imageID hashes, and emits a
+ * hash to image ID mapping.
+ */
 public class CrossImageScoreMapper extends TableMapper<BytesWritable, BytesWritable>{
     
     byte[] imgID = new byte[16];

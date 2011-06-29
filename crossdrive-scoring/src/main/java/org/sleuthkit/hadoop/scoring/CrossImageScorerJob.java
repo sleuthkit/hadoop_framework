@@ -43,17 +43,23 @@ import org.sleuthkit.hadoop.SKMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Performs a cross image scoring task to quantify similarity between one
+ * drive and others in the system. Based on the number of files which they
+ * have in commmon. THIS IMPLEMENTATION IS INCOMPLETE. 
+ * TODO: We need a way to get the number of images in the system for the 
+ * normalization to work properly.
+ */
 public class CrossImageScorerJob {
     public static final Logger LOG = LoggerFactory.getLogger(CrossImageScorerJob.class);
     
     public static enum FileCount { FILES };
     
-    public static void runPipeline(String imgDir, String imgID){
+    public static void runPipeline(String imgDir, String imgID, String friendlyName){
         try {
             Path crossImageDir = new Path(imgDir + "/crossimg/data/");
             Path scoreDir = new Path(imgDir + "/crossimg/scores/");
 
-            Job j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", JobNames.CROSS_IMG_SIM_SCORING);
+            Job j = SKJobFactory.createJob(imgID, friendlyName, JobNames.CROSS_IMG_SIM_SCORING);
             j.setInputFormatClass(TableInputFormat.class);
             j.setOutputFormatClass(SequenceFileOutputFormat.class);
             j.setMapperClass(CrossImageScoreMapper.class);
@@ -87,7 +93,7 @@ public class CrossImageScorerJob {
             // get the files in this image from the hadoop counter.
             long filesInImage = j.getCounters().findCounter(FileCount.FILES).getValue();
 
-            j = SKJobFactory.createJob(imgID, "FRIENDLYNAME", JobNames.CROSS_IMG_SIM_SCORING_CALC);
+            j = SKJobFactory.createJob(imgID, friendlyName, JobNames.CROSS_IMG_SIM_SCORING_CALC);
             j.getConfiguration().setLong(IIFScoreReducer.FILES_IN_IMAGE, filesInImage);
             // TODO: Get the number of images from the images table. This is pretty key for IIF.
             j.getConfiguration().setLong(IIFScoreMapper.TOTAL_IMAGES, 11);
@@ -125,10 +131,11 @@ public class CrossImageScorerJob {
     }
     
     public static void main(String[] argv) {
-        if (argv.length != 1) {
-            System.out.println("Usage: CrossImageScorerJob <img_dir> <image_hash>");
+        if (argv.length != 3) {
+            System.out.println("Usage: CrossImageScorerJob <img_dir> <image_hash> <friendly_name>");
+            System.exit(1);
         }
-        runPipeline(argv[0], argv[1]);
+        runPipeline(argv[0], argv[1], argv[2]);
     }
     
     static String convertScanToString(Scan scan) throws IOException {
@@ -145,6 +152,6 @@ public class CrossImageScorerJob {
         }
 
         return Base64.encodeBytes(out.toByteArray());
-      }
+    }
 
 }

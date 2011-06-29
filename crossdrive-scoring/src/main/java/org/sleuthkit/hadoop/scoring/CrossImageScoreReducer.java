@@ -26,6 +26,10 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.sleuthkit.hadoop.SKMapper;
 
+/** Takes in a file hash to image ID mapping, and outputs the mapping
+ * for all file hashes associated with the hard drive ID given to the job
+ * through SKMapper.ID_KEY.
+ */
 public class CrossImageScoreReducer extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesArrayWritable> {
     byte[] ourImageID;
     @Override

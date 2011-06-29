@@ -19,6 +19,10 @@ package org.sleuthkit.hadoop.scoring;
 import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.BytesWritable;
 
+/** A subclass of ArrayWritable for Bytes. Required by java
+ * and hadoop to instantiate BytesWritable with a no-args constructor,
+ * so we can use it in sequence files.
+ */
 public class BytesArrayWritable extends ArrayWritable {
     public BytesArrayWritable() {
         super(BytesWritable.class);
