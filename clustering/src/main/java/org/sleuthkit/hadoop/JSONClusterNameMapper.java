@@ -41,7 +41,7 @@ extends Mapper<IntWritable, WeightedVectorWritable, NullWritable, Text> {
         String name = "";
         Vector v = value.getVector();
         if (v instanceof NamedVector) {
-            name =((NamedVector)v).getName();
+            name = ((NamedVector)v).getName();
         }
 
         JSONObject object = new JSONObject();

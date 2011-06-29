@@ -51,6 +51,11 @@ public class ClusterDocumentsJob {
     public static int runPipeline(String input, String output, String dictionary, double t1, double t2, String imageID, String friendlyName) {
         Configuration conf = new Configuration();
         conf.set("mapred.child.java.opts", "-Xmx4096m");
+        try {
+            SKJobFactory.addDependencies(conf);
+        } catch (IOException e) {
+            LOG.error("Exception while adding dependencies.", e);
+        }
         Path canopyInputPath = new Path(input);
         Path canopyOutputPath = new Path(output + "/canopy");
 
@@ -64,6 +69,8 @@ public class ClusterDocumentsJob {
 
         // perform canopy clustering on the grep-matched docs first,
         // to get some centroids for kmeans.
+        
+        
         try {
             CanopyDriver.run(conf, canopyInputPath, canopyOutputPath, new CosineDistanceMeasure(), t1, t2, true, false);
         } catch (Exception e) {

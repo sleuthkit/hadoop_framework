@@ -16,6 +16,8 @@
 
 package org.sleuthkit.hadoop;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.mahout.vectorizer.DefaultAnalyzer;
@@ -48,6 +50,14 @@ public class TokenizeAndVectorizeDocuments {
         // Placeholder. This will convert a sample file into the sequencefile we so desire.
         Path input;
         Path output;
+        
+        Configuration cfg = new Configuration();
+        try {
+            SKJobFactory.addDependencies(cfg);
+            
+        } catch (IOException ex) {
+            log.error("Exception while adding dependencies.", ex);
+        }
 
         // Assume we already have a ID:Text sequencefile directory.
         // We now proceed to run the DocumentProcessor class, which will turn
@@ -56,7 +66,7 @@ public class TokenizeAndVectorizeDocuments {
         output = new Path(tokendir);
 
         try {
-            DocumentProcessor.tokenizeDocuments(input, DefaultAnalyzer.class, output);
+            DocumentProcessor.tokenizeDocuments(input, DefaultAnalyzer.class, output, cfg);
         } catch(Exception ex) {
             log.error("Error tokenizing documents", ex);
             return 1;
@@ -78,8 +88,8 @@ public class TokenizeAndVectorizeDocuments {
         int chunkSizeInMegabytes = 200;
         boolean sequentialAccess = false;
         boolean namedVectors = true;
-        Configuration cfg = new Configuration();
 
+        
 
         try {
             DictionaryVectorizer.createTermFrequencyVectors(input,
@@ -112,8 +122,10 @@ public class TokenizeAndVectorizeDocuments {
         int maxDocumentFrequencyPercent = 40;
 
         try {
-            TFIDFConverter.processTfIdf(input,
+            TFIDFConverter.processTfIdf(
+                    input,
                     output,
+                    cfg,
                     chunkSizeInMegabytes,
                     minDocumentFrequency,
                     maxDocumentFrequencyPercent,
