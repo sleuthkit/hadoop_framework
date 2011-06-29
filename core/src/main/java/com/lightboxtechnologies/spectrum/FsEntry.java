@@ -229,6 +229,8 @@ public class FsEntry extends HashMap<String,Object> {
     return buf.toString();
   }
 
+// FIXME: problematic getters
+//////////////////////////////
   public Date getCreated() {
     return Created;
   }
@@ -248,6 +250,7 @@ public class FsEntry extends HashMap<String,Object> {
   public long getSize() {
     return Size;
   }
+//////////////////////////
 
   private static Date addDate(Map<String,Object> map, String name, Map<String,Object> rec, String recName) {
     if (rec.containsKey(recName)) {
