@@ -45,10 +45,10 @@ h3 { margin: 5px 0px; }
 .ui-widget-menu-plain:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
 .ui-state-button-selected { background: #3baae3 url(jqueryui/images/ui-bg_glass_50_3baae3_1x400.png) 50% 50% repeat-x !important; color: #ffffff !important; }
 /* Graphics & Videos */
-.cluster { max-width: 330px; margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
+.cluster { max-width: 330px; margin: 5px; float: left;  border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
 .cluster:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
 .allImages { margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
-.clusterImgs { float: left; cursor: pointer; background: #f2f5f7; }
+.clusterImgs { float: left; cursor: pointer; background: #111111; }
 .singleImage { float: left; height: 100px; padding: 3px 3px; }
 .keyframe { 
   float: left; 

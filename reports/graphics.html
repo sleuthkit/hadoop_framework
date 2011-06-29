@@ -119,7 +119,7 @@ limitations under the License.
 		}
 	}
 
-  function showclusters(type) {
+  function showClusters(type) {
     $.each(report[type], function (i, cluster) {
       var clusterDiv = $('#templ_cluster > div').clone();
       clusterDiv.attr("cluster", i);
@@ -129,7 +129,7 @@ limitations under the License.
       });
       clusterDiv.fancybox({
         'onClosed': function() { 
-          //this prevents caching elements in the DOM - slower, but safer for memory usage
+          //this prevents caching elements in the DOM - may change this
           $("#allImagesContainer").remove();
           $(".tipsy").remove();
         } 
@@ -209,11 +209,11 @@ limitations under the License.
     return Math.round(x * 100)/100;
   }
 
-  function showvideos() {
-    $('#clustersContainer').empty();
+  function showVideos() {
     $.each(report.videos, function (k, video) {
         var keyframeDiv = $('#templ_keyframe > div').clone();
         var len2 = Math.floor(video.keyframes.length / 2);
+        //TODO: add full_path from JSON
         var fullpath = 'C/files/videos/mymovietrailer.avi'//video.full_path;
         keyframeDiv.attr('title', fullpath + '<br>' + round(video.duration)+' s, ' + round(video.fps) + ' fps<br>' + video.keyframes[len2].count + ' keyframes<br>MD5: ' + video.hash);
         keyframeDiv.attr("href", "#v" + video.hash);
@@ -225,14 +225,20 @@ limitations under the License.
         keyframeDiv.find('img').attr('src', 'data/t/'+video.keyframes[len2].image.hash+'.jpg');
         keyframeDiv.find('div.keyframeName').html('mymovietrailer.avi');
         keyframeDiv.click(function () {
-          showvideo(video);
-          $(".tipsy").remove();
+          showAllKeyframes(video);
+          $('.tipsy').remove();
         });
-        keyframeDiv.fancybox();
+        keyframeDiv.fancybox({
+          'onClosed': function() { 
+            //this prevents caching elements in the DOM - may change this
+            $('#allKeyframesContainer').remove();
+            $('.tipsy').remove();
+          } 
+        });
         keyframeDiv.appendTo('div#clustersContainer');
     });
     $(function(){
-      var colWidth = Math.floor($("#content").width() / 8);
+      var colWidth = Math.floor($('#content').width() / 8);
       $('#clustersContainer').isotope({
         itemSelector: '.keyframe',
         layoutMode : 'cellsByRow',
@@ -243,88 +249,62 @@ limitations under the License.
     });
   }
 
-  function showvideo(video) {
-    
-    $('#clustersContainer').append('<h3>Video '+video.hash+'</h3>');
-    push_keyframerow(video.keyframes, 0);
-    push_keyframerow(video.keyframes[0].children, 1);
-  }
-/*
-  function showAllImages(type, index) {
-    $("#allImages").empty();
-    allImages = report[type][index].all_images ;
-    if (allImages) {
-      var cloneDiv = $('#templ_all_images > div').clone();
-      var allimgDiv = cloneDiv.find("div.allImages");
-      allimgDiv.attr("id", "allImages" + index);
-      allimgDiv.click(function(){
+  function showAllKeyframes(video) {
+    if (video) {
+      var cloneDiv = $('#templ_all_keyframes > div').clone();
+      cloneDiv.attr('id', 'allKeyframesContainer');
+      var allkeysDiv = cloneDiv.find('div.allKeyframes');
+      allkeysDiv.attr('id', 'v' + video.hash);
+      allkeysDiv.click(function(){
         $.fancybox.close();
-        $("#allImages").remove();
-        $(".tipsy").remove();
+        $('#allKeyframesContainer').remove();
+        $('.tipsy').remove();
       });
-      allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
-      var aLen = allImages.length;
-      for (var i = 0; i < aLen; i++) {
-        var clusterimgDiv = $('#templ_clusterim > div').clone();
-        clusterimgDiv.attr("title", "MD5: " + allImages[i].hash);
-        var img = clusterimgDiv.find('img');
-        if (type=='faces') {
-          var face = allImages[i].faces[0];
-          var lb = face.boundingbox[0][0];
-          var tb = face.boundingbox[0][1];
-          var rb = face.boundingbox[1][0];
-          var bb = face.boundingbox[1][1];
-          img.attr('src', 'data/t/'+allImages[i].hash+'-face-x0'+lb+'-y0'+tb+'-x1'+rb+'-y1'+bb+'.jpg');
-        }
-        else {
-          img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
-        }
-        clusterimgDiv.tipsy({
-                  gravity: $.fn.tipsy.autoAll, 
-                  fade: true,
-                  html: true
-        });
-        clusterimgDiv.appendTo(allimgDiv.find('.allClusterImages'));
+      //TODO: add full_path from JSON
+      allkeysDiv.find('h3').html('video.full_path' + '<br>' + round(video.duration)+' s, ' + round(video.fps) + 
+        ' fps<br>' + video.keyframes[0].count + ' keyframes<br>MD5: ' + video.hash);
+      var kfImagesDiv = allkeysDiv.find('.allKeyframeImages');
+      if (video.keyframes[0].count > 1) {
+        push_keyframerow(video.keyframes[0].children, kfImagesDiv);
+      }
+      else {
+        push_keyframerow(video.keyframes, kfImagesDiv);
       }
       cloneDiv.appendTo('div#clustersContainer');
     }
   }
-*/
-  function pop_keyframerows(rowheight) {
-    $('#clustersContainer div.keyframe_row:gt('+rowheight+')').remove();
-  }
 
-  function push_keyframerow(keyframes, rowheight) {
-    //console.info(keyframes)
+  function push_keyframerow(keyframes, targetDiv) {
     var keyframe_row = $('#templ_keyframerow > div').clone();
     $.each(keyframes, function (k, keyframe) {
-        var divkeyframe = $('#templ_keyframe > div').clone();
-        divkeyframe.find('img.keyframeImg').attr('src', 'data/t/'+keyframe.image.hash+'.jpg');
-        var children = keyframe.children;
-        if (children.length > 0) {
-          divkeyframe.find('a').html(round(keyframe.timestamp)+'s ['+keyframe.count+']');
-          divkeyframe.find('a').click(function () {
-            pop_keyframerows(rowheight);
-            push_keyframerow(keyframe.children, rowheight+1);
-          })
-        } 
-        else {
-          divkeyframe.find('a').remove();
-          divkeyframe.find('div.keyframeName').html(round(keyframe.timestamp)+'s');
+        var cfLen = keyframe.children.length;
+        if (cfLen > 0) {
+          for (var i = 0; i < cfLen; i++) {
+            var childFrameDiv = $('#templ_keyframe > div').clone();
+            childFrameDiv.find('img').attr('src', 'data/t/'+keyframe.children[i].image.hash+'.jpg');
+            childFrameDiv.find('div.keyframeName').html(round(keyframe.children[i].timestamp)+'s');
+            keyframe_row.append(childFrameDiv);
+          }
         }
-        keyframe_row.append(divkeyframe);
-    })
+        else {
+          var divkeyframe = $('#templ_keyframe > div').clone();
+          divkeyframe.find('img').attr('src', 'data/t/'+keyframe.image.hash+'.jpg');
+          divkeyframe.find('div.keyframeName').html(round(keyframe.timestamp)+'s');
+          keyframe_row.append(divkeyframe);
+        }
+        
+    });
     keyframe_row.append('<div style="clear:both"></div>');
-    $('#clustersContainer').append(keyframe_row);
+    keyframe_row.appendTo(targetDiv);
   }
 
   function showSelection(pageName) {
     if (pageName == null || pageName == "") location.href = mainUrl + '?p=faces';
     if (pageName == "videos") {
-      showvideos();
+      showVideos();
     }
     else {
-      showclusters(pageName);  
+      showClusters(pageName);  
     }
   }
 
@@ -414,13 +394,13 @@ limitations under the License.
   <div id="templ_cluster">
     <div class="ui-corner-all cluster">
       <h3 class="align-center">Cluster</h3>
-      <div class="ui-corner-all clusterImgs"></div>
+      <div class="ui-corner-bottom clusterImgs"></div>
     </div>    
   </div>
   <!-- Cluster image template -->
   <div id="templ_clusterim">
     <div class="singleImage">
-      <img style="z-index: 0; max-height: 100px; width: 100px"/>
+      <img class="ui-corner-all" style="z-index: 0; height: 100px; width: 100px"/>
     </div>
   </div>
   <!-- All images template -->
