@@ -18,6 +18,16 @@ limitations under the License.
 
 /* Custom - Lightbox Technologies, Inc.
 ----------------------------------*/
+body { margin: 0; padding: 0; font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; background-color: #fff; width: 100%; height: 100%; word-wrap: break-word; text-wrap: unrestricted; word-break: break-all; wrap-option: emergency; }
+td { overflow: hidden;word-wrap: break-word; text-wrap: unrestricted; word-break: break-all; wrap-option: emergency; white-space: nowrap; }
+h3 { margin: 5px 0px; }
+.searchHitsList { padding-left: 0px; list-style-type: none; }
+.navList { width: 100%; }
+.listNum { text-align:right; min-width: 90px; }
+.entityHeader { width: 100%; height: 1.8em; font-weight: bold; text-align: center; background-color: #FCFC7E; color: #777; }
+.align-center { text-align: center; }
+.e-resize { cursor: e-resize; }
+.tblRight { text-align: right; }
 .ui-widget-chart { border: 1px solid #333333; cursor: pointer; position: absolute; background: #f2f5f7 url(../images/ui-bg_highlight-hard_100_f2f5f7_1x100.png) 50% top repeat-x; font-weight: bold; color: #2779aa; }
 .ui-widget-hdd-odd { position: absolute; border: 1px solid #aed0ea; background: #fcf45a url(../images/ui-bg_hdd-gloss-wave_35_fcf45a_500x100.png) 50% 50% repeat-x; font-weight: bold; color: #2779aa; vertical-align: middle; height: 75px; text-align: center; }
 .ui-widget-hdd-even { position: absolute; border: 1px solid #aed0ea; background: #1978a9 url(../images/ui-bg_hdd-gloss-wave_35_1978a9_500x100.png) 50% 50% repeat-x; font-weight: bold; color: #fdf8aa; vertical-align: middle; height: 75px; text-align: center; }
@@ -25,6 +35,7 @@ limitations under the License.
 .ui-col-label { text-align: right; vertical-align: top; }
 .ui-col-value { text-align: left; vertical-align: top; }
 .ui-widget-chart-num { font-size: 1.5em; color: #ff0000; }
+/* Top menus */
 .ui-widget-menu-shadow { background: url(../images/line-shadow-trans.png) repeat-x; position: relative; z-index: 100; }
 .ui-widget-menu-active { border: 1px solid #434a4f; height: 30px; padding: 5px; background: #ffffff; font-weight: bold; color: #222222; vertical-align: middle; text-align: center; position: absolute; }
 .ui-widget-menu-plain { border: 1px solid #434a4f; height: 30px; padding: 5px; background: #dddddd; font-weight: bold; color: #666666; vertical-align: middle; text-align: center; position: absolute; }
@@ -33,69 +44,28 @@ limitations under the License.
 .ui-widget-menu-active:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
 .ui-widget-menu-plain:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
 .ui-state-button-selected { background: #3baae3 url(jqueryui/images/ui-bg_glass_50_3baae3_1x400.png) 50% 50% repeat-x !important; color: #ffffff !important; }
-.tblRight { text-align: right; }
+/* Graphics & Videos */
 .cluster { max-width: 330px; margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
 .cluster:hover { background: #3baae3; color: #ffffff; cursor: pointer; }
 .allImages { margin: 5px; float: left; border: 1px solid #bbbbbb; cursor: pointer; background: #f2f5f7; }
 .clusterImgs { float: left; cursor: pointer; background: #f2f5f7; }
 .singleImage { float: left; height: 100px; padding: 3px 3px; }
-.keyframe { float: left; margin: 5px; background: #eeeeee; }
-.keyframe_expand a { text-decoration: none; }
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #fff;
-  width: 100%;
-  height: 100%;
-  word-wrap: break-word;
-  text-wrap: unrestricted;
-  word-break: break-all;
-  wrap-option: emergency; 
+.keyframe { 
+  float: left; 
+  margin: 5px;
+  margin-bottom: 20px;
+  color: #222222; 
+  font-size: 1.0em;
+  font-family: Lucida Grande, Lucida Sans, Arial, sans-serif;
 }
-.searchHitsList {
-  padding-left: 0px;
-  list-style-type: none;
+.keyframe:hover { cursor: pointer; }
+.keyframeImage { 
+  border: 1px solid #cccccc; 
+  width: 100px; 
+  height: 100px; 
 }
-.navList {
-  width: 100%;
-}
-.listNum {
-  text-align:right;
-  min-width: 90px;
-}
-.entityHeader {
-  width: 100%;
-  height: 1.8em;
-  font-weight: bold;
-  text-align: center;
-  background-color: #FCFC7E;
-  color: #777;
-}
-td {
-	overflow: hidden;
-	word-wrap: break-word;
-  text-wrap: unrestricted;
-  word-break: break-all;
-  wrap-option: emergency;
-  white-space: nowrap;
-}
-
-h3 { margin: 5px 0px; }
-
-.align-center { text-align: center; }
-
-.e-resize {
-	cursor: e-resize;
-}
-
+.keyframeName { width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dropShadow { -moz-box-shadow: 3px 3px 3px #888; -webkit-box-shadow: 3px 3px 3px #888; box-shadow: 3px 3px 3px #888; }
 /**** Isotope filtering ****/
-
-.isotope-item {
-  z-index: 2;
-}
-
-.isotope-hidden.isotope-item {
-  pointer-events: none;
-  z-index: 1;
-}
+.isotope-item { z-index: 2; }
+.isotope-hidden.isotope-item { pointer-events: none; z-index: 1; }
