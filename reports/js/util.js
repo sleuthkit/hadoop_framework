@@ -211,7 +211,7 @@ Utility.prototype.buildMenu = function(list, targetDivId) {
   var items = [];
   var i = 0;
   while(i < mlen) {
-    var line = '<div id="menu' + i + '" class="ui-widget rpt-top-menu ';
+    var line = '<div id="menu' + i + '" class="ui-widget rpt-top-menu dropShadow ';
     if (fileName == Util.getFileNameFromUrl(list[i].link)) {
     	line += ' ui-widget-menu-active ';
   	}
