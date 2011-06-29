@@ -25,6 +25,10 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+/** Works with GrepMatchMapper to generate a JSON array
+ * of grep match results. This is later used by GrepJSONBuilder
+ * to build the grep reporting output.
+ */
 public class GrepMatchReducer extends Reducer<NullWritable, Text, NullWritable, Text> {
 
     JSONArray outArray = new JSONArray();

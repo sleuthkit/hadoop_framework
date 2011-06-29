@@ -25,6 +25,9 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+/** Sums the numbmer of times a given item has been found through grep searching.
+ * Outputs that data to a JSON array. This is then packaged into an output report.
+ */
 public class GrepCountReducer extends Reducer<LongWritable, LongWritable, NullWritable, Text> {
 
     JSONArray outArray = new JSONArray();

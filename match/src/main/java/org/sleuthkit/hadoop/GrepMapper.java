@@ -30,7 +30,10 @@ import org.slf4j.LoggerFactory;
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
-// Maps regex matches to an output file.
+/** Searches the file text in a given hard drive for the regexes
+ * provided by mapred.mapper.regex. Outputs the data back into FsEntry,
+ * so it is stored in the file table (assuming the output task is set properly).
+ */
 public class GrepMapper
 extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
     final Logger LOG = LoggerFactory.getLogger(GrepMapper.class);
@@ -39,8 +42,6 @@ extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
     @Override
     public void setup(Context ctx) {
         String[] regexlist = ctx.getConfiguration().get("mapred.mapper.regex").split("\n");
-        System.out.print("Found Regexes: " + regexlist.length);
-
         for (String item : regexlist) {
             if ("".equals(item)) continue; // don't add empty regexes
             try {

@@ -29,6 +29,10 @@ import org.slf4j.LoggerFactory;
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
+/** Inspects FsEntry objects for the given image for grep results,
+ * and generates JSON data for those results, which are emitted as
+ * JSON Strings (Text).
+ */
 public class GrepMatchMapper 
 extends SKMapper<ImmutableHexWritable, FsEntry, NullWritable, Text>{
     final Logger LOG = LoggerFactory.getLogger(GrepMatchMapper.class);

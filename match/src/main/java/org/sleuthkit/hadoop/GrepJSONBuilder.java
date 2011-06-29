@@ -24,8 +24,12 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+/** Generates the final report file for grepdata, placing the data in outfile.
+ * Be warned, the final output report may be difficult to actually open for
+ * inspection, as the data is located in a single, very long JSON string line,
+ * which many unix text editors may not like.
+ */
 public class GrepJSONBuilder {
-// Concatenates file data from 
     
     public static void buildReport(Path countReport, Path matchReport, Path outFile)
     throws IOException {

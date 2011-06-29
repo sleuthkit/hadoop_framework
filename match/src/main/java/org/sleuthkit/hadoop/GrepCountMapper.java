@@ -26,6 +26,10 @@ import org.slf4j.LoggerFactory;
 import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.ImmutableHexWritable;
 
+/** Counts the number of grep matches we have for a drive, per keyword.
+ *  Used for reporting. The key is the index in the grep search file.
+ *  (The index is the line number the regex occurs on.)
+ */
 public class GrepCountMapper 
 extends SKMapper<ImmutableHexWritable, FsEntry, LongWritable, LongWritable>{
 

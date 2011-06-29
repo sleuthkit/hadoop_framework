@@ -31,8 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 
-// Contains methods to generate reports based on the output of the grep
-// search engine.
+/** Contains methods to generate reports based on the output of the grep
+  * search engine.
+  */
 public class GrepReportGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(GrepReportGenerator.class);
     

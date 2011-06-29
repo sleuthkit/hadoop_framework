@@ -27,14 +27,12 @@ import com.lightboxtechnologies.spectrum.FsEntry;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseInputFormat;
 import com.lightboxtechnologies.spectrum.FsEntryHBaseOutputFormat;
 
-/* Extracts matching regexes from input files and counts them. */
+/** Extracts matching regexes from FsEntry instances generated from
+ * the file table for a given image. The data is placed back into the
+ * table through FsEntryHBaseOutputFormat.
+ */
 public class GrepSearchJob {
     public GrepSearchJob() {}
-
-
-    public static final String DEFAULT_INPUT_DIR =  "/texaspete/text/";    // leave off hdfs://localhost so it can
-    public static final String DEFAULT_OUTPUT_DIR = "/texaspete/grepped/"; // be set by configuration files -- JLS
-
 
     public int run(String[] args) throws Exception {
         if (args.length < 1) {
