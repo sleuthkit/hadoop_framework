@@ -190,8 +190,11 @@ Utility.prototype.getFileNameFromPath = function(str, delim) {
 	return filename;
 }
 
-Utility.prototype.getFileNameFromUrl = function() {
-	var filename = document.location.href;
+Utility.prototype.getFileNameFromUrl = function(url) {
+	var filename = url;
+  if (filename == null || filename == "") {
+    filename = document.location.href;
+  }
 	filename = filename.substring(0, (filename.indexOf("#") == -1) ? filename.length : filename.indexOf("#"));
 	filename = filename.substring(0, (filename.indexOf("?") == -1) ? filename.length : filename.indexOf("?"));
 	filename = filename.substring(filename.lastIndexOf("/") + 1, filename.length);
@@ -209,7 +212,7 @@ Utility.prototype.buildMenu = function(list, targetDivId) {
   var i = 0;
   while(i < mlen) {
     var line = '<div id="menu' + i + '" class="ui-widget rpt-top-menu ';
-    if (fileName == list[i].link) {
+    if (fileName == Util.getFileNameFromUrl(list[i].link)) {
     	line += ' ui-widget-menu-active ';
   	}
   	else {
