@@ -127,7 +127,13 @@ limitations under the License.
       clusterDiv.click(function(){
         showAllImages(type, $(this).attr("cluster"));
       });
-      clusterDiv.fancybox();
+      clusterDiv.fancybox({
+        'onClosed': function() { 
+          //this prevents caching elements in the DOM - slower, but safer for memory usage
+          $("#allImagesContainer").remove();
+          $(".tipsy").remove();
+        } 
+      });
       clusterDiv.find('h3').html("Cluster " + i + " (" + cluster.size + " images)");
       var cLen = cluster.sample_images.length;
       if (cLen > 12) cLen = 12;
@@ -161,15 +167,14 @@ limitations under the License.
   }
 
   function showAllImages(type, index) {
-    $("#allImages").empty();
     allImages = report[type][index].all_images ;
     if (allImages) {
       var cloneDiv = $('#templ_all_images > div').clone();
+      cloneDiv.attr("id", "allImagesContainer");
       var allimgDiv = cloneDiv.find("div.allImages");
       allimgDiv.attr("id", "allImages" + index);
       allimgDiv.click(function(){
         $.fancybox.close();
-        $("#allImages").remove();
         $(".tipsy").remove();
       });
       allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
@@ -211,6 +216,7 @@ limitations under the License.
         var len2 = Math.floor(video.keyframes.length / 2);
         var fullpath = 'C/files/videos/mymovietrailer.avi'//video.full_path;
         keyframeDiv.attr('title', fullpath + '<br>' + round(video.duration)+' s, ' + round(video.fps) + ' fps<br>' + video.keyframes[len2].count + ' keyframes<br>MD5: ' + video.hash);
+        keyframeDiv.attr("href", "#v" + video.hash);
         keyframeDiv.tipsy({
           gravity: $.fn.tipsy.autoAll, 
           fade: true,
@@ -220,7 +226,9 @@ limitations under the License.
         keyframeDiv.find('div.keyframeName').html('mymovietrailer.avi');
         keyframeDiv.click(function () {
           showvideo(video);
-        })
+          $(".tipsy").remove();
+        });
+        keyframeDiv.fancybox();
         keyframeDiv.appendTo('div#clustersContainer');
     });
     $(function(){
@@ -236,12 +244,52 @@ limitations under the License.
   }
 
   function showvideo(video) {
-    $('#clustersContainer').empty();
+    
     $('#clustersContainer').append('<h3>Video '+video.hash+'</h3>');
     push_keyframerow(video.keyframes, 0);
     push_keyframerow(video.keyframes[0].children, 1);
   }
-
+/*
+  function showAllImages(type, index) {
+    $("#allImages").empty();
+    allImages = report[type][index].all_images ;
+    if (allImages) {
+      var cloneDiv = $('#templ_all_images > div').clone();
+      var allimgDiv = cloneDiv.find("div.allImages");
+      allimgDiv.attr("id", "allImages" + index);
+      allimgDiv.click(function(){
+        $.fancybox.close();
+        $("#allImages").remove();
+        $(".tipsy").remove();
+      });
+      allimgDiv.find('h3').html("Cluster " + index + " (" + report[type][index].size + " images)");
+      var aLen = allImages.length;
+      for (var i = 0; i < aLen; i++) {
+        var clusterimgDiv = $('#templ_clusterim > div').clone();
+        clusterimgDiv.attr("title", "MD5: " + allImages[i].hash);
+        var img = clusterimgDiv.find('img');
+        if (type=='faces') {
+          var face = allImages[i].faces[0];
+          var lb = face.boundingbox[0][0];
+          var tb = face.boundingbox[0][1];
+          var rb = face.boundingbox[1][0];
+          var bb = face.boundingbox[1][1];
+          img.attr('src', 'data/t/'+allImages[i].hash+'-face-x0'+lb+'-y0'+tb+'-x1'+rb+'-y1'+bb+'.jpg');
+        }
+        else {
+          img.attr('src', 'data/t/'+allImages[i].hash+'.jpg');
+        }
+        clusterimgDiv.tipsy({
+                  gravity: $.fn.tipsy.autoAll, 
+                  fade: true,
+                  html: true
+        });
+        clusterimgDiv.appendTo(allimgDiv.find('.allClusterImages'));
+      }
+      cloneDiv.appendTo('div#clustersContainer');
+    }
+  }
+*/
   function pop_keyframerows(rowheight) {
     $('#clustersContainer div.keyframe_row:gt('+rowheight+')').remove();
   }
@@ -388,9 +436,18 @@ limitations under the License.
   <div id="templ_video">
     <div></div>
   </div>
+  <!-- All keyframes template -->
+  <div id="templ_all_keyframes">
+    <div style="display:none">
+      <div class="ui-corner-all allKeyframes">
+        <h3 class="align-center">Cluster</h3>
+        <div class="allKeyframeImages"></div>
+      </div>
+    </div>   
+  </div>
   <!-- Keyframe Row template -->
   <div id="templ_keyframerow">
-    <div class="keyframe_row" style="margin: 5px; background: #cccccc;"></div>
+    <div class="keyframe_row" style="margin: 5px; background: #eeeeee;"></div>
   </div>
   <!-- Video keyframe template -->
   <div id="templ_keyframe">
