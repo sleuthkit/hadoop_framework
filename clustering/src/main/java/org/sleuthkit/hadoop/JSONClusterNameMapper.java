@@ -30,7 +30,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// Aggregates vector names and their associated clusters, and outputs JSON.
+/** Aggregates vector names and their associated clusters, and outputs JSON. */
 public class JSONClusterNameMapper
 extends Mapper<IntWritable, WeightedVectorWritable, NullWritable, Text> {
     public static final Logger LOG = LoggerFactory.getLogger(JSONClusterNameMapper.class);
