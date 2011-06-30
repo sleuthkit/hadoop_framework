@@ -50,8 +50,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 public class SampleServiceImpl extends RemoteServiceServlet implements SampleService {
 	
 	/** job names in hadoop  order of analysis progress (first job - before it appears in hadoop) */
-	private static String jobStepNames[] = {"UploadingIntoHadoop", "TikaTextExtraction", "GrepSearch", "GrepCountJson", "GrepMatchJson", "GrepMatchesToSequenceFiles", "TopClusterMatchPrinting", 
-		"ClusteredVectorsToJson", "CrossImageSimilarityScoring", "CrossImageScoreCalculation"};
+	private static String jobStepNames[] = {"UploadingIntoHadoop", "ExtentsExtractor", "TikaTextExtraction", "GrepSearch", "GrepCountJson", "GrepMatchJson", 
+		"GrepMatchesToSequenceFiles", "TopClusterMatchPrinting", "ClusteredVectorsToJson", "CrossImageSimilarityScoring", "CrossImageScoreCalculation"};
 	
 	static ResourceBundle rb = null;
 	/** properties defined in resource file */
@@ -126,9 +126,8 @@ public class SampleServiceImpl extends RemoteServiceServlet implements SampleSer
      * @throws Exception
      */
 	public String runAsync(String fileName, String id) throws IllegalArgumentException {		
-		if (!imagesSubmitted.containsKey(id)) {
-			imagesSubmitted.put(id, Calendar.getInstance().getTime());
-		}
+		imagesSubmitted.put(id, Calendar.getInstance().getTime());
+
 	    try {
 	    	 ProcessBuilder pb = new ProcessBuilder(commandScript, id, fileName, commandJar);
 	    	 pb.directory(new File(workDir));
@@ -136,8 +135,12 @@ public class SampleServiceImpl extends RemoteServiceServlet implements SampleSer
 	    	 
 	    	 env.put("LD_LIBRARY_PATH", SampleServiceImpl.fsripLib);
 	    	 env.put("HADOOP_HOME", SampleServiceImpl.hadoopHome);
-	    	 env.put("PATH", env.get("PATH") + SampleServiceImpl.path);
+	    	 env.put("PATH", SampleServiceImpl.path);
 
+			 System.err.println("LD_LIBRARY_PATH = " + env.get("LD_LIBRARY_PATH"));
+			 System.err.println("HADOOP_HOME = " + env.get("HADOOP_HOME"));
+			 System.err.println("PATH = " + env.get("PATH"));
+			 System.err.println("Work Dir = " + pb.directory().getPath());
 	    	 pb.start();
 	    }
 	    catch (Throwable t) {
@@ -238,6 +241,7 @@ public class SampleServiceImpl extends RemoteServiceServlet implements SampleSer
 		row[JOB_NAME] = parsedJobName[2];	//id
 
 		if (thisJobInd < 0) {
+			//ignore it if we already have a task
 			//this should not happen: report error and continue
 			System.err.println("Unknown job step " + parsedJobName[3] + " for image hash " + parsedJobName[1]);
 			row[CUR_TASK] = parsedJobName[3];	//state
