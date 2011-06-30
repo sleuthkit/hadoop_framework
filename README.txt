@@ -1,6 +1,8 @@
-This is a pre-alpha project under active development and in an uncertain state. Under no circumstances should you download it, fork it, build it, modify it, or run it.
+This is a prototype project and should not be used in a production
+environment.
 
-Copyright is retained for contributions by Basis Technology Corp or Lightbox Technologies, Inc, depending on the contributor.
+Copyright is retained for contributions by Basis Technology Corp
+or Lightbox Technologies, Inc, depending on the contributor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
