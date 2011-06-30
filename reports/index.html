@@ -44,8 +44,6 @@ limitations under the License.
   <script src="data/linkanalysis.js" type="text/javascript"></script>
   <script src="data/searchhits.js" type="text/javascript"></script>
   <script>
-  var docClusterCoords = [];
-//  docClusterCoords = docClusterChart;
   var deviceLinks;
   	
   $(window).resize(function(){
@@ -342,53 +340,38 @@ limitations under the License.
 				</script>
 			</div>
 			<div id="chart2" class="ui-widget ui-widget-chart ui-corner-all" style="left: 525px; width: 250px; height: 250px; text-align: center;"><span id="chart2Title" class="ui-widget-chart-num">[chart2Title]</span><br>Document Clusters
-		    <script type="text/javascript+protovis">
+		  	<script type="text/javascript+protovis">
 			  if (Modernizr.svg){
-				  var docPlot_w = 225,
-				      docPlot_h = 185,
-				      docPlot_x = pv.Scale.linear(0, 100).range(0, docPlot_w),
-				      docPlot_y = pv.Scale.linear(0, 100).range(0, docPlot_h),
-				      docPlot_c = pv.Scale.log(1, 100).range("orange", "brown");
-				
-				  var docPlot_vis = new pv.Panel()
-				      .width(docPlot_w)
-				      .height(docPlot_h)
-				      .bottom(1)
-				      .left(1)
-				      .right(1)
-				      .top(1)
-				      .def("i", -1)
-				      .event("click", function(d) self.location = "clusters.html");
-				
-				  docPlot_vis.add(pv.Rule)
-				      .data(docPlot_y.ticks())
-				      .bottom(docPlot_y)
-				      .strokeStyle(function(d) d ? "#ddd" : "#000");
-		
-				  docPlot_vis.add(pv.Rule)
-				      .data(docPlot_x.ticks())
-				      .left(docPlot_x)
-				      .strokeStyle(function(d) d ? "#ddd" : "#000");
-		
-				  var dot = docPlot_vis.add(pv.Dot)
-				      .data(docClusterCoords)
-				      .left(function(d) docPlot_x(d.x))
-				      .bottom(function(d) docPlot_y(d.y))
-				      .strokeStyle(function(d) pv.Colors.category20().range()[Math.floor(d.z/20)])
-				      .fillStyle(function(d) docPlot_vis.i() == this.index ? "red" : this.strokeStyle().alpha(d.cf*0.01))
-				      .size(function(d) d.z*20)
-				      .title(function(d) d.name + "<br>Confidence: " + d.cf)
-				      .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true, html: true}))
-				    .anchor("center").add(pv.Label)
-				      .text(function(d) d.z)
-				      .textStyle("black");
-				
-				  docPlot_vis.render();
+	
+					var docClusters_dataArray = Util.getDataValueArray(docClusterCounts);
+	
+					var docClusters_w = 225,
+					    docClusters_h = 185,
+					    docClusters_x = function(d) pv.Scale.linear(docClusters_dataArray, pv.index).range(0, docClusters_w),
+					    docClusters_y = function(d) pv.Scale.linear(0, pv.max(docClusters_dataArray)).range(0, docClusters_h);
+					
+					var docClusters_vis = new pv.Panel()
+					    .width(docClusters_w)
+					    .height(docClusters_h)
+					    .bottom(0)
+					    .left(3)
+					    .right(3)
+					    .top(3);
+					
+					/* The area. */
+					docClusters_vis.add(pv.Area)
+					    .data(docClusters_dataArray)
+					    .fillStyle("#bf1717")
+					    .left(function() docClusters_x()(this.index))
+					    .height(function(d) docClusters_y()(d))
+					    .bottom(0);
+	
+					docClusters_vis.render();
 				}
 				else {
 					$('#chart2').append('<br><br>No SVG support detected');
 				}
-		    </script>
+			  </script>
 		  </div>
 			<div id="chart3" class="ui-widget ui-widget-chart ui-corner-all" style="left: 850px; width: 250px; height: 250px; text-align: center;"><span id="chart3Title" class="ui-widget-chart-num">[chart3Title]</span><br>Entities Extracted
 		  	<script type="text/javascript+protovis">
