@@ -19,26 +19,6 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2.1</version>
-        <executions>
-          <execution>
-            <id>job</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-       	      <finalName>sleuthkit-pipeline-r${timestamp}</finalName>
-              <descriptors>
-                <descriptor>src/main/assembly/job.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>1.4</version>
 	<executions>
@@ -100,7 +80,7 @@
   </dependencies>
   <profiles>
     <profile>
-      <id>release</id>
+      <id>dependency-package</id>
       <build>
 	<plugins>
 	  <plugin>
@@ -115,9 +95,8 @@
 		  <goal>single</goal>
 		</goals>
 		<configuration>
-		  <finalName>${project.build.finalName}</finalName>
 		  <descriptors>
-                    <descriptor>src/main/assembly/job.xml</descriptor>
+                    <descriptor>src/main/assembly/lib.xml</descriptor>
 		  </descriptors>
 		</configuration>
               </execution>
