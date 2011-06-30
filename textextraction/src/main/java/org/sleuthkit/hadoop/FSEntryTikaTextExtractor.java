@@ -39,6 +39,7 @@ public class FSEntryTikaTextExtractor {
     static class TikaTextExtractorMapper extends SKMapper<ImmutableHexWritable, FsEntry, ImmutableHexWritable, FsEntry> {
 
         public static final Logger LOG = LoggerFactory.getLogger(FSEntryTikaTextExtractor.class);
+	public final Tika tika = new Tika();
 
         @Override
         public void map(ImmutableHexWritable key, FsEntry value, Context context) throws IOException, InterruptedException {
@@ -49,7 +50,7 @@ public class FSEntryTikaTextExtractor {
             // System.out.println("Extracting Text from file:" + key.toString());
             if (proxy == null) { return; } //No stream for this file. Get out.
             try {
-                String output = new Tika().parseToString(proxy);
+                String output = tika.parseToString(proxy);
                 value.put(HBaseConstants.EXTRACTED_TEXT, output);
                 context.write(key, value);
             }
