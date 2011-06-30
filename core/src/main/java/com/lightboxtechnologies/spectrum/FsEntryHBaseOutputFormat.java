@@ -25,11 +25,8 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.OutputCommitter;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
-import org.apache.hadoop.hbase.io.hfile.Compression;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,21 +62,10 @@ public class FsEntryHBaseOutputFormat extends OutputFormat {
     final Configuration conf = HBaseConfiguration.create(ctx.getConfiguration());
     LOG.info("hbase.zookeeper.quorum:" + conf.get("hbase.zookeeper.quorum"));
     final String tblName = conf.get(HBaseTables.ENTRIES_TBL_VAR, HBaseTables.ENTRIES_TBL);
-    final HBaseAdmin admin = new HBaseAdmin(conf);
-    if (!admin.tableExists(tblName)) {
-    	final HTableDescriptor tableDesc = new HTableDescriptor(tblName);
-// FIXME: how could the family already exist if the table doesn't?
-    	if (!tableDesc.hasFamily(colFam)) {
-    	  final HColumnDescriptor colFamDesc = new HColumnDescriptor(HBaseTables.ENTRIES_COLFAM);
-    	  colFamDesc.setCompressionType(Compression.Algorithm.GZ);
-    		tableDesc.addFamily(colFamDesc);
-    	}
-    	admin.createTable(tableDesc);
-    } // else should check whether the column family creates
-    else if (!admin.isTableEnabled(tblName)) {
-    	admin.enableTable(tblName);
-    }
-    return new HTable(conf, tblName);
+
+    return HBaseTables.summon(
+      conf, tblName.getBytes(), HBaseTables.ENTRIES_COLFAM_B
+    );
   }
 
   public RecordWriter<ImmutableBytesWritable, FsEntry> getRecordWriter(TaskAttemptContext ctx) throws IOException {

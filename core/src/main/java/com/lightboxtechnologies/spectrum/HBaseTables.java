@@ -1,5 +1,4 @@
 /*
-src/com/lightboxtechnologies/spectrum/FsEntryHBaseInputFormat.java
 
 Copyright 2011, Lightbox Technologies, Inc
 
@@ -18,9 +17,25 @@ limitations under the License.
 
 package com.lightboxtechnologies.spectrum;
 
-import org.apache.hadoop.hbase.util.*;
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableExistsException;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.io.hfile.Compression;
+import org.apache.hadoop.hbase.util.Bytes;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class HBaseTables {
+
+  private HBaseTables() {}
+
+  private static final Log LOG = LogFactory.getLog(HBaseTables.class);
 
   // name for Conf objects
   public static final String ENTRIES_TBL_VAR = "com.lbt.htable";
@@ -36,4 +51,35 @@ public class HBaseTables {
 
   static public final String HASH_COLFAM = "0";
   static public final byte[] HASH_COLFAM_B = Bytes.toBytes(HASH_COLFAM);
+
+  static public final String IMAGES_TBL = "images";
+  static public final byte[] IMAGES_TBL_B = Bytes.toBytes(IMAGES_TBL);
+
+  static public final String IMAGES_COLFAM = "0";
+  static public final byte[] IMAGES_COLFAM_B = Bytes.toBytes(IMAGES_COLFAM);
+
+  public static HTable summon(Configuration conf, byte[] tname, byte[] cfam)
+                                                           throws IOException {
+    final HBaseAdmin admin = new HBaseAdmin(conf);
+    if (!admin.tableExists(tname)) {
+      final HTableDescriptor tableDesc = new HTableDescriptor(tname);
+      if (!tableDesc.hasFamily(cfam)) {
+        final HColumnDescriptor colFamDesc = new HColumnDescriptor(cfam);
+        colFamDesc.setCompressionType(Compression.Algorithm.GZ);
+        tableDesc.addFamily(colFamDesc);
+      }
+
+      try {
+        admin.createTable(tableDesc);
+      }
+      catch (TableExistsException e) {
+        LOG.info("Tried to create the hash table, but it already exists. Probably just lost a race condition.");
+      }
+    }
+    else if (!admin.isTableEnabled(tname)) {
+    	admin.enableTable(tname);
+    }
+
+    return new HTable(conf, tname);
+  }
 }
