@@ -13,7 +13,6 @@
     <artifactId>sleuthkit-hadoop</artifactId>
     <version>1-SNAPSHOT</version>
   </parent>
-
   <build>
     <defaultGoal>install</defaultGoal>
     <plugins>
@@ -77,6 +76,12 @@
       <version>1-SNAPSHOT</version>
     </dependency> 
     <!-- other dependencies -->
+    <dependency>
+      <groupId>org.apache.mahout</groupId>
+      <artifactId>mahout-core</artifactId>
+      <version>0.5</version>
+      <classifier>job</classifier>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>

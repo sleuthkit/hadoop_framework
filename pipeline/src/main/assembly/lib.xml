@@ -20,6 +20,7 @@
                 <exclude>org.sleuthkit:sleuthkit-pipeline</exclude>
                 <exclude>org.sleuthkit:sleuthkit-core</exclude>
                 <exclude>org.sleuthkit:sleuthkit-crossdrive-scoring</exclude>
+		<exclude>org.apache.mahout:mahout-core:jar:0.5</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>
