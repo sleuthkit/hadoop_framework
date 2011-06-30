@@ -23,5 +23,6 @@ var menuList = [
   {a: "Known Bad", link: "knownbad.html"},
   {a: "Document Clusters", link: "documents.html"},
   {a: "Graphics", link: "graphics.html?p=faces"},
-  {a: "Similar Devices", link: "linkanalysis.html"}
+  {a: "Similar Devices", link: "linkanalysis.html"},
+  {a: "Job Configuration", link: "jobconfig.html"}
 ];
