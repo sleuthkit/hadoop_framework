@@ -39,9 +39,9 @@
 		  <include>org.sleuthkit:sleuthkit-pipeline</include>
 		  <include>org.sleuthkit:sleuthkit-core</include>
 		  <include>org.sleuthkit:sleuthkit-crossdrive-scoring</include>
-		  <!--
+		  
 		  <include>org.apache.mahout:*</include>
-		  -->
+		 
 		</includes>
 	      </artifactSet>
 	    </configuration>
