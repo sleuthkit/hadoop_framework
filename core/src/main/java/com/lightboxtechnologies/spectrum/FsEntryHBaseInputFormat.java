@@ -37,8 +37,6 @@ import org.apache.hadoop.hbase.mapreduce.TableInputFormatBase;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.io.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
