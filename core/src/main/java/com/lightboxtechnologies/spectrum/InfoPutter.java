@@ -42,6 +42,11 @@ public class InfoPutter {
     final String[] otherArgs =
       new GenericOptionsParser(conf, args).getRemainingArgs();
 
+    if (otherArgs.length != 2) {
+      System.err.println("Usage: InfoPutter <imageID> <friendly_name>");
+      System.exit(1);
+    }
+
     final String imageID = otherArgs[0];
     final String friendlyName = otherArgs[1];
 
