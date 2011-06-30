@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+'ll */
 
 package com.lightboxtechnologies.spectrum;
 
@@ -63,7 +63,7 @@ import java.util.List;
 import javax.script.*;
 
 import org.sleuthkit.hadoop.SKMapper;
-
+import org.sleuthkit.hadoop.SKJobFactory;
 
 public class PythonJob {
 
@@ -462,11 +462,12 @@ public class PythonJob {
     }
   }
 
-  public static int run(String imageID, String outpath, String pymap, String pyred, String format, Configuration conf) throws Exception {
+  public static int run(String imageID, String friendlyName, String outpath, String pymap, String pyred, String format, Configuration conf) throws Exception {
     if (conf == null) {
       conf = HBaseConfiguration.create();
     }
-    Job job = new Job(conf, "PythonJob");
+    final Job job =
+      SKJobFactory.createJobFromConf(imageID, friendlyName, "PythonJob", conf);
     job.setJarByClass(PythonJob.class);
 
     job.setMapperClass(PythonMapper.class);
@@ -524,9 +525,13 @@ public class PythonJob {
     Configuration conf = HBaseConfiguration.create();
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
     if (otherArgs.length < 4) {
-      System.err.println("Usage: PythonJob <image_id> <outpath> <python_mapper> <python_reducer> [SequenceFileOutputFormat]");
+      System.err.println("Usage: PythonJob <image_id> <friendly_name> <outpath> <python_mapper> <python_reducer> [SequenceFileOutputFormat]");
       System.exit(2);
     }
-    System.exit(run(args[0], args[1], args[2], args[3], args.length > 4 ? args[4]: "", conf));
+
+    System.exit(run(
+      args[0], args[1], args[2], args[3], args[4],
+      args.length > 5 ? args[5]: "", conf)
+    );
   }
 }
