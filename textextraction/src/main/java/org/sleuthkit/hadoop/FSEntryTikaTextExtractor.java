@@ -46,7 +46,7 @@ public class FSEntryTikaTextExtractor {
             if (isKnownGood(value)) { return; }
             
             InputStream proxy = value.getInputStream();
-            System.out.println("Extracting Text from file:" + key.toString());
+            // System.out.println("Extracting Text from file:" + key.toString());
             if (proxy == null) { return; } //No stream for this file. Get out.
             try {
                 String output = new Tika().parseToString(proxy);
@@ -55,7 +55,11 @@ public class FSEntryTikaTextExtractor {
             }
             catch (TikaException e) {
                 //keep on going
-                LOG.warn("Could not extract text from file " + key + ".");
+                LOG.warn("Could not extract text from file " + key);
+            }
+            catch (OutOfMemoryError e) {
+              e.printStackTrace();
+              LOG.warn("Out of memory error extracting text from file " + key);
             } finally {
                 proxy.close();
             }
