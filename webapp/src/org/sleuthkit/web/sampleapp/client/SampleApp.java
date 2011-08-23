@@ -241,7 +241,7 @@ public class SampleApp implements EntryPoint {
 	private void getConfigParams() {
 		sampleService.getConfigParams(new AsyncCallback<List<String>>() {
 			public void onFailure(Throwable caught) {
-				Window.alert(ERROR_GETTING_CONFIG);
+				Window.alert(ERROR_GETTING_CONFIG + " " + caught.getMessage());
 			}
 			public void onSuccess(List<String> result) {
 				populateFileField(result.get(0));
