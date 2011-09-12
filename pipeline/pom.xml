@@ -89,6 +89,13 @@
   <profiles>
     <profile>
       <id>dependency-package</id>
+<!-- If you need the zip file with the dependencies of this project built
+along with the project, uncomment the next block of code. -->
+<!--
+      <activation>
+	<activeByDefault>true</activeByDefault>
+      </activation>
+-->
       <build>
 	<plugins>
 	  <plugin>
