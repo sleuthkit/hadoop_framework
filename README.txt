@@ -1,5 +1,12 @@
 This is a prototype project and should not be used in a production
-environment.
+environment.  This framework enables you to use Hadoop to process
+disk images. 
+
+Refer to the wiki for information on using the framework.
+
+    http://github.com/sleuthkit/hadoop_framework/wiki
+
+
 
 Copyright is retained for contributions by Basis Technology Corp
 or Lightbox Technologies, Inc, depending on the contributor.
